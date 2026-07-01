@@ -1,6 +1,6 @@
 // apps/api/src/index.ts
 import express from "express";
-import { MediaType, LOCALE_TO_TMDB_LANG } from "@foundit/types";
+import { LOCALE_TO_TMDB_LANG } from "@foundit/types";
 
 const app = express();
 const PORT = 3000;

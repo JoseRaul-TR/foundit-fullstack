@@ -1,3 +1,4 @@
+# apps/web/.gitignore
 # Nuxt dev/build outputs
 .output
 .data
