@@ -212,9 +212,9 @@ och registrerat i `nuxt.config.ts`.
 
 #### Nästa steg
 
-- [ ] Onsdag 1/7: Docker Compose PostgreSQL (#10)
-- [ ] Torsdag 3/7: Express + TypeScript struktur (#15) +
-  datamodelldesign + Prisma-schema (#1, #16)
+- [ ] Onsdag 1/7: Docker Compose PostgreSQL (#22)
+- [ ] Torsdag 3/7: Express + TypeScript struktur (#27) +
+  datamodelldesign + Prisma-schema (#13, #28)
 
 #### Commits
 
