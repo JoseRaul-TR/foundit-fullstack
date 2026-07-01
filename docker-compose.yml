@@ -1,0 +1,22 @@
+# docker-compose.yml
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: foundit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: foundit
+      POSTGRES_PASSWORD: foundit_dev
+      POSTGRES_DB: foundit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foundit -d foundit_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
