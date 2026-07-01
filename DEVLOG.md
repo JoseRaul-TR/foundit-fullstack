@@ -100,35 +100,37 @@ Fullständig entitetsdesign genomförs i dbdiagram.io (ticket #1, vecka 3).
 
 **Sommarplan reviderad:**
 Identifierade gap i ursprunglig plan och reviderade vecka 3–10:
+
 - Lade till dedikerad session för datamodelldesign (vecka 3, torsdag)
-- Flyttade Figma-wireframes till vecka 4 (före frontend-kodning, inte 
+- Flyttade Figma-wireframes till vecka 4 (före frontend-kodning, inte
   samma dag)
 - Lade till Tailwind CSS-setup i vecka 3
 - Utökade Better Auth till 2 dagar (vecka 4)
 - Lade till Zod för frontend-validering i vecka 6
 
 **GitHub-setup:**
+
 - Skapade repo: `foundit-fullstack` (MIT-licens)
 - Skapade `LOGGBOK.md` i repo-roten
-- Skapade GitHub Project med 79 detaljerade backlog-tickets fördelade 
-  på 12 kategorier (Design, Infra, Backend Setup, Backend TMDB, 
-  Backend User Data, Backend Tests, Frontend Setup, Frontend Publika 
-  sidor, Frontend Autentiserade sidor, Frontend Komponenter, 
+- Skapade GitHub Project med 79 detaljerade backlog-tickets fördelade
+  på 12 kategorier (Design, Infra, Backend Setup, Backend TMDB,
+  Backend User Data, Backend Tests, Frontend Setup, Frontend Publika
+  sidor, Frontend Autentiserade sidor, Frontend Komponenter,
   Frontend Tests, Docs)
-- Varje ticket innehåller: beskrivning, acceptanskriterier, prioritet 
+- Varje ticket innehåller: beskrivning, acceptanskriterier, prioritet
   (Critical/High/Medium/Low), storlek (S/M/L/XL), milestone (Vecka 3–10)
 
 #### Beslut
 
-| Beslut | Motivering |
-|---|---|
-| API-first (backend som enda källa) | Framtida React Native-app använder samma API |
-| Endast TMDB v3 | Egen DB för användardata, inget TMDB-kontoberoende |
-| Highlights i backend | Affärslogik på serversidan, klientagnostisk |
-| Historik på säsongsnivå (ej episod) | Enkel modell, tillräcklig UX |
-| En enda WatchedItem-tabell | Undviker duplicerad logik för film/TV |
-| On-demand ny säsong-detektion | Ingen infrastrukturkomplexitet för MVP |
-| Separata TMDB + personliga betyg | Måtten tjänar olika syften |
+| Beslut                              | Motivering                                         |
+| ----------------------------------- | -------------------------------------------------- |
+| API-first (backend som enda källa)  | Framtida React Native-app använder samma API       |
+| Endast TMDB v3                      | Egen DB för användardata, inget TMDB-kontoberoende |
+| Highlights i backend                | Affärslogik på serversidan, klientagnostisk        |
+| Historik på säsongsnivå (ej episod) | Enkel modell, tillräcklig UX                       |
+| En enda WatchedItem-tabell          | Undviker duplicerad logik för film/TV              |
+| On-demand ny säsong-detektion       | Ingen infrastrukturkomplexitet för MVP             |
+| Separata TMDB + personliga betyg    | Måtten tjänar olika syften                         |
 
 #### Nästa steg
 
@@ -146,15 +148,85 @@ Identifierade gap i ursprunglig plan och reviderade vecka 3–10:
 
 ---
 
-### Tisdag 30/6
+### Tisdag 30/6 – Monorepo setup, delade typer och Tailwind CSS
 
-- **Aktivitet**:
-- **Beslut**:
-- **Problem**:
-- **Lösning**:
-- **Reflektion**:
-- **Resurser**:
-- **Lärdom**:
+#### Vad jag gjorde
+
+Slutförde ticket #21 (monorepo med pnpm workspaces) och ticket #23
+(Tailwind CSS i apps/web) — båda genomförda samma dag.
+
+**Monorepo-struktur:**
+
+```
+foundit-fullstack/
+├── apps/
+│   ├── web/          ← Nuxt 4 frontend
+│   └── api/          ← Express backend
+├── packages/
+│   └── types/        ← Delade TypeScript-typer
+├── pnpm-workspace.yaml
+├── package.json      ← Rotskript
+└── tsconfig.base.json
+```
+
+**packages/types (@foundit/types):**
+
+- `media.ts` — MediaType, ProviderType, Provider, Genre, Country,
+  NormalizedSearchResult, PaginatedResponse
+- `user.ts` — User, UserProfile, WatchlistItem, WatchedItem, UserRating
+- `i18n.ts` — SupportedLocale, LOCALE_TO_TMDB_LANG
+- `api.ts` — ApiSuccess\<T\>, ApiError, ApiResponse\<T\>
+- `index.ts` — barrel file som exporterar allt
+
+Paketet länkas internt med `workspace:*`-protokollet och verifierades
+fungera genom att importera `LOCALE_TO_TMDB_LANG` i apps/api.
+
+**apps/api:**
+
+Express + TypeScript med `tsx watch` för hot reload. GET / endpoint
+bekräftar att servern svarar och att workspace-länken till
+`@foundit/types` fungerar korrekt.
+
+**apps/web:**
+
+Nuxt 4 initialiserat med minimal mall. `@nuxtjs/tailwindcss` installerat
+och registrerat i `nuxt.config.ts`.
+
+#### Beslut
+
+| Beslut | Motivering |
+|---|---|
+| `workspace:*` för interna paket | pnpm löser alltid till lokal version i monorepon |
+| `devDependencies` för @types, tsx, nodemon, typescript | Behövs inte i produktion — Railway kör `node dist/index.js` |
+| `strict: true` i tsconfig.base.json | Konsekvent typstrikhet ärvt av alla paket |
+| `allowBuilds` i pnpm-workspace.yaml | Eliminerar warnings om ej godkända installationsskript |
+
+#### Problem och lösningar
+
+| Problem | Orsak | Lösning |
+|---|---|---|
+| `Cannot find module '@foundit/types'` | Saknade explicit deklaration i apps/api | `pnpm add @foundit/types --filter foundit-api --workspace` |
+| `Unexpected token "/"` vid pnpm-kommandon | Jsonc-kommentarer i package.json | Tog bort alla `//`-kommentarer — standard JSON tillåter dem inte |
+| `@types/express` i `dependencies` | Felaktig placering | Flyttad till `devDependencies` |
+| `"main": "src/index.js"` | Pekade på fel katalog | Korrigerat till `"dist/index.js"` |
+
+#### Nästa steg
+
+- [ ] Onsdag 1/7: Docker Compose PostgreSQL (#10)
+- [ ] Torsdag 3/7: Express + TypeScript struktur (#15) +
+  datamodelldesign + Prisma-schema (#1, #16)
+
+#### Commits
+
+- `chore: setup monorepo with pnpm workspaces` — closes #21
+- `chore: setup tailwind css` — closes #22
+
+#### Resurser
+
+- [pnpm workspaces](https://pnpm.io/workspaces)
+- [pnpm workspace protocol](https://pnpm.io/workspaces#workspace-protocol-workspace)
+- [Nuxt 4 — Getting Started](https://nuxt.com/docs/getting-started/installation)
+- [Tailwind CSS + Nuxt](https://tailwindcss.nuxtjs.org/)
 
 ---
 
