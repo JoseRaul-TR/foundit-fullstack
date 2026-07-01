@@ -96,17 +96,17 @@ den fullständiga utvecklingsbackloggen.
 **Datamodell definierad:**
 User, UserCountry, StreamingService, UserStreamingService, WatchlistItem, WatchedItem & UserRating.
 
-Fullständig entitetsdesign genomförs i dbdiagram.io (ticket #1, vecka 3).
+Fullständig entitetsdesign genomförs i dbdiagram.io (ticket #13, vecka 1).
 
 **Sommarplan reviderad:**
-Identifierade gap i ursprunglig plan och reviderade vecka 3–10:
+Identifierade gap i ursprunglig plan och reviderade vecka 1–8:
 
-- Lade till dedikerad session för datamodelldesign (vecka 3, torsdag)
-- Flyttade Figma-wireframes till vecka 4 (före frontend-kodning, inte
+- Lade till dedikerad session för datamodelldesign (vecka 1, torsdag)
+- Flyttade Figma-wireframes till vecka 2 (före frontend-kodning, inte
   samma dag)
-- Lade till Tailwind CSS-setup i vecka 3
-- Utökade Better Auth till 2 dagar (vecka 4)
-- Lade till Zod för frontend-validering i vecka 6
+- Lade till Tailwind CSS-setup i vecka 1
+- Utökade Better Auth till 2 dagar (vecka 2)
+- Lade till Zod för frontend-validering i vecka 4
 
 **GitHub-setup:**
 
@@ -134,9 +134,9 @@ Identifierade gap i ursprunglig plan och reviderade vecka 3–10:
 
 #### Nästa steg
 
-- [ ] Tisdag 30/6: Setup av monorepo med pnpm workspaces (#9)
-- [ ] Onsdag 1/7: Docker Compose + Tailwind CSS (#10, #11)
-- [ ] Torsdag 3/7: Datamodelldesign + Prisma-schema (#1, #16)
+- [ ] Tisdag 30/6: Setup av monorepo med pnpm workspaces (#21)
+- [ ] Onsdag 1/7: Docker Compose + Express & TypeScripts in apps/api (#22, #27)
+- [ ] Torsdag 3/7: Datamodelldesign + Prisma-schema (#13, #28)
 
 #### Resurser
 
