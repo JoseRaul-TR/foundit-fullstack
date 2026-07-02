@@ -194,27 +194,27 @@ och registrerat i `nuxt.config.ts`.
 
 #### Beslut
 
-| Beslut | Motivering |
-|---|---|
-| `workspace:*` för interna paket | pnpm löser alltid till lokal version i monorepon |
+| Beslut                                                 | Motivering                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------- |
+| `workspace:*` för interna paket                        | pnpm löser alltid till lokal version i monorepon            |
 | `devDependencies` för @types, tsx, nodemon, typescript | Behövs inte i produktion — Railway kör `node dist/index.js` |
-| `strict: true` i tsconfig.base.json | Konsekvent typstrikhet ärvt av alla paket |
-| `allowBuilds` i pnpm-workspace.yaml | Eliminerar warnings om ej godkända installationsskript |
+| `strict: true` i tsconfig.base.json                    | Konsekvent typstrikhet ärvt av alla paket                   |
+| `allowBuilds` i pnpm-workspace.yaml                    | Eliminerar warnings om ej godkända installationsskript      |
 
 #### Problem och lösningar
 
-| Problem | Orsak | Lösning |
-|---|---|---|
-| `Cannot find module '@foundit/types'` | Saknade explicit deklaration i apps/api | `pnpm add @foundit/types --filter foundit-api --workspace` |
-| `Unexpected token "/"` vid pnpm-kommandon | Jsonc-kommentarer i package.json | Tog bort alla `//`-kommentarer — standard JSON tillåter dem inte |
-| `@types/express` i `dependencies` | Felaktig placering | Flyttad till `devDependencies` |
-| `"main": "src/index.js"` | Pekade på fel katalog | Korrigerat till `"dist/index.js"` |
+| Problem                                   | Orsak                                   | Lösning                                                          |
+| ----------------------------------------- | --------------------------------------- | ---------------------------------------------------------------- |
+| `Cannot find module '@foundit/types'`     | Saknade explicit deklaration i apps/api | `pnpm add @foundit/types --filter foundit-api --workspace`       |
+| `Unexpected token "/"` vid pnpm-kommandon | Jsonc-kommentarer i package.json        | Tog bort alla `//`-kommentarer — standard JSON tillåter dem inte |
+| `@types/express` i `dependencies`         | Felaktig placering                      | Flyttad till `devDependencies`                                   |
+| `"main": "src/index.js"`                  | Pekade på fel katalog                   | Korrigerat till `"dist/index.js"`                                |
 
 #### Nästa steg
 
 - [ ] Onsdag 1/7: Docker Compose PostgreSQL (#22)
 - [ ] Torsdag 3/7: Express + TypeScript struktur (#27) +
-  datamodelldesign + Prisma-schema (#13, #28)
+      datamodelldesign + Prisma-schema (#13, #28)
 
 #### Commits
 
@@ -230,15 +230,134 @@ och registrerat i `nuxt.config.ts`.
 
 ---
 
-### Onsdag 1/7
+### Onsdag 1/7 — Docker Compose PostgreSQL
 
-- **Aktivitet**:
-- **Beslut**:
-- **Problem**:
-- **Lösning**:
-- **Reflektion**:
-- **Resurser**:
-- **Lärdom**:
+#### Vad jag gjorde
+
+Slutförde ticket #22: Docker Compose med PostgreSQL 16 för lokal
+utveckling.
+
+**Konfiguration:**
+
+- `docker-compose.yml` med PostgreSQL 16 Alpine-image
+- Named volume `postgres_data` för datapersistens mellan omstarter
+- Health check med `pg_isready` — containern rapporterar `healthy`
+  först när databasen är redo att ta emot anslutningar
+- `.env.example` med alla nödvändiga miljövariabler dokumenterade
+- Rotskript tillagda i `package.json`:
+  `db:up`, `db:down`, `db:reset`, `db:logs`
+
+**Verifiering:**
+
+```bash
+docker compose ps
+# NAME               STATUS
+# foundit-postgres   Up (healthy)
+
+docker exec -it foundit-postgres psql -U foundit -d foundit_db -c "\l"
+# foundit_db synlig i listan
+```
+
+#### Beslut
+
+| Beslut                               | Motivering                                                     |
+| ------------------------------------ | -------------------------------------------------------------- |
+| PostgreSQL 16 Alpine                 | Minimal image-storlek, tillräckligt stabil                     |
+| Named volume istället för bind mount | Bättre prestanda och portabilitet                              |
+| Health check med pg_isready          | Säkerställer att Prisma inte försöker ansluta innan DB är redo |
+| restart: unless-stopped              | Containern startar om automatiskt efter systemomstart          |
+
+#### Commits
+
+- `chore: add docker compose for postgresql` — closes #10
+
+#### Resurser
+
+- [PostgreSQL Docker Hub](https://hub.docker.com/_/postgres)
+- [Docker Compose health checks](https://docs.docker.com/compose/how-tos/startup-order/)
+
+---
+
+### Torsdag 2/7 — Express + TypeScript setup med Zod-validering
+
+#### Vad jag gjorde
+
+Slutförde ticket #27: komplett Express + TypeScript-setup i apps/api
+med produktionsklar struktur.
+
+**Mappstruktur skapad:**
+
+```
+apps/api/src/
+├── controllers/    ← request handlers (tomma, fylls i kommande tickets)
+├── lib/            ← Prisma-klient, TMDB-klient, Better Auth (kommande)
+├── middleware/     ← auth, error, logging (kommande)
+├── routes/         ← Express-routrar per domän (kommande)
+├── services/       ← affärslogik (kommande)
+└── index.ts        ← app entry point
+```
+
+**Miljövariabelvalidering med Zod:**
+
+Alla nödvändiga env-variabler valideras vid uppstart via ett Zod-schema.
+Om en variabel saknas eller har fel format kraschar appen omedelbart
+med ett beskrivande felmeddelande — istället för att misslyckas senare
+vid runtime.
+
+```typescript
+const envSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+  PORT: z.coerce.number().default(3001),
+  DATABASE_URL: z.url(),
+  TMDB_API_KEY: z.string().min(1),
+  BETTER_AUTH_SECRET: z.string().min(1),
+  FRONTEND_URL: z.url(),
+});
+```
+
+**Middleware:**
+
+- `helmet()` — HTTP security headers
+- `cors()` med `origin: env.FRONTEND_URL` och `credentials: true`
+- `express.json()` — JSON body parser
+
+**Endpoints:**
+
+- `GET /health` — returnerar `{ status, timestamp, environment }`
+- `GET /` — verifierar workspace-länk till `@foundit/types`
+
+**Felhantering:**
+
+- 404-handler för okända rutter — returnerar `ApiError`-format
+- Global error handler — döljer stack trace i produktion
+
+#### Beslut
+
+| Beslut                              | Motivering                                                     |
+| ----------------------------------- | -------------------------------------------------------------- |
+| Zod för env-validering vid startup  | Fail fast — bättre att krascha direkt än vid runtime           |
+| `dotenv` laddar från monorepo-roten | En enda `.env`-fil för hela projektet                          |
+| `ApiError`-format i felhanterare    | Konsekvent med `ApiResponse<T>` från `@foundit/types`          |
+| Mappstruktur definierad nu          | Undviker refaktorisering när routes och controllers läggs till |
+| `cors: credentials: true`           | Nödvändigt för HTTP-only cookies (Better Auth)                 |
+
+#### Problem och lösningar
+
+| Problem                            | Orsak                           | Lösning                                             |
+| ---------------------------------- | ------------------------------- | --------------------------------------------------- |
+| `__dirname` undefined i ES Modules | ES Modules har inte `__dirname` | `fileURLToPath(import.meta.url)` + `path.dirname()` |
+
+#### Commits
+
+- `feat: setup express backend with zod env validation and shared types` — closes #15
+
+#### Resurser
+
+- [Express 5 — Getting Started](https://expressjs.com/en/5x/api.html)
+- [Zod — Environment variables](https://zod.dev)
+- [ES Modules — \_\_dirname equivalent](https://nodejs.org/api/esm.html#importmetaurl)
 
 ---
 
@@ -401,3 +520,7 @@ och registrerat i `nuxt.config.ts`.
 - **Lärdom**:
 
 ---
+
+```
+
+```

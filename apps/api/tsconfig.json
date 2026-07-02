@@ -7,8 +7,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
-    "paths": { "@foundit/types": ["../../packages/types/src"] }
+    "baseUrl": "."
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
