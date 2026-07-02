@@ -360,6 +360,13 @@ const envSchema = z.object({
 - [ES Modules — \_\_dirname equivalent](https://nodejs.org/api/esm.html#importmetaurl)
 
 ---
+### Databas model
+## Data Model
+The database schema is defined in [dbdiagram.io](https://dbdiagram.io) and exported as an image in `/docs/data-model.png`.
+- **Better Auth Tables**: Managed by Better Auth (user, session, account, verification).
+- **FoundIt Tables**: Custom tables for the application (UserCountry, UserStreamingService, WatchlistItem, WatchedItem, UserRating).
+
+![Databas model diagram](https://github.com/JoseRaul-TR/foundit-fullstack/blob/800827dd615182fd5c9d9605b39b992a28db681d/docs/data-model.png)
 
 ---
 
