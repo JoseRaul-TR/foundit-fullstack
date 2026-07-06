@@ -360,9 +360,13 @@ const envSchema = z.object({
 - [ES Modules — \_\_dirname equivalent](https://nodejs.org/api/esm.html#importmetaurl)
 
 ---
+
 ### Databas model
+
 ## Data Model
+
 The database schema is defined in [dbdiagram.io](https://dbdiagram.io) and exported as an image in `/docs/data-model.png`.
+
 - **Better Auth Tables**: Managed by Better Auth (user, session, account, verification).
 - **FoundIt Tables**: Custom tables for the application (UserCountry, UserStreamingService, WatchlistItem, WatchedItem, UserRating).
 
@@ -370,17 +374,99 @@ The database schema is defined in [dbdiagram.io](https://dbdiagram.io) and expor
 
 ---
 
+### Fredag 3/7 — Datamodelldesign i dbdiagram.io
+
+#### Vad jag gjorde
+
+- Slutförde **Ticket #13**: Designade den fullständiga datamodellen för FoundIt i [dbdiagram.io](https://dbdiagram.io).
+- Exporterade diagrammet som `docs/data-model.png` och lade till DBML-koden i `docs/data-model.dbml`.
+- Dokumenterade alla entiteter: **User, UserCountry, StreamingService, UserStreamingService, WatchlistItem, WatchedItem, UserRating**.
+- Validerade att modellen matchar kraven för:
+  - **API-first-arkitektur**: Backend som enda datakälla för TMDB-anrop.
+  - **Säsongsnivå för historik**: `WatchedItem` med `seasonNumber` (null för filmer).
+  - **Kaskadborttagning**: `onDelete: Cascade` för alla relationer till `User`.
+  - **Unika index**: `(userId, tmdbId, mediaType)` för `WatchlistItem` och `(userId, tmdbId, mediaType, seasonNumber)` för `WatchedItem`.
+  - Slutförde **Ticket #28**: Setup av Prisma schema och migrationer.
+- Installerade `prisma` och `@prisma/client` i `apps/api`.
+- Skapade `prisma/schema.prisma` med alla modeller baserade på datamodellen från dbdiagram.io:
+  - **Better Auth-modeller**: `User`, `Session`, `Account`, `Verification`.
+  - **FoundIt-modeller**: `UserCountry`, `StreamingService`, `UserStreamingService`, `WatchlistItem`, `WatchedItem`, `UserRating`.
+- Konfigurerade `prisma.config.ts` för att ladda miljövariabler från monorepo-roten.
+- Lade till **kaskadborttagning** (`onDelete: Cascade`) och **unika index** för alla relationer.
+- Körde `prisma migrate dev --name init` för att skapa tabellerna i PostgreSQL.
+- Genererade Prisma-klienten med `prisma generate`.
+- Skapade `lib/prisma.ts` som en singleton för att undvika flera instanser av `PrismaClient`.
+- Testeade anslutningen till databasen via `prisma.$connect()` i `index.ts`.
+
+#### Beslut
+
+| Beslut                                 | Motivering                                                                                                        |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **En enda `WatchedItem`-tabell**       | Undviker duplicerad logik för filmer och TV-serier. `mediaType` + `seasonNumber` (nullable) hanterar båda fallen. |
+| **Kaskadborttagning**                  | Automatisk rensning av relaterade data (t.ex. `UserCountry`, `WatchlistItem`) när en användare tas bort.          |
+| **Unika index**                        | Förhindrar duplicerade poster i `WatchlistItem` och `WatchedItem`.                                                |
+| Beslut                                 | Motivering                                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------                                                   |
+| **`prisma-client-js` som provider**    | Kompatibel med Prisma 7 och TypeScript ES Modules.                                                                |
+| **`@prisma/adapter-pg`**               | Nödvändigt för Prisma 7 för att ansluta till PostgreSQL.                                                          |
+| **Singleton-mönster för PrismaClient** | Undviker minnesläckor och flera anslutningar i utvecklingsläge.                                                   |
+
+#### Problem och lösningar
+
+| Problem                                 | Orsak                                                     | Lösning                                                                             |
+| --------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Osäkerhet om datamodellens granularitet | Behov av balans mellan komplexitet och användarupplevelse | Valde säsongsnivå för historik (istället för episodnivå) för att förenkla modellen. |
+
+| Problem                                    | Orsak                                     | Lösning                                                                                    |
+| ------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `DATABASE_URL undefined` i `lib/prisma.ts` | `.env` laddades inte i ES Modules-kontext | Laddade `dotenv` i `src/config/env.ts` och importerade `env` i `prisma.ts`.                |
+| `SASL: SCRAM-SERVER-FIRST-MESSAGE`         | Felaktig lösenordsformatering i `Pool`    | Använde `new URL(env.DATABASE_URL)` för att korrekt extrahera användarnamn, lösenord, etc. |
+| `PrismaClientConstructorValidationError`   | Saknade `adapter` i Prisma 7              | Lade till `PrismaPg`-adapter med `Pool` från `pg`.                                         |
+
+#### Commits
+
+- `docs: add data model diagram from dbdiagram.io` — closes #13
+- `feat(api): setup Prisma schema and migrations` — closes #28
+
+#### Resurser
+
+- [dbdiagram.io](https://dbdiagram.io)
+- [TMDB API v3 — Dokumentation](https://developer.themoviedb.org/docs)
+- [Prisma v7 — Quickstart](https://www.prisma.io/docs/prisma-orm/quickstart/postgresql)
+- [Prisma Adapters](https://www.prisma.io/docs/orm/prisma-client/deploy/edge#using-prisma-client-with-edge-functions)
+
+---
+
 ## Vecka 2 (6–9 juli 2026)
 
-### Måndag 6/7
+### Måndag 6/7 — Seed-skript med testdata
 
-- **Aktivitet**:
-- **Beslut**:
-- **Problem**:
-- **Lösning**:
-- **Reflektion**:
-- **Resurser**:
-- **Lärdom**:
+#### Vad jag gjorde
+
+- Slutförde **Ticket #29**: Skapade seed-skript med realistisk testdata för lokal utveckling.
+- Skapade `prisma/seed.ts` med följande data:
+  - **2 testanvändare**:
+    - `testuser1@foundit.dev` (lösenord: `test123`).
+    - `testuser2@foundit.dev` (lösenord: `test456`).
+  - **Streamingtjänster** med TMDB-provider-ID:
+    - Netflix (8), Disney+ (337), HBO Max (384), Amazon Prime (119), Apple TV+ (350), Paramount+ (531).
+  - **Användarinställningar**:
+    - `testuser1`: Länder `ES` och `SE`, prenumerationer på Netflix och Disney+ i båda länderna.
+    - `testuser2`: Land `DE`, prenumeration på Amazon Prime i `DE`.
+  - **Watchlist för `testuser1`**:
+    - 3 filmer (TMDB-ID: 1, 2, 3).
+    - 2 TV-serier (TMDB-ID: 1399, 1400).
+  - **Historik för `testuser1`**:
+    - 2 filmer (TMDB-ID: 1, 2) markerade som sedda.
+    - 1 TV-serie (TMDB-ID: 1399) med säsong 1 markerad som sedd.
+  - **Betyg för `testuser1`**:
+    - Film 1: 8/10.
+    - Film 2: 7/10.
+- Implementerade **upsert-mönster** för att undvika duplicerade poster vid omkörning av seed-skriptet.
+- Lade till skriptet `pnpm seed` i `package.json` för `apps/api`:
+  ```json
+  "seed": "tsx prisma/seed.ts"
+  ```
 
 ---
 
