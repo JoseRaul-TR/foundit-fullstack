@@ -181,3 +181,7 @@ coverage/
 
 # Prisma
 apps/api/prisma/migrations/
+
+#Claude
+CLAUDE.md
+cookies.txt

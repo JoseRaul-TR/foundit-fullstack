@@ -1,37 +1,12 @@
 // apps/api/src/index.ts
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
-
-// Obtain the current directory (equivalent to __dirname in ES Modules)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load the .env from the monorepo's root
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
-// Continue with imports
-import prisma from "./lib/prisma";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { z } from "zod";
+import { toNodeHandler } from "better-auth/node";
 import { LOCALE_TO_TMDB_LANG } from "@foundit/types";
-
-// Validate environment variables with Zod
-const envSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
-  PORT: z.coerce.number().default(3001),
-  DATABASE_URL: z.url(),
-  TMDB_API_KEY: z.string().min(1),
-  BETTER_AUTH_SECRET: z.string().min(1),
-  FRONTEND_URL: z.url(),
-});
-
-// Validate and parse evironment variables
-const env = envSchema.parse(process.env);
+import { env } from "./config/env";
+import { auth, requireAuth } from "./lib/auth";
+import prisma from "./lib/prisma";
 
 // Create the Express app
 const app = express();
@@ -44,7 +19,24 @@ app.use(
     credentials: true,
   }),
 );
+
+// IMPORTANT: Better Auth's handler must be mounted BEFORE express.json().
+// It needs the raw, unparsed request body — if express.json() runs first,
+// sign-up/sign-in requests will fail silently or with a body-parsing error.
+// Express 5 (path-to-regexp v8) requires named wildcards: "*splat", not "*".
+app.all("/api/auth/*splat", toNodeHandler(auth));
+
+// JSON body parser for everything else, mounted after the auth handler
 app.use(express.json());
+
+// Protected Route Example
+app.get("/api/protected", requireAuth, (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: "You are authenticated!",
+    user: req.session?.user,
+  });
+});
 
 // Health Endpoint
 app.get("/health", (req: Request, res: Response) => {
@@ -52,7 +44,7 @@ app.get("/health", (req: Request, res: Response) => {
     status: "ok",
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
-  });
+  }); 
 });
 
 // Root Endpoint
@@ -62,7 +54,7 @@ app.get("/", (req: Request, res: Response) => {
   );
 });
 
-// Middleware to handle 404 status errors
+// 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
@@ -74,7 +66,7 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Middleware to handle global errors
+// Global errors handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Error:", err);
   res.status(500).json({
