@@ -6,7 +6,7 @@ import { toNodeHandler } from "better-auth/node";
 import { LOCALE_TO_TMDB_LANG } from "@foundit/types";
 import { env } from "./config/env";
 import { auth, requireAuth } from "./lib/auth";
-import prisma from "./lib/prisma";
+import prisma, { pool } from "./lib/prisma";
 
 // Create the Express app
 const app = express();
@@ -44,7 +44,7 @@ app.get("/health", (req: Request, res: Response) => {
     status: "ok",
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
-  }); 
+  });
 });
 
 // Root Endpoint
@@ -91,9 +91,48 @@ async function testDatabaseConnection() {
 }
 
 // Start Server
-app.listen(env.PORT, async () => {
+const server = app.listen(env.PORT, async () => {
   await testDatabaseConnection();
   console.log(`API server running on http://localhost:${env.PORT}`);
   console.log(`Environment: ${env.NODE_ENV}`);
   console.log(`Frontend URL: ${env.FRONTEND_URL}`);
 });
+
+// Graceful Server Shutdown
+let shuttingDown = false;
+
+async function shutdown(signal: string) {
+  if (shuttingDown) return; // ignore repeated signals
+  shuttingDown = true;
+  console.log(`\n${signal} received — shutting down gracefully the server...`);
+
+  // Force-exit if cleanup hangs (e.g. a stuck DB connection)
+  const forceExit = setTimeout(() => {
+    console.error("⏱️ Shutdown timed out, forcing exit");
+    process.exit(1);
+  }, 10_000);
+  forceExit.unref();
+
+  // 1. Stop accepting new connections; wait for in-flight requests to finish
+  server.close(async (err) => {
+    if (err) {
+      console.error("❌ Error closing HTTP server:", err);
+    } else {
+      console.log("✅ HTTP server closed");
+    }
+
+    // 2. Close database resources
+    try {
+      await prisma.$disconnect();
+      await pool.end();
+      console.log("✅ Database connections closed");
+      process.exit(err ? 1 : 0);
+    } catch (dbErr) {
+      console.error("❌ Error closing database connections:", dbErr);
+      process.exit(1);
+    }
+  });
+}
+
+process.on("SIGINT", () => shutdown("SIGINT")); // Ctrl+C
+process.on("SIGTERM", () => shutdown("SIGTERM")); // Railway/Docker stop

@@ -5,33 +5,6 @@ import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
 import prisma from "./prisma";
 
-// User and Session types definitions
-type BetterAuthUser = {
-  id: string;
-  name?: string | null;
-  email: string;
-  emailVerified: boolean;
-  image?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type BetterAuthSession = {
-  session: {
-    id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    userId: string;
-    expiresAt: Date;
-    token: string;
-    ipAddress?: string | null;
-    userAgent?: string | null;
-  };
-  user: BetterAuthUser;
-};
-
-export type AuthSession = BetterAuthSession | null;
-
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -39,6 +12,20 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+  },
+  socialProviders: {
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Google verifies emails, so it's safe to auto-link a Google sign-in
+      // to an existing email/password user with the same (verified) email.
+      trustedProviders: ["google"],
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
@@ -58,12 +45,17 @@ export const auth = betterAuth({
   },
 });
 
+// Derived from the auth instance itself — stays in sync automatically
+export type AuthSession = NonNullable<
+  Awaited<ReturnType<typeof auth.api.getSession>>
+>;
+
 /**
  * Extracts the current session/user from the request, or null if unauthenticated.
  */
 export async function extractSession(
   req: Request,
-): Promise<BetterAuthUser | null> {
+): Promise<AuthSession["user"] | null> {
   const session = await auth.api.getSession({
     headers: new Headers(req.headers as Record<string, string>),
   });
@@ -94,7 +86,7 @@ export async function requireAuth(
     });
   }
 
-  req.session = session as AuthSession;
+  req.session = session;
   next();
 }
 

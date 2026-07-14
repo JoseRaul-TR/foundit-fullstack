@@ -24,7 +24,6 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@better-auth/prisma-adapter": "^1.6.23",
     "@foundit/types": "workspace:*",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -41,7 +40,6 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.0.1",
     "@types/pg": "^8.20.0",
-    "nodemon": "^3.1.14",
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

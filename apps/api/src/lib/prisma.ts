@@ -1,13 +1,13 @@
 // apps/api/src/lib/prisma.ts
-import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import { env } from "../config/env"; // ✅ Importa `env` desde el archivo central
+import { env } from "../config/env";
+import { PrismaClient } from "@prisma/client";
 
 // Break down the connection URL
 const databaseUrl = new URL(env.DATABASE_URL);
 
-const pool = new Pool({
+export const pool = new Pool({
   user: databaseUrl.username,
   password: databaseUrl.password,
   host: databaseUrl.hostname,
@@ -26,7 +26,8 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     adapter,
-    log: env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log:
+      env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   });
 
 if (env.NODE_ENV !== "production") {
