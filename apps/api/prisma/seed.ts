@@ -1,49 +1,76 @@
 // apps/api/prisma/seed.ts
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
+// Note: importing from ../src pulls in config/env (dotenv from monorepo root),
+// the shared Prisma singleton and the Better Auth instance — no local setup needed.
+import { auth } from "../src/lib/auth";
+import prisma, { pool } from "../src/lib/prisma";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+// ─── Test credentials (documented in DEVLOG) ─────────────────────────────────
+// Better Auth requires passwords of at least 8 characters.
+const TEST_USERS = [
+  {
+    email: "testuser1@foundit.dev",
+    password: "test1234",
+    name: "Test User 1",
+  },
+  {
+    email: "testuser2@foundit.dev",
+    password: "test5678",
+    name: "Test User 2",
+  },
+] as const;
 
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+/**
+ * Ensures a test user exists WITH working email/password credentials.
+ *
+ * Users must be created through Better Auth (auth.api.signUpEmail) so the
+ * password hash (scrypt, salt:hash format) and the account row are correct
+ * by construction — never insert hashes manually.
+ *
+ * Self-healing: legacy seed users created directly via prisma.user.create
+ * have no credential account and cannot sign in. If one is found, it is
+ * deleted (cascade removes its related data) and recreated properly.
+ */
+async function ensureUser(email: string, password: string, name: string) {
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    include: { accounts: true },
+  });
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+  if (existing) {
+    const hasCredentials = existing.accounts.some(
+      (account) => account.providerId === "credential",
+    );
+    if (hasCredentials) return existing;
+
+    console.log(
+      `♻️  Recreating legacy seed user without credentials: ${email}`,
+    );
+    await prisma.user.delete({ where: { email } }); // cascade cleans related data
+  }
+
+  await auth.api.signUpEmail({ body: { email, password, name } });
+
+  // signUpEmail sets emailVerified: false — flip it for test users
+  return prisma.user.update({
+    where: { email },
+    data: { emailVerified: true },
+  });
+}
 
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // ─── Users ────────────────────────────────────────────────────────────────
-  const user1 = await prisma.user.upsert({
-    where: { email: "testuser1@foundit.dev" },
-    update: {},
-    create: {
-      id: "seed-user-1",
-      email: "testuser1@foundit.dev",
-      name: "Test User 1",
-      emailVerified: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  });
-
-  const user2 = await prisma.user.upsert({
-    where: { email: "testuser2@foundit.dev" },
-    update: {},
-    create: {
-      id: "seed-user-2",
-      email: "testuser2@foundit.dev",
-      name: "Test User 2",
-      emailVerified: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  });
+  // ─── Users (via Better Auth, with credentials) ────────────────────────────
+  const user1 = await ensureUser(
+    TEST_USERS[0].email,
+    TEST_USERS[0].password,
+    TEST_USERS[0].name,
+  );
+  const user2 = await ensureUser(
+    TEST_USERS[1].email,
+    TEST_USERS[1].password,
+    TEST_USERS[1].name,
+  );
 
   console.log(`✅ Users: ${user1.email}, ${user2.email}`);
 
@@ -136,29 +163,25 @@ async function main() {
   console.log("✅ Watchlist items created");
 
   // ─── Watch History (User 1) ───────────────────────────────────────────────
-  // 2 movies watched
-  const watchedMovies: {
+  // Upsert is not possible here: seasonNumber is nullable inside the compound
+  // unique index, so we use findFirst + create instead.
+  const watchedItems: {
     tmdbId: number;
     mediaType: string;
     seasonNumber: number | null;
   }[] = [
     { tmdbId: 550, mediaType: "movie", seasonNumber: null }, // Fight Club
     { tmdbId: 13, mediaType: "movie", seasonNumber: null }, // Forrest Gump
+    { tmdbId: 1396, mediaType: "tv", seasonNumber: 1 }, // Breaking Bad S1
   ];
-  // 1 TV show — season 1 watched (Breaking Bad)
-  const watchedTV: {
-    tmdbId: number;
-    mediaType: string;
-    seasonNumber: number | null;
-  }[] = [{ tmdbId: 1396, mediaType: "tv", seasonNumber: 1 }];
 
-  for (const item of [...watchedMovies, ...watchedTV]) {
+  for (const item of watchedItems) {
     const existing = await prisma.watchedItem.findFirst({
       where: {
         userId: user1.id,
         tmdbId: item.tmdbId,
         mediaType: item.mediaType,
-        seasonNumber: item.seasonNumber ?? null,
+        seasonNumber: item.seasonNumber,
       },
     });
     if (!existing) {
@@ -167,7 +190,7 @@ async function main() {
           userId: user1.id,
           tmdbId: item.tmdbId,
           mediaType: item.mediaType,
-          seasonNumber: item.seasonNumber ?? null,
+          seasonNumber: item.seasonNumber,
         },
       });
     }
@@ -201,12 +224,16 @@ async function main() {
 
   console.log("✅ Ratings created");
   console.log("🌱 Seed completed successfully");
+  console.log("\n🔑 Test credentials:");
+  for (const u of TEST_USERS) {
+    console.log(`   ${u.email} / ${u.password}`);
+  }
 }
 
 main()
   .catch((e) => {
     console.error("❌ Seed failed:", e);
-    process.exit(1);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

@@ -610,10 +610,11 @@ standalone-installationsskriptet. Regenererade lockfilen.
 
 #### Vad jag gjorde
 
-Slutförde Google OAuth-ticketen. Gårdagens kvarstående `state_mismatch`
+- Slutförde Google OAuth-ticketen. Gårdagens kvarstående `state_mismatch`
 berodde på att jag återanvände gårdagens Google-URL: OAuth-state är
 engångs och har kort TTL (loggen visar hur utgångna verification-rader
 purgas precis före felet).
+- Refaktorerade seed-skriptet: användare skapas nu via auth.api.signUpEmail så att testkontona har fungerande inloggningsuppgifter
 
 **Korrekt manuellt testflöde** (samma som Nuxt-klienten kommer använda):
 
@@ -646,6 +647,7 @@ Notering: sessionsrutten heter `/api/auth/get-session`, inte
 #### Commits
 
 - `feat(api): add google oauth provider with account linking` — closes #31
+- `fix(api): create seed users through better auth so test accounts can sign in`
 
 #### Nästa steg
 
