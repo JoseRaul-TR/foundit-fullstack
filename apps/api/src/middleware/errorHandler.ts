@@ -1,5 +1,4 @@
-// apps/api/middleware/errorHandler.ts
-
+// apps/api/src/middleware/errorHandler.ts
 import { Response, Request, NextFunction } from "express";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";

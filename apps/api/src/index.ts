@@ -8,19 +8,29 @@ import { env } from "./config/env";
 import { auth, requireAuth } from "./lib/auth";
 import prisma, { pool } from "./lib/prisma";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { authLimiter, globalLimiter } from "./middleware/rateLimit";
 
 // Create the Express app
 const app = express();
 
-// Middleware
+// Railway runs the API behind a reverse proxy. Without this, req.ip is the
+// proxy's IP and ALL users would share one rate-limit bucket. Trust exactly
+// one proxy hop.
+app.set("trust proxy", 1);
+
+// ——— Security Middleware ———
 app.use(helmet());
 app.use(
   cors({
     origin: env.FRONTEND_URL,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   }),
 );
+app.use(globalLimiter);
 
+//Strict limit on auth BEFORE the Better Auth handler
+app.use("/api/auth", authLimiter);
 // IMPORTANT: Better Auth's handler must be mounted BEFORE express.json().
 // It needs the raw, unparsed request body — if express.json() runs first,
 // sign-up/sign-in requests will fail silently or with a body-parsing error.
