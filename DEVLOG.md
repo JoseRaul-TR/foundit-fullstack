@@ -470,57 +470,188 @@ The database schema is defined in [dbdiagram.io](https://dbdiagram.io) and expor
 
 ---
 
-### Tisdag 7/7
+### Tisdag 7/7 — Better Auth: e-post/lösenord (del 1)
 
-- **Aktivitet**:
-- **Beslut**:
-- **Problem**:
-- **Lösning**:
-- **Reflektion**:
-- **Resurser**:
-- **Lärdom**:
+#### Vad jag gjorde
+
+Påbörjade Better Auth-integrationen (e-post/lösenord) i apps/api:
+
+- Installerade `better-auth` och skapade `lib/auth.ts` med Prisma-adapter,
+  e-post/lösenord-provider, sessionskonfiguration (7 dagars expiry,
+  24h updateAge, 5 min cookieCache) och `trustedOrigins: [FRONTEND_URL]`.
+- Monterade auth-handlern i Express via `toNodeHandler(auth)`.
+- Skapade `requireAuth`-middleware (401 utan giltig session) och
+  `extractSession`-hjälpare.
+- `useSecureCookies` aktiveras endast i produktion — lokalt körs http.
+
+#### Beslut
+
+| Beslut                                      | Motivering                                                  |
+| ------------------------------------------- | ----------------------------------------------------------- |
+| Adapter från `better-auth/adapters/prisma`  | Inbyggd i better-auth — inget separat paket finns           |
+| Auth-handlern monteras FÖRE `express.json()`| Better Auth kräver rå (oparsead) request body               |
+| `trustedOrigins` istället för origin-check av | Dokumenterad, säker konfiguration                          |
+
+#### Problem och lösningar
+
+| Problem                                        | Orsak                                          | Lösning                                    |
+| ---------------------------------------------- | ---------------------------------------------- | ------------------------------------------ |
+| `Cannot find module '@better-auth/prisma-adapter'` | Paketet finns inte på npm                  | Import från `better-auth/adapters/prisma`  |
+| Sign-up/sign-in misslyckades tyst              | `express.json()` konsumerade bodyn före auth   | `toNodeHandler(auth)` monterad först       |
+| Krasch på `app.all("/api/auth/*")`             | Express 5 (path-to-regexp v8) kräver namngivna wildcards | Mönstret `"/api/auth/*splat"`   |
+
+#### Nästa steg
+
+- [ ] Typning av session + manuella endpoint-tester
 
 ---
 
-### Onsdag 8/7
+### Onsdag 8/7 — Better Auth: e-post/lösenord (del 2)
 
-- **Aktivitet**:
-- **Beslut**:
-- **Problem**:
-- **Lösning**:
-- **Reflektion**:
-- **Resurser**:
-- **Lärdom**:
+#### Vad jag gjorde
+
+- Löste typningen: `AuthSession` härleds direkt från auth-instansen med
+  `NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>` —
+  håller sig automatiskt i synk med Better Auth.
+- Skapade `src/types/express.d.ts` med module augmentation så att
+  `req.session` är korrekt typad (ersätter `(req as any)`).
+- Fixade dotenv-buggen i `config/env.ts`: sökvägen till monorepo-rotens
+  `.env` kräver fyra nivåer upp från `src/config/`, inte två.
+- Testade manuellt med curl: sign-up, sign-in (cookie), get-session,
+  skyddad route utan cookie (401), sign-out. Alla acceptanskriterier
+  för e-post/lösenord uppfyllda.
+
+#### Problem och lösningar
+
+| Problem                                  | Orsak                                                | Lösning                                  |
+| ---------------------------------------- | ---------------------------------------------------- | ---------------------------------------- |
+| ZodError: alla env-variabler `undefined` | `env.ts` laddade `../../.env` (2 nivåer) — filen ligger 4 nivåer upp | `../../../../.env` från `src/config/` |
+| TS2339: `'user'` finns inte på sessionstypen | Unionen innehöll `null` — kan inte indexeras     | `NonNullable<...>` före indexering       |
+| `(req as any).session`                   | Ingen typaugmentation för Express Request            | `src/types/express.d.ts`                 |
+
+#### Commits
+
+- `feat(api): setup better auth email/password authentication` — closes #30
 
 ---
+
+### Torsdag 9/7 — Google OAuth (del 1)
+
+#### Vad jag gjorde
+
+- Skapade OAuth 2.0-credentials i Google Cloud Console och registrerade
+  redirect URI: `http://localhost:3001/api/auth/callback/google`
+  (backendens port, http, ingen trailing slash).
+- Lade till `socialProviders.google` i auth-konfigurationen och
+  `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` + `BETTER_AUTH_URL` i
+  Zod-schemat och `.env.example`.
+- Konfigurerade account linking: `accountLinking.trustedProviders:
+  ["google"]` — en Google-inloggning med samma verifierade e-post
+  länkas till befintlig e-post/lösenord-användare.
+
+#### Problem och lösningar
+
+| Problem                              | Orsak                                            | Lösning                                        |
+| ------------------------------------ | ------------------------------------------------ | ---------------------------------------------- |
+| `Error 400: redirect_uri_mismatch`   | URI:n var inte registrerad i Google Cloud Console | Exakt URI registrerad (port 3001, http)       |
+| 404 på `GET /api/auth/sign-in/google`| Rutten finns inte — sociala flöden initieras annorlunda | `POST /api/auth/sign-in/social` med `{"provider":"google"}` returnerar Googles auth-URL |
 
 ---
 
 ## Vecka 3 (13–16 juli 2026)
 
-### Måndag 13/7
+### Måndag 13/7 — pnpm-haveri, Prisma-klienten och graceful shutdown
 
-- **Aktivitet**:
-- **Beslut**:
-- **Problem**:
-- **Lösning**:
-- **Reflektion**:
-- **Resurser**:
-- **Lärdom**:
+#### Vad jag gjorde
+
+Dagen dominerades av ett totalt pnpm-haveri: varje kommando i repot
+kraschade med `Cannot use 'in' operator to search for 'integrity' in
+undefined` — även `pnpm help`. Felsökningen eliminerade lockfilen och
+node_modules som orsak (felet kvarstod efter fullständig radering).
+
+**Rotorsak (reproducerad i ren sandbox):** `devEngines.packageManager`
+pekade på pnpm 11.12.0 medan den globala binären var 11.9.0. Den
+automatiska versionsnedladdningen (`onFail: "download"`) körs före
+varje kommando i workspacet, och 11.9.0:s nedladdare kraschar specifikt
+vid upplösning av 11.12.0 (11.10.0 och 11.11.0 fungerar). Att `pnpm
+store prune` fungerade var vilseledande — store-kommandon går inte via
+versionsbytet.
+
+**Fix:** uppdaterade den globala pnpm-installationen till 11.12.0 via
+standalone-installationsskriptet. Regenererade lockfilen.
+
+Övrigt:
+
+- `prisma generate` krävs efter varje node_modules-radering —
+  `allowBuilds: prisma: false` blockerar automatisk generering.
+  Återställde ett felaktigt workaround-import (`@prisma/client/extension`).
+- Implementerade graceful shutdown i `index.ts`: SIGINT/SIGTERM →
+  `server.close()` + `server.closeIdleConnections()` +
+  `prisma.$disconnect()` + `pool.end()`, med 10s force-exit-timeout.
+  Viktigt för Railway-deploys (SIGTERM vid ny release).
+- Rensade oanvända beroenden: `nodemon`, `@better-auth/prisma-adapter`,
+  `concurrently`.
+- Första OAuth-testet i webbläsaren gav `state_mismatch` — flödet hade
+  initierats med curl, så Better Auths state-cookie fanns aldrig i
+  webbläsaren.
+
+#### Problem och lösningar
+
+| Problem                                              | Orsak                                                        | Lösning                                            |
+| ---------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| Alla pnpm-kommandon kraschade i repot                | Bugg i pnpm 11.9.0:s versionsnedladdare vid mål 11.12.0      | Global pnpm → 11.12.0; håll global == devEngines-pin |
+| `@prisma/client has no exported member 'PrismaClient'` | Genererad klient raderades med node_modules; auto-build blockerad | `pnpm --filter foundit-api db:generate` efter varje ren install |
+| Editor-fel (`helmet` saknas, `req.headers` finns inte) | Stale TS server efter ny node_modules (CLI kompilerade rent) | Restart TS Server i VS Code                        |
+| `state_mismatch` i OAuth-callback                    | Flödet initierat med curl — state-cookien nådde aldrig webbläsaren | Initiera flödet från webbläsaren                  |
 
 ---
 
-### Tisdag 14/7
+### Tisdag 14/7 — Google OAuth slutförd
 
-- **Aktivitet**:
-- **Beslut**:
-- **Problem**:
-- **Lösning**:
-- **Reflektion**:
-- **Resurser**:
-- **Lärdom**:
+#### Vad jag gjorde
 
----
+Slutförde Google OAuth-ticketen. Gårdagens kvarstående `state_mismatch`
+berodde på att jag återanvände gårdagens Google-URL: OAuth-state är
+engångs och har kort TTL (loggen visar hur utgångna verification-rader
+purgas precis före felet).
+
+**Korrekt manuellt testflöde** (samma som Nuxt-klienten kommer använda):
+
+1. Nuxt dev igång på :3000
+2. Från webbläsarkonsolen på `localhost:3000`:
+   `fetch("http://localhost:3001/api/auth/sign-in/social", { method:
+   "POST", credentials: "include", ... })` → state-cookien hamnar i
+   webbläsaren
+3. `window.location.href = url` → Google-inloggning → callback →
+   redirect till :3000
+
+**Verifiering av acceptanskriterier:**
+
+- ✅ `POST /sign-in/social` returnerar Googles auth-URL
+- ✅ Callback skapar user + account (`providerId = "google"`) — verifierat
+  i Prisma Studio
+- ✅ Sessionscookie satt; `GET /api/auth/get-session` returnerar användaren
+- ✅ Account linking konfigurerad via `trustedProviders`
+
+Notering: sessionsrutten heter `/api/auth/get-session`, inte
+`/api/auth/session` som ticketen angav — ticketen korrigerad.
+
+#### Problem och lösningar
+
+| Problem                                | Orsak                                        | Lösning                                          |
+| -------------------------------------- | -------------------------------------------- | ------------------------------------------------ |
+| `state_mismatch` trots webbläsarflöde  | Gårdagens Google-URL återanvänd — state är engångs med kort TTL | Hela flödet i en session, gamla flikar stängda |
+| 404 på `GET /api/auth/session`         | Rutten heter `get-session` i Better Auth     | `GET /api/auth/get-session`; ticket uppdaterad   |
+
+#### Commits
+
+- `feat(api): add google oauth provider with account linking` — closes #31
+
+#### Nästa steg
+
+- [ ] Security middleware: cors-finjustering + rate limiting (#20/#32?)
+- [ ] Centraliserad error handler (#21/#33?)
+- [ ] Därefter: TMDB-service och första publika endpoints
 
 ---
 
