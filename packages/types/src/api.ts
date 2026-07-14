@@ -10,6 +10,7 @@ export interface ApiError {
     message: string;
     code: string;
     statusCode: number;
+    details?: { field: string; message: string }[];
   };
 }
 

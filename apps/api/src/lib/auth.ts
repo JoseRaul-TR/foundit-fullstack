@@ -4,6 +4,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
 import prisma from "./prisma";
+import { AppError } from "src/middleware/errorHandler";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -76,14 +77,7 @@ export async function requireAuth(
   });
 
   if (!session || !session.user) {
-    return res.status(401).json({
-      success: false,
-      error: {
-        message: "Unauthorized",
-        code: "UNAUTHORIZED",
-        statusCode: 401,
-      },
-    });
+    return next(new AppError("Unauthorized", 401));
   }
 
   req.session = session;
