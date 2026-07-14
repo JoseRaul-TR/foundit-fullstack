@@ -7,6 +7,7 @@ import { LOCALE_TO_TMDB_LANG } from "@foundit/types";
 import { env } from "./config/env";
 import { auth, requireAuth } from "./lib/auth";
 import prisma, { pool } from "./lib/prisma";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 // Create the Express app
 const app = express();
@@ -55,30 +56,10 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    error: {
-      message: "Not Found",
-      code: "NOT_FOUND",
-      statusCode: 404,
-    },
-  });
-});
+app.use(notFoundHandler);
 
 // Global errors handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error("Error:", err);
-  res.status(500).json({
-    success: false,
-    error: {
-      message:
-        env.NODE_ENV === "production" ? "Internal Server Error" : err.message,
-      code: "INTERNAL_ERROR",
-      statusCode: 500,
-    },
-  });
-});
+app.use(errorHandler);
 
 // Test the connection to the database
 async function testDatabaseConnection() {
