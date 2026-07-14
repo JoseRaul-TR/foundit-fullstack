@@ -446,8 +446,8 @@ The database schema is defined in [dbdiagram.io](https://dbdiagram.io) and expor
 - Slutförde **Ticket #29**: Skapade seed-skript med realistisk testdata för lokal utveckling.
 - Skapade `prisma/seed.ts` med följande data:
   - **2 testanvändare**:
-    - `testuser1@foundit.dev` (lösenord: `test123`).
-    - `testuser2@foundit.dev` (lösenord: `test456`).
+    - `testuser1@foundit.dev` (lösenord: `test1234`).
+    - `testuser2@foundit.dev` (lösenord: `test5678`).
   - **Streamingtjänster** med TMDB-provider-ID:
     - Netflix (8), Disney+ (337), HBO Max (384), Amazon Prime (119), Apple TV+ (350), Paramount+ (531).
   - **Användarinställningar**:
