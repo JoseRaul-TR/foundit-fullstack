@@ -606,15 +606,14 @@ standalone-installationsskriptet. Regenererade lockfilen.
 
 ---
 
-### Tisdag 14/7 — Google OAuth slutförd
+### Tisdag 14/7 — Google OAuth slutförd, error handler och security middleware
 
 #### Vad jag gjorde
 
-- Slutförde Google OAuth-ticketen. Gårdagens kvarstående `state_mismatch`
-berodde på att jag återanvände gårdagens Google-URL: OAuth-state är
-engångs och har kort TTL (loggen visar hur utgångna verification-rader
-purgas precis före felet).
-- Refaktorerade seed-skriptet: användare skapas nu via auth.api.signUpEmail så att testkontona har fungerande inloggningsuppgifter
+**Google OAuth i mål (#31).** Gårdagens kvarstående `state_mismatch`
+berodde på att jag återanvände en dagsgammal Google-URL — OAuth-state
+är engångs och lever bara några minuter (loggen visar hur utgångna
+verification-rader purgas precis före felet).
 
 **Korrekt manuellt testflöde** (samma som Nuxt-klienten kommer använda):
 
@@ -634,8 +633,51 @@ purgas precis före felet).
 - ✅ Sessionscookie satt; `GET /api/auth/get-session` returnerar användaren
 - ✅ Account linking konfigurerad via `trustedProviders`
 
+Autentiseringslagret är därmed komplett: e-post/lösenord + Google OAuth.
+
 Notering: sessionsrutten heter `/api/auth/get-session`, inte
 `/api/auth/session` som ticketen angav — ticketen korrigerad.
+
+**Seed-refaktorering.** Användare skapas nu via `auth.api.signUpEmail`
+istället för `prisma.user.create` — testkontona får korrekt
+lösenordshash (scrypt) och account-rad, och kan faktiskt logga in.
+Skriptet är självläkande: gamla seed-användare utan credentials
+raderas (cascade) och återskapas korrekt. Bytte `process.exit(1)` mot
+`process.exitCode = 1` så att `.finally()` hinner stänga
+DB-anslutningarna vid fel.
+
+**Centraliserad felhantering (#33).** Skapade
+`middleware/errorHandler.ts`:
+
+- `AppError`-klass med `statusCode`, `code` och `isOperational`
+- En enda `sendError`-funktion — alla felsvar formateras på ett ställe
+- Mappning: Prisma P2002 → 409, P2025 → 404, ZodError → 400 med
+  fältdetaljer (`details[]`, tillagt i `ApiError` i @foundit/types)
+- Okända fel → 500; stack trace loggas, detaljer döljs i produktion
+- `notFoundHandler` ersätter inline-404:an och routar via samma handler
+- `requireAuth` refaktorerad: `next(new AppError("Unauthorized", 401))`
+- Express 5 vidarebefordrar rejected promises automatiskt — inget
+  `asyncHandler`-wrapper behövs i kommande controllers
+
+**Security middleware (#32).** Skapade `middleware/rateLimit.ts` med
+tre limiters via `express-rate-limit`: global (100 req/15 min), auth
+(10 req/15 min, monterad före Better Auth-handlern) och tmdb
+(30 req/min, exporterad — appliceras när TMDB-rutterna finns).
+429-svaren routas genom den centrala felhanteraren (ApiError-shape).
+Dev-gränser är 10x för att inte låsa ute lokal testning. CORS
+kompletterad med explicit metodlista. `app.set("trust proxy", 1)`
+tillagt — utan det skulle alla användare bakom Railways proxy dela
+samma rate-limit-bucket.
+
+#### Beslut
+
+| Beslut                                     | Motivering                                                    |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| Seed-användare via Better Auth API          | Hash + account-rad korrekta by construction — aldrig manuella hashar |
+| En enda felformateringspunkt (`sendError`) | Konsekvent ApiError-shape över alla endpoints, inkl. 429      |
+| `isOperational`-flagga på AppError          | Skiljer förväntade fel (litas på) från buggar (alltid 500)    |
+| Dev-rate-limits 10x                         | OAuth-testning skulle annars låsa ute mig själv               |
+| `trust proxy: 1`                            | Korrekt klient-IP bakom Railways reverse proxy                |
 
 #### Problem och lösningar
 
@@ -643,17 +685,20 @@ Notering: sessionsrutten heter `/api/auth/get-session`, inte
 | -------------------------------------- | -------------------------------------------- | ------------------------------------------------ |
 | `state_mismatch` trots webbläsarflöde  | Gårdagens Google-URL återanvänd — state är engångs med kort TTL | Hela flödet i en session, gamla flikar stängda |
 | 404 på `GET /api/auth/session`         | Rutten heter `get-session` i Better Auth     | `GET /api/auth/get-session`; ticket uppdaterad   |
+| `ReferenceError: message is not defined` i errorHandler | Parametern `message` föll bort ur `sendError`-signaturen vid inklistring | Återställde 5-parameterssignaturen; TS-felen pekade på samma rot |
+| Express default-handler svarade HTML   | errorHandler kraschade själv → Express föll tillbaka | Fixad signatur; verifierat JSON-shape med curl + jq |
 
 #### Commits
 
 - `feat(api): add google oauth provider with account linking` — closes #31
 - `fix(api): create seed users through better auth so test accounts can sign in`
+- `feat(api): add centralized error handler with AppError` — closes #33
+- `feat(api): add security middleware with rate limiting` — closes #32
 
 #### Nästa steg
 
-- [ ] Security middleware: cors-finjustering + rate limiting (#20/#32?)
-- [ ] Centraliserad error handler (#21/#33?)
-- [ ] Därefter: TMDB-service och första publika endpoints
+- [ ] TMDB-service: klient i `lib/`, första publika endpoints (search)
+- [ ] Uppdatera DEVLOG 6/7: seed-lösenorden gäller från dagens refaktorering
 
 ---
 
