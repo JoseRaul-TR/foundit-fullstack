@@ -1,5 +1,5 @@
 // apps/api/src/index.ts
-import express, { Request, Response, NextFunction } from "express";
+import express, { type Request, type Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";

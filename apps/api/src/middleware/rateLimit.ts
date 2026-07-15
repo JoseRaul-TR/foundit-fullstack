@@ -1,6 +1,6 @@
 // apps/api/src/middleware/reateLimit.ts
 import rateLimit from "express-rate-limit";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { env } from "src/config/env";
 import { AppError } from "./errorHandler";
 
