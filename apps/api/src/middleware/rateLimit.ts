@@ -45,7 +45,7 @@ export const authLimiter = rateLimit({
  * Exported now; applied to the TMDB router when it exists:
  *   app.use("/api/tmdb", tmdbLimiter, tmdbRouter)
  */
-export const tmbLimiter = rateLimit({
+export const tmdbLimiter = rateLimit({
   ...sharedOptions,
   windowMs: 60 * 1000,
   limit: isDev ? 300 : 30,

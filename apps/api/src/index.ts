@@ -8,7 +8,12 @@ import { env } from "./config/env";
 import { auth, requireAuth } from "./lib/auth";
 import prisma, { pool } from "./lib/prisma";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
-import { authLimiter, globalLimiter } from "./middleware/rateLimit";
+import {
+  authLimiter,
+  globalLimiter,
+  tmdbLimiter,
+} from "./middleware/rateLimit";
+import moviesRouter from "./routes/movies";
 
 // Create the Express app
 const app = express();
@@ -39,6 +44,8 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 
 // JSON body parser for everything else, mounted after the auth handler
 app.use(express.json());
+
+app.use("/api/movies", tmdbLimiter, moviesRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {
