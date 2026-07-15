@@ -14,6 +14,7 @@ import {
   tmdbLimiter,
 } from "./middleware/rateLimit";
 import moviesRouter from "./routes/movies";
+import seriesRouter from "./routes/series";
 
 // Create the Express app
 const app = express();
@@ -46,6 +47,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 
 app.use("/api/movies", tmdbLimiter, moviesRouter);
+app.use("/api/series", tmdbLimiter, seriesRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {

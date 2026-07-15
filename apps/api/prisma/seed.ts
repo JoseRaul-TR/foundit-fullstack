@@ -138,13 +138,13 @@ async function main() {
   // ─── Watchlist (User 1) ───────────────────────────────────────────────────
   // Real TMDB IDs:
   // Inception: 27205 | Interstellar: 157336 | The Dark Knight: 155 (movies)
-  // Breaking Bad: 1396 | Stranger Things: 66732 (TV)
+  // Breaking Bad: 1396 | Stranger Things: 66732 (series)
   const watchlistItems = [
     { tmdbId: 27205, mediaType: "movie" },
     { tmdbId: 157336, mediaType: "movie" },
     { tmdbId: 155, mediaType: "movie" },
-    { tmdbId: 1396, mediaType: "tv" },
-    { tmdbId: 66732, mediaType: "tv" },
+    { tmdbId: 1396, mediaType: "series" },
+    { tmdbId: 66732, mediaType: "series" },
   ];
   for (const item of watchlistItems) {
     await prisma.watchlistItem.upsert({
@@ -172,7 +172,7 @@ async function main() {
   }[] = [
     { tmdbId: 550, mediaType: "movie", seasonNumber: null }, // Fight Club
     { tmdbId: 13, mediaType: "movie", seasonNumber: null }, // Forrest Gump
-    { tmdbId: 1396, mediaType: "tv", seasonNumber: 1 }, // Breaking Bad S1
+    { tmdbId: 1396, mediaType: "series", seasonNumber: 1 }, // Breaking Bad S1
   ];
 
   for (const item of watchedItems) {
