@@ -486,19 +486,19 @@ Påbörjade Better Auth-integrationen (e-post/lösenord) i apps/api:
 
 #### Beslut
 
-| Beslut                                      | Motivering                                                  |
-| ------------------------------------------- | ----------------------------------------------------------- |
-| Adapter från `better-auth/adapters/prisma`  | Inbyggd i better-auth — inget separat paket finns           |
-| Auth-handlern monteras FÖRE `express.json()`| Better Auth kräver rå (oparsead) request body               |
-| `trustedOrigins` istället för origin-check av | Dokumenterad, säker konfiguration                          |
+| Beslut                                        | Motivering                                        |
+| --------------------------------------------- | ------------------------------------------------- |
+| Adapter från `better-auth/adapters/prisma`    | Inbyggd i better-auth — inget separat paket finns |
+| Auth-handlern monteras FÖRE `express.json()`  | Better Auth kräver rå (oparsead) request body     |
+| `trustedOrigins` istället för origin-check av | Dokumenterad, säker konfiguration                 |
 
 #### Problem och lösningar
 
-| Problem                                        | Orsak                                          | Lösning                                    |
-| ---------------------------------------------- | ---------------------------------------------- | ------------------------------------------ |
-| `Cannot find module '@better-auth/prisma-adapter'` | Paketet finns inte på npm                  | Import från `better-auth/adapters/prisma`  |
-| Sign-up/sign-in misslyckades tyst              | `express.json()` konsumerade bodyn före auth   | `toNodeHandler(auth)` monterad först       |
-| Krasch på `app.all("/api/auth/*")`             | Express 5 (path-to-regexp v8) kräver namngivna wildcards | Mönstret `"/api/auth/*splat"`   |
+| Problem                                            | Orsak                                                    | Lösning                                   |
+| -------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------- |
+| `Cannot find module '@better-auth/prisma-adapter'` | Paketet finns inte på npm                                | Import från `better-auth/adapters/prisma` |
+| Sign-up/sign-in misslyckades tyst                  | `express.json()` konsumerade bodyn före auth             | `toNodeHandler(auth)` monterad först      |
+| Krasch på `app.all("/api/auth/*")`                 | Express 5 (path-to-regexp v8) kräver namngivna wildcards | Mönstret `"/api/auth/*splat"`             |
 
 #### Nästa steg
 
@@ -523,11 +523,11 @@ Påbörjade Better Auth-integrationen (e-post/lösenord) i apps/api:
 
 #### Problem och lösningar
 
-| Problem                                  | Orsak                                                | Lösning                                  |
-| ---------------------------------------- | ---------------------------------------------------- | ---------------------------------------- |
-| ZodError: alla env-variabler `undefined` | `env.ts` laddade `../../.env` (2 nivåer) — filen ligger 4 nivåer upp | `../../../../.env` från `src/config/` |
-| TS2339: `'user'` finns inte på sessionstypen | Unionen innehöll `null` — kan inte indexeras     | `NonNullable<...>` före indexering       |
-| `(req as any).session`                   | Ingen typaugmentation för Express Request            | `src/types/express.d.ts`                 |
+| Problem                                      | Orsak                                                                | Lösning                               |
+| -------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------- |
+| ZodError: alla env-variabler `undefined`     | `env.ts` laddade `../../.env` (2 nivåer) — filen ligger 4 nivåer upp | `../../../../.env` från `src/config/` |
+| TS2339: `'user'` finns inte på sessionstypen | Unionen innehöll `null` — kan inte indexeras                         | `NonNullable<...>` före indexering    |
+| `(req as any).session`                       | Ingen typaugmentation för Express Request                            | `src/types/express.d.ts`              |
 
 #### Commits
 
@@ -546,15 +546,15 @@ Påbörjade Better Auth-integrationen (e-post/lösenord) i apps/api:
   `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` + `BETTER_AUTH_URL` i
   Zod-schemat och `.env.example`.
 - Konfigurerade account linking: `accountLinking.trustedProviders:
-  ["google"]` — en Google-inloggning med samma verifierade e-post
+["google"]` — en Google-inloggning med samma verifierade e-post
   länkas till befintlig e-post/lösenord-användare.
 
 #### Problem och lösningar
 
-| Problem                              | Orsak                                            | Lösning                                        |
-| ------------------------------------ | ------------------------------------------------ | ---------------------------------------------- |
-| `Error 400: redirect_uri_mismatch`   | URI:n var inte registrerad i Google Cloud Console | Exakt URI registrerad (port 3001, http)       |
-| 404 på `GET /api/auth/sign-in/google`| Rutten finns inte — sociala flöden initieras annorlunda | `POST /api/auth/sign-in/social` med `{"provider":"google"}` returnerar Googles auth-URL |
+| Problem                               | Orsak                                                   | Lösning                                                                                 |
+| ------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `Error 400: redirect_uri_mismatch`    | URI:n var inte registrerad i Google Cloud Console       | Exakt URI registrerad (port 3001, http)                                                 |
+| 404 på `GET /api/auth/sign-in/google` | Rutten finns inte — sociala flöden initieras annorlunda | `POST /api/auth/sign-in/social` med `{"provider":"google"}` returnerar Googles auth-URL |
 
 ---
 
@@ -597,12 +597,12 @@ standalone-installationsskriptet. Regenererade lockfilen.
 
 #### Problem och lösningar
 
-| Problem                                              | Orsak                                                        | Lösning                                            |
-| ---------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
-| Alla pnpm-kommandon kraschade i repot                | Bugg i pnpm 11.9.0:s versionsnedladdare vid mål 11.12.0      | Global pnpm → 11.12.0; håll global == devEngines-pin |
-| `@prisma/client has no exported member 'PrismaClient'` | Genererad klient raderades med node_modules; auto-build blockerad | `pnpm --filter foundit-api db:generate` efter varje ren install |
-| Editor-fel (`helmet` saknas, `req.headers` finns inte) | Stale TS server efter ny node_modules (CLI kompilerade rent) | Restart TS Server i VS Code                        |
-| `state_mismatch` i OAuth-callback                    | Flödet initierat med curl — state-cookien nådde aldrig webbläsaren | Initiera flödet från webbläsaren                  |
+| Problem                                                | Orsak                                                              | Lösning                                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Alla pnpm-kommandon kraschade i repot                  | Bugg i pnpm 11.9.0:s versionsnedladdare vid mål 11.12.0            | Global pnpm → 11.12.0; håll global == devEngines-pin            |
+| `@prisma/client has no exported member 'PrismaClient'` | Genererad klient raderades med node_modules; auto-build blockerad  | `pnpm --filter foundit-api db:generate` efter varje ren install |
+| Editor-fel (`helmet` saknas, `req.headers` finns inte) | Stale TS server efter ny node_modules (CLI kompilerade rent)       | Restart TS Server i VS Code                                     |
+| `state_mismatch` i OAuth-callback                      | Flödet initierat med curl — state-cookien nådde aldrig webbläsaren | Initiera flödet från webbläsaren                                |
 
 ---
 
@@ -620,7 +620,7 @@ verification-rader purgas precis före felet).
 1. Nuxt dev igång på :3000
 2. Från webbläsarkonsolen på `localhost:3000`:
    `fetch("http://localhost:3001/api/auth/sign-in/social", { method:
-   "POST", credentials: "include", ... })` → state-cookien hamnar i
+"POST", credentials: "include", ... })` → state-cookien hamnar i
    webbläsaren
 3. `window.location.href = url` → Google-inloggning → callback →
    redirect till :3000
@@ -671,22 +671,22 @@ samma rate-limit-bucket.
 
 #### Beslut
 
-| Beslut                                     | Motivering                                                    |
-| ------------------------------------------ | ------------------------------------------------------------- |
-| Seed-användare via Better Auth API          | Hash + account-rad korrekta by construction — aldrig manuella hashar |
-| En enda felformateringspunkt (`sendError`) | Konsekvent ApiError-shape över alla endpoints, inkl. 429      |
-| `isOperational`-flagga på AppError          | Skiljer förväntade fel (litas på) från buggar (alltid 500)    |
-| Dev-rate-limits 10x                         | OAuth-testning skulle annars låsa ute mig själv               |
-| `trust proxy: 1`                            | Korrekt klient-IP bakom Railways reverse proxy                |
+| Beslut                                     | Motivering                                                           |
+| ------------------------------------------ | -------------------------------------------------------------------- |
+| Seed-användare via Better Auth API         | Hash + account-rad korrekta by construction — aldrig manuella hashar |
+| En enda felformateringspunkt (`sendError`) | Konsekvent ApiError-shape över alla endpoints, inkl. 429             |
+| `isOperational`-flagga på AppError         | Skiljer förväntade fel (litas på) från buggar (alltid 500)           |
+| Dev-rate-limits 10x                        | OAuth-testning skulle annars låsa ute mig själv                      |
+| `trust proxy: 1`                           | Korrekt klient-IP bakom Railways reverse proxy                       |
 
 #### Problem och lösningar
 
-| Problem                                | Orsak                                        | Lösning                                          |
-| -------------------------------------- | -------------------------------------------- | ------------------------------------------------ |
-| `state_mismatch` trots webbläsarflöde  | Gårdagens Google-URL återanvänd — state är engångs med kort TTL | Hela flödet i en session, gamla flikar stängda |
-| 404 på `GET /api/auth/session`         | Rutten heter `get-session` i Better Auth     | `GET /api/auth/get-session`; ticket uppdaterad   |
+| Problem                                                 | Orsak                                                                    | Lösning                                                          |
+| ------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `state_mismatch` trots webbläsarflöde                   | Gårdagens Google-URL återanvänd — state är engångs med kort TTL          | Hela flödet i en session, gamla flikar stängda                   |
+| 404 på `GET /api/auth/session`                          | Rutten heter `get-session` i Better Auth                                 | `GET /api/auth/get-session`; ticket uppdaterad                   |
 | `ReferenceError: message is not defined` i errorHandler | Parametern `message` föll bort ur `sendError`-signaturen vid inklistring | Återställde 5-parameterssignaturen; TS-felen pekade på samma rot |
-| Express default-handler svarade HTML   | errorHandler kraschade själv → Express föll tillbaka | Fixad signatur; verifierat JSON-shape med curl + jq |
+| Express default-handler svarade HTML                    | errorHandler kraschade själv → Express föll tillbaka                     | Fixad signatur; verifierat JSON-shape med curl + jq              |
 
 #### Commits
 
@@ -699,6 +699,107 @@ samma rate-limit-bucket.
 
 - [ ] TMDB-service: klient i `lib/`, första publika endpoints (search)
 - [ ] Uppdatera DEVLOG 6/7: seed-lösenorden gäller från dagens refaktorering
+
+---
+
+### Onsdag 15/7 — TMDB-klient, film- och seriedetalj, TypeScript 7-migration
+
+#### Vad jag gjorde
+
+**TMDB-klient (#34).** `lib/tmdb.ts`: `fetchTmdb` (Bearer-auth, 10s
+timeout → AppError 503, non-2xx → AppError 404/502) och
+`fetchTmdbWithFallback` (andra anrop till en-US endast om
+overview/biography är tomt, sedan merge som bevarar översatt titel).
+`LOCALE_TO_TMDB_LANG` fanns redan i `i18n.ts` sedan tidigare — undvek
+en dubblettfil i packages/types.
+
+**Filmdetalj — GET /api/movies/:id (#38).** `services/movies.ts` +
+`routes/movies.ts`. Valfri autentisering (`extractSession`, ingen
+401 utan session). Normalisering av trailer (första YouTube-trailern),
+cast (max 10), providers per land (flatrate/rent/buy/free,
+`subscribed: true` vid matchning mot användarens tjänster),
+recommendations (max 10). Verifierat manuellt med curl: sv/es/en-
+fallback fungerar korrekt.
+
+**TypeScript 7.0.2 + verbatimModuleSyntax.** Uppgraderade från 6.0.3
+(redan senaste i 6.x-grenen — ingen mindre uppdatering fanns).
+`baseUrl` (borttaget i TS7) ersatt med `paths: {"*": ["./*"]}` i
+`apps/api/tsconfig.json` — identisk upplösning av `"src/..."`-importer
+utan att röra en enda importrad. Tog samtidigt bort `rootDir`/`outDir`,
+vilket löste en `TS6059`-bugg (`@foundit/types` exporterar rå
+källkod, inte `dist`, vilket kolliderade med `rootDir`).
+`verbatimModuleSyntax` krävde `type`-only-annotering på 4 ställen
+(`index.ts`, `errorHandler.ts`, `rateLimit.ts`, `movies.ts`). Efter
+`pnpm install` försvann den genererade Prisma-klienten — kör
+`db:generate` efter varje ren install; bör läggas till som
+`postinstall`-script.
+
+**Seriedetalj — GET /api/series/:id (#39), döpt om från "tv".**
+Extraherade delad normaliseringslogik (trailer/cast/providers/
+recommendations) från `movies.ts` till `helpers/tmdbMedia.helpers.ts`
+för att undvika dubblering inför sök/discover/people. Nytt jämfört
+med filmdetalj: `seasons`-lista med per-säsong `watched`-flagga,
+förenklad `returning`/`ended`-status, samt `newSeasonsAvailable` +
+`availableOn` (jämför användarens senast sedda säsong mot TMDB:s
+`numberOfSeasons`, korsreferens mot prenumererade tjänster).
+
+**Namnbyte tv → series.** Beslutade att döpa om all
+TV-relaterad kod i vår egen kodbas till "series" — typer, funktioner,
+filnamn, rutter, `mediaType`-värden. TMDB:s egna fält/endpoints
+(`/tv/:id`, `TmdbTVShow`) förblir oförändrade, det är externt API.
+
+**API-skydd — diskussion, ingen kod idag.** Övervägde att begränsa
+API:t till enbart foundit-web/foundit-mobile. Slutsats: omöjligt att
+göra kryptografiskt säkert för publika endpoints (movies/series/
+search/discover måste fungera oautentiserat per ticket-krav) — vilket
+hemligt värde en publik klient än håller kan kopieras från
+devtools/en dekompilerad app. Nuvarande skydd (CORS + rate limiting +
+sessionsautentisering för användardata) räcker för nu. BFF-mönster
+(Nuxt SSR proxyar publika sidor server-till-server med en riktig
+hemlighet) noterat som framtida arkitekturbeslut när apps/web byggs
+(vecka 6).
+
+#### Beslut
+
+| Beslut                                                   | Motivering                                                                                                                                         |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `paths: {"*": ["./*"]}` istället för `baseUrl`           | TS7 tog bort `baseUrl` helt; officiellt föreslagen ersättning, ingen importrad behövde ändras                                                      |
+| Ta bort `rootDir`/`outDir` i apps/api/tsconfig.json      | Löste `TS6059` (`@foundit/types` pekar på rå `src`, inte `dist`) samtidigt som TS7-migrationen                                                     |
+| `verbatimModuleSyntax: true`                             | Tvingar explicit `type`-import, fångar misstag tidigt, standardpraxis i ESM+bundler-projekt                                                        |
+| Delad `tmdbMedia.helpers.ts` istället för duplicerad kod | DRY — sök/discover/people kommer behöva samma normalisering                                                                                        |
+| `newSeasonsAvailable` kräver minst en sedd säsong        | Ticketens bokstavliga tolkning (max sedd säsong = 0 om aldrig sedd) skulle visa badge för alla returning shows oavsett om användaren följer serien |
+| tv → series namnbyte i egen kod                          | Konsekvens i kodbasen — dokumenterat som kriterium för alla framtida tickets                                                                       |
+| Inget API-skydd utöver CORS/rate limiting nu             | Publika endpoints kan inte skyddas kryptografiskt; BFF-mönster kräver en Nuxt-server som inte finns än                                             |
+
+#### Problem och lösningar
+
+| Problem                                                      | Orsak                                                                                                       | Lösning                                                          |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| URL-typo i `lib/tmdb.ts` (`themoviewdb`)                     | Skrivfel vid första implementation                                                                          | Korrigerat till `themoviedb.org`                                 |
+| Saknad `<` i `AuthSession`-typen (`lib/auth.ts`)             | Copy-paste-fel                                                                                              | `NonNullable<Awaited<...>>` korrigerad                           |
+| `tmbLimiter`-typo i `rateLimit.ts`                           | Skrivfel                                                                                                    | Omdöpt till `tmdbLimiter`, konsekvent i `index.ts`               |
+| `TS6059` rootDir-fel vid `pnpm typecheck`                    | `@foundit/types` package.json `exports` pekar på rå `src/index.ts`, kolliderar med apps/api:s `rootDir`     | Tog bort `rootDir`/`outDir`                                      |
+| `PrismaClient`/`Prisma` saknade exports efter `pnpm install` | Genererad klient (`.prisma/client`) rensas vid ren install, ingen auto-generate                             | `pnpm --filter foundit-api db:generate`                          |
+| "Missing or null Origin" vid test av sign-in i Postman/curl  | Better Auths CSRF-skydd kräver `Origin`-header; testverktyg skickar den inte automatiskt som webbläsare gör | `Origin: http://localhost:3000` tillagd manuellt i test-requests |
+
+#### Commits
+
+- `feat(api): add TMDB client with fetchTmdbWithFallback` — closes #34
+- `feat(api): add GET /api/movies/:id detail endpoint` — closes #38
+- `chore: upgrade to TypeScript 7.0.2, enable verbatimModuleSyntax`
+- `feat(api): add GET /api/series/:id detail endpoint, rename tv to series` — closes #39
+
+#### Nästa steg
+
+- [ ] Uppdatera `packages/types/src/media.ts`: `MediaType` "tv" → "series" (kolla även WatchlistItem/WatchedItem/UserRating i user.ts)
+- [ ] `pnpm db:reset` + reseed — gamla rader med `mediaType: "tv"` matchar inte längre
+- [ ] GET /api/search (#35) eller /api/discover (#36/#37)
+
+#### Resurser
+
+- [TMDB append_to_response](https://developer.themoviedb.org/docs/append-to-response)
+- [TypeScript 7 release notes — baseUrl removal](https://devblogs.microsoft.com/typescript/)
+- [verbatimModuleSyntax](https://www.typescriptlang.org/tsconfig/#verbatimModuleSyntax)
 
 ---
 

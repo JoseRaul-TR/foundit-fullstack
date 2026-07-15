@@ -169,14 +169,14 @@ export interface TmdbPerson {
   profile_path: string | null;
   known_for_department: string;
   movie_credits?: TmdbPersonCredits;
-  tv_credits?: TmdbPersonTVCredits;
+  series_credits?: TmdbPersonTVCredits;
   images?: { profiles: TmdbImage[] };
 }
 
 /** Generic item for /search/multi, /discover/movie, /discover/tv, recommendations, etc. */
 export interface TmdbSearchResultItem {
   id: number;
-  media_type?: "movie" | "tv" | "person";
+  media_type?: "movie" | "series" | "person";
   title?: string;
   name?: string;
   overview?: string;

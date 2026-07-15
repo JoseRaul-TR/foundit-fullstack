@@ -1,5 +1,5 @@
 // packages/types/src/media.ts
-export type MediaType = "movie" | "tv";
+export type MediaType = "movie" | "series";
 
 export type ProviderType = "flatrate" | "rent" | "buy" | "free" | "ads";
 
