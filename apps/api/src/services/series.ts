@@ -1,4 +1,4 @@
-// apps/api/src/services/tv.ts
+// apps/api/src/services/series.ts
 
 import type {
   Genre,
@@ -17,7 +17,7 @@ import {
 } from "@/helpers/tmdbMedia";
 import prisma from "@/lib/prisma";
 import { fetchTmdbWithFallback } from "@/lib/tmdb";
-import type { TmdbSeries } from "@/types/tmdb.types";
+import type { TmdbSeasonDetail, TmdbSeries } from "@/types/tmdb.types";
 
 const SERIES_APPEND_TO_RESPONSE =
   "credits,videos,recommendations,watch/providers";
@@ -222,5 +222,63 @@ export async function getSeriesDetail(
     seasons,
     newSeasonsAvailable,
     availableOn,
+  };
+}
+
+export interface SeriesEpisodeSummary {
+  episodeNumber: number;
+  title: string;
+  overview: string;
+  airDate: string | null;
+  runtime: number | null;
+}
+
+export interface SeriesSeasonDetailResponse {
+  seasonNumber: number;
+  name: string;
+  overview: string | null;
+  airDate: string | null;
+  episodeCount: number;
+  posterPath: string | null;
+  episodes: SeriesEpisodeSummary[];
+}
+
+/**
+ * No append_to_response needed — /tv/:id/season/:n already returns the full
+ * episode list on its own. Uses fetchTmdbWithFallback (not plain fetchTmdb)
+ * because season overview is frequently empty outside en-US on TMDB, same
+ * reasoning as movies/series detail. Note this only backfills the
+ * season-level overview, not each episode's overview individually — same
+ * limitation as cast/crew names elsewhere.
+ *
+ * Invalid season number (out of range for the show) isn't checked here:
+ * TMDB itself 404s for it, which fetchTmdbWithFallback already surfaces as
+ * a 404 AppError, satisfying the ticket's acceptance criterion directly.
+ */
+export async function getSeriesSeasonDetail(
+  tmdbId: number,
+  seasonNumber: number,
+  locale: SupportedLocale,
+): Promise<SeriesSeasonDetailResponse> {
+  const season = await fetchTmdbWithFallback<TmdbSeasonDetail>(
+    `/tv/${tmdbId}/season/${seasonNumber}`,
+    {},
+    locale,
+  );
+
+  return {
+    seasonNumber: season.season_number,
+    name: season.name,
+    overview: season.overview || null,
+    airDate: season.air_date,
+    episodeCount: season.episodes.length,
+    posterPath: season.poster_path,
+    episodes: season.episodes.map((episode) => ({
+      episodeNumber: episode.episode_number,
+      title: episode.name,
+      overview: episode.overview,
+      airDate: episode.air_date,
+      runtime: episode.runtime,
+    })),
   };
 }

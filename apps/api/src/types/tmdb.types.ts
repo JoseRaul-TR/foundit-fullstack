@@ -117,6 +117,15 @@ export interface TmdbEpisode {
   runtime: number | null;
 }
 
+export interface TmdbSeasonDetail {
+  id: number;
+  season_number: number;
+  name: string;
+  overview: string;
+  air_date: string | null;
+  poster_path: string | null;
+  episodes: TmdbEpisode[];
+}
 export interface TmdbSeries extends TmdbBaseMedia {
   id: number;
   name: string;
