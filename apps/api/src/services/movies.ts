@@ -12,9 +12,9 @@ import {
   extractCast,
   extractRecommendations,
   extractTrailer,
-  NormalizedCastMember,
+  type NormalizedCastMember,
   parseYear,
-  ProvidersByType,
+  type ProvidersByType,
 } from "src/helpers/tmdbMedia";
 
 const MOVIE_APPEND_TO_RESPONSE =

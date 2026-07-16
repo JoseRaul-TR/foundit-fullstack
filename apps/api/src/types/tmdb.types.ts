@@ -117,7 +117,7 @@ export interface TmdbEpisode {
   runtime: number | null;
 }
 
-export interface TmdbTVShow extends TmdbBaseMedia {
+export interface TmdbSeries extends TmdbBaseMedia {
   id: number;
   name: string;
   original_name: string;
@@ -137,7 +137,7 @@ export interface TmdbPersonMovieCredit {
   release_date: string;
 }
 
-export interface TmdbPersonTVCredit {
+export interface TmdbPersonSeriesCredit {
   id: number;
   name: string;
   character?: string;
@@ -151,9 +151,9 @@ export interface TmdbPersonCredits {
   crew: TmdbPersonMovieCredit[];
 }
 
-export interface TmdbPersonTVCredits {
-  cast: TmdbPersonTVCredit[];
-  crew: TmdbPersonTVCredit[];
+export interface TmdbPersonSeriesCredits {
+  cast: TmdbPersonSeriesCredit[];
+  crew: TmdbPersonSeriesCredit[];
 }
 
 export interface TmdbImage {
@@ -169,14 +169,14 @@ export interface TmdbPerson {
   profile_path: string | null;
   known_for_department: string;
   movie_credits?: TmdbPersonCredits;
-  series_credits?: TmdbPersonTVCredits;
+  tv_credits?: TmdbPersonSeriesCredits;
   images?: { profiles: TmdbImage[] };
 }
 
 /** Generic item for /search/multi, /discover/movie, /discover/tv, recommendations, etc. */
 export interface TmdbSearchResultItem {
   id: number;
-  media_type?: "movie" | "series" | "person";
+  media_type?: "movie" | "tv" | "person";
   title?: string;
   name?: string;
   overview?: string;

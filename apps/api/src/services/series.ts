@@ -17,7 +17,7 @@ import {
 } from "src/helpers/tmdbMedia";
 import prisma from "src/lib/prisma";
 import { fetchTmdbWithFallback } from "src/lib/tmdb";
-import { TmdbTVShow } from "src/types/tmdb.types";
+import type { TmdbSeries } from "src/types/tmdb.types";
 
 const SERIES_APPEND_TO_RESPONSE =
   "credits,videos,recommendations,watch/providers";
@@ -135,7 +135,7 @@ export async function getSeriesDetail(
   locale: SupportedLocale,
   userId: string | null,
 ): Promise<SeriesDetailResponse> {
-  const series = await fetchTmdbWithFallback<TmdbTVShow>(
+  const series = await fetchTmdbWithFallback<TmdbSeries>(
     `/tv/${tmdbId}`,
     { append_to_response: SERIES_APPEND_TO_RESPONSE },
     locale,
