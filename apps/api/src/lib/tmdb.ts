@@ -1,7 +1,7 @@
 // apps/api/src/lib/tmdb.ts
 import { LOCALE_TO_TMDB_LANG, type SupportedLocale } from "@foundit/types";
-import { env } from "src/config/env";
-import { AppError } from "src/middleware/errorHandler";
+import { env } from "@/config/env";
+import { AppError } from "@/middleware/errorHandler";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_TIMEOUT_MS = 10_000;

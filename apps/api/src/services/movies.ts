@@ -1,7 +1,7 @@
 // apps/api/src/services/movies.ts
-import prisma from "src/lib/prisma";
-import { fetchTmdbWithFallback } from "src/lib/tmdb";
-import type { TmdbMovie } from "src/types/tmdb.types";
+import prisma from "@/lib/prisma";
+import { fetchTmdbWithFallback } from "@/lib/tmdb";
+import type { TmdbMovie } from "@/types/tmdb.types";
 import type {
   Genre,
   NormalizedSearchResult,
@@ -15,7 +15,7 @@ import {
   type NormalizedCastMember,
   parseYear,
   type ProvidersByType,
-} from "src/helpers/tmdbMedia";
+} from "@/helpers/tmdbMedia";
 
 const MOVIE_APPEND_TO_RESPONSE =
   "credits,videos,recommendations,watch/providers";

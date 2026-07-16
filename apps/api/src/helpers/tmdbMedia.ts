@@ -7,7 +7,7 @@ import type {
   TmdbWatchProvidersCountry,
   TmdbPaginatedResponse,
   TmdbSearchResultItem,
-} from "src/types/tmdb.types";
+} from "@/types/tmdb.types";
 import type {
   Provider,
   ProviderType,

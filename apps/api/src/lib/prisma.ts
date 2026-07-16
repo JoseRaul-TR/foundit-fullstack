@@ -1,7 +1,7 @@
 // apps/api/src/lib/prisma.ts
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import { env } from "../config/env";
+import { env } from "@/config/env";
 import { PrismaClient } from "@prisma/client";
 
 // Break down the connection URL

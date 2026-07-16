@@ -2,12 +2,9 @@
 
 import { isLocale, type SupportedLocale } from "@foundit/types";
 import { Router } from "express";
-import { extractSession } from "src/lib/auth";
-import {
-  getSeriesDetail,
-  type SeriesDetailResponse,
-} from "src/services/series";
-import z from "zod";
+import { extractSession } from "@/lib/auth";
+import { getSeriesDetail, type SeriesDetailResponse } from "@/services/series";
+import { z } from "zod";
 
 const router = Router();
 

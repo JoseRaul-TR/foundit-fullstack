@@ -2,7 +2,7 @@
 import type { Response, Request, NextFunction } from "express";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
-import { env } from "../config/env";
+import { env } from "@/config/env";
 
 // ─── AppError ─────────────────────────────────────────────────────────────────
 const DEFAULT_CODES: Record<number, string> = {
