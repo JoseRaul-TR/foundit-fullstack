@@ -3,11 +3,17 @@
 import { isLocale, type SupportedLocale } from "@foundit/types";
 import { Router } from "express";
 import { extractSession } from "@/lib/auth";
-import { getSeriesDetail, type SeriesDetailResponse } from "@/services/series";
+import {
+  getSeriesDetail,
+  getSeriesSeasonDetail,
+  type SeriesDetailResponse,
+  type SeriesSeasonDetailResponse,
+} from "@/services/series";
 import { z } from "zod";
 
 const router = Router();
 
+// ——— Route /series/:id ————
 const paramsSchema = z.object({
   id: z
     .string()
@@ -31,6 +37,34 @@ router.get("/:id", async (req, res) => {
   res.json({ success: true, data: series } satisfies {
     success: true;
     data: SeriesDetailResponse;
+  });
+});
+
+// ——— Route /series/:id/season/:n ————
+const seasonParamsSchema = z.object({
+  id: z
+    .string()
+    .regex(/^\d+$/, "id must be a numeric string")
+    .transform(Number),
+  n: z
+    .string()
+    .regex(/^\d+$/, "season must be a numeric string")
+    .transform(Number),
+});
+
+// #40 — no extractSession here: season-level `watched` already lives on
+// GET /:id (seasons[].watched), this endpoint is pure TMDB catalog data.
+router.get("/:id/season/:n", async (req, res) => {
+  const { id: tmdbId, n: seasonNumber } = seasonParamsSchema.parse(req.params);
+  const { lang } = querySchema.parse(req.query);
+
+  const locale: SupportedLocale = lang && isLocale(lang) ? lang : "en";
+
+  const season = await getSeriesSeasonDetail(tmdbId, seasonNumber, locale);
+
+  res.json({ success: true, data: season } satisfies {
+    success: true;
+    data: SeriesSeasonDetailResponse;
   });
 });
 
