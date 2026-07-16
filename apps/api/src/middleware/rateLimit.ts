@@ -1,7 +1,7 @@
 // apps/api/src/middleware/reateLimit.ts
 import rateLimit from "express-rate-limit";
 import type { NextFunction, Request, Response } from "express";
-import { env } from "src/config/env";
+import { env } from "@/config/env";
 import { AppError } from "./errorHandler";
 
 const isDev = env.NODE_ENV === "development";

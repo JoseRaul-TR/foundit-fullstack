@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { isLocale, type SupportedLocale } from "@foundit/types";
-import { searchTmdb, type SearchType } from "src/services/search";
+import { searchTmdb, type SearchType } from "@/services/search";
 
 const router = Router();
 

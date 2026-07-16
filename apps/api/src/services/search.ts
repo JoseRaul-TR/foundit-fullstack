@@ -5,12 +5,12 @@ import {
   type PaginatedResponse,
   type SupportedLocale,
 } from "@foundit/types";
-import { parseYear } from "src/helpers/tmdbMedia";
-import { fetchTmdb } from "src/lib/tmdb";
+import { parseYear } from "@/helpers/tmdbMedia";
+import { fetchTmdb } from "@/lib/tmdb";
 import type {
   TmdbPaginatedResponse,
   TmdbSearchResultItem,
-} from "src/types/tmdb.types";
+} from "@/types/tmdb.types";
 
 export type SearchType = "multi" | "movie" | "series" | "person";
 

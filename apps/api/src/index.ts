@@ -2,20 +2,22 @@
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { env } from "@/config/env";
 import { toNodeHandler } from "better-auth/node";
 import { LOCALE_TO_TMDB_LANG } from "@foundit/types";
-import { env } from "./config/env";
-import { auth, requireAuth } from "./lib/auth";
-import prisma, { pool } from "./lib/prisma";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { auth, requireAuth } from "@/lib/auth";
+import prisma, { pool } from "@/lib/prisma";
+import { errorHandler, notFoundHandler } from "@/middleware/errorHandler";
 import {
   authLimiter,
   globalLimiter,
   tmdbLimiter,
-} from "./middleware/rateLimit";
-import moviesRouter from "./routes/movies";
-import seriesRouter from "./routes/series";
-import searchRouter from "./routes/search";
+} from "@/middleware/rateLimit";
+
+import moviesRouter from "@/routes/movies";
+import seriesRouter from "@/routes/series";
+import searchRouter from "@/routes/search";
+import discoverRouter from "@/routes/discover";
 
 // Create the Express app
 const app = express();
@@ -50,6 +52,7 @@ app.use(express.json());
 app.use("/api/movies", tmdbLimiter, moviesRouter);
 app.use("/api/series", tmdbLimiter, seriesRouter);
 app.use("/api/search", tmdbLimiter, searchRouter);
+app.use("/api/discover", tmdbLimiter, discoverRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {

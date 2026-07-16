@@ -4,7 +4,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
 import prisma from "./prisma";
-import { AppError } from "src/middleware/errorHandler";
+import { AppError } from "@/middleware/errorHandler";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {

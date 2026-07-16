@@ -8,8 +8,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { isLocale, type SupportedLocale } from "@foundit/types";
-import { extractSession } from "src/lib/auth";
-import { getMovieDetail, type MovieDetailResponse } from "src/services/movies";
+import { extractSession } from "@/lib/auth";
+import { getMovieDetail, type MovieDetailResponse } from "@/services/movies";
 
 const router = Router();
 

@@ -14,10 +14,10 @@ import {
   type NormalizedCastMember,
   type ProvidersByType,
   collectSubscribedNames,
-} from "src/helpers/tmdbMedia";
-import prisma from "src/lib/prisma";
-import { fetchTmdbWithFallback } from "src/lib/tmdb";
-import type { TmdbSeries } from "src/types/tmdb.types";
+} from "@/helpers/tmdbMedia";
+import prisma from "@/lib/prisma";
+import { fetchTmdbWithFallback } from "@/lib/tmdb";
+import type { TmdbSeries } from "@/types/tmdb.types";
 
 const SERIES_APPEND_TO_RESPONSE =
   "credits,videos,recommendations,watch/providers";
