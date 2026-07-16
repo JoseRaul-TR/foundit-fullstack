@@ -803,6 +803,18 @@ hemlighet) noterat som framtida arkitekturbeslut när apps/web byggs
 
 ---
 
+### Torsdag 16/7
+
+| | |
+|---|---|
+| **Vad jag gjorde** | Slutförde och committade #36/#37 (GET /api/discover/movies och /api/discover/series). Hittade och fixade en riktig bugg i routes/discover.ts: `const router = Router;` saknade anropet (`Router()`), vilket orsakade 6 kompileringsfel. Diagnostiserade varför VSCode:s auto-import föreslog typer från node_modules istället för `@foundit/types` — orsaken var den breda wildcard-mappningen `"paths": { "*": ["./*"] }` i apps/api/tsconfig.json, som fångade upp alla bare specifiers, inklusive npm-paket. Verifierade med `tsc --traceResolution` och satte samtidigt upp en riktig path alias `@/*` → `./src/*`, och bytte ut alla `"src/..."`-imports i hela apps/api/src. Implementerade och verifierade #40 (GET /api/series/:id/season/:n) och #41 (GET /api/people/:id). |
+| **Beslut** | Statusfiltret i discover/series förblir tre värden (returning/ended/canceled) tills TMDB:s `with_status`-beteende för flera koder kan testas live — TMDB var nere (504 CloudFront-fel) under sessionen. Path alias-konventionen i apps/api är nu `@/*` istället för bare `"src/..."`. I #41 heter svarsfältet `seriesCredits`, inte det bokstavliga `tvCredits` som ticketen anger — följer tv→series-konventionen eftersom det är vårt eget svarskontrakt, inte TMDB:s råa fältnamn. |
+| **Problem och lösningar** | `Router()` saknade anrop → 6 kompileringsfel → fixat. Wildcard paths-mönster orsakade förvirrad auto-import → smalnade av till `"src/*"`/`"@/*"`, verifierat att `@foundit/types`, `zod` m.fl. inte längre matchar mönstret. Upptäckte (ej fixat än, medvetet uppskjutet) att bare `tsc` inte skriver om path aliases i kompilerad kod — `node dist/index.js` skulle krascha med `ERR_MODULE_NOT_FOUND`. Löses med `tsc-alias` inför deploy; inte brådskande då dev körs via `tsx watch`, som hanterar alias direkt. Vid #40 saknades season-funktionen i filen jag fick tillbaka första gången — typecheck var bara "grönt" för att koden inte fanns än; kompletterades och verifierades på nytt. |
+| **Commits** | `feat(api): implement GET /api/discover/movies and /api/discover/series (#36, #37)` · `feat(api): implement GET /api/series/:id/season/:n (#40)` · `feat(api): implement GET /api/people/:id (#41)` |
+| **Nästa steg** | Verifiera TMDB:s `with_status`-beteende för flera koder när TMDB är uppe igen, och ta ställning till om "upcoming" ska läggas till i discover/series-filtret. Sätta upp `tsc-alias` (eller motsvarande) inför produktion. Fortsätta med nästa ticket i backloggen (#42, genres). |
+
+---
+
 ## Vecka 4 (20–23 juli 2026)
 
 ### Måndag 20/7
