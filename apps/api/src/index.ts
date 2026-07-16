@@ -15,6 +15,7 @@ import {
 } from "./middleware/rateLimit";
 import moviesRouter from "./routes/movies";
 import seriesRouter from "./routes/series";
+import searchRouter from "./routes/search";
 
 // Create the Express app
 const app = express();
@@ -48,6 +49,7 @@ app.use(express.json());
 
 app.use("/api/movies", tmdbLimiter, moviesRouter);
 app.use("/api/series", tmdbLimiter, seriesRouter);
+app.use("/api/search", tmdbLimiter, searchRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {

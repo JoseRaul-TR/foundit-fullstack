@@ -1,6 +1,6 @@
 // apps/api/src/routes/series.ts
 
-import { isLocale, SupportedLocale } from "@foundit/types";
+import { isLocale, type SupportedLocale } from "@foundit/types";
 import { Router } from "express";
 import { extractSession } from "src/lib/auth";
 import {
