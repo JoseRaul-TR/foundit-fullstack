@@ -64,6 +64,10 @@ export interface TmdbWatchProviderEntry {
   display_priority: number;
 }
 
+export interface TmdbWatchProviderListResponse {
+  results: TmdbWatchProviderEntry[];
+}
+
 export interface TmdbWatchProvidersCountry {
   link: string;
   flatrate?: TmdbWatchProviderEntry[];
@@ -208,6 +212,10 @@ export interface TmdbCountry {
   iso_3166_1: string;
   english_name: string;
   native_name: string;
+}
+
+export interface TmdbWatchProviderRegionsResponse {
+  results: TmdbCountry[];
 }
 
 export interface TmdbGenreListResponse {
