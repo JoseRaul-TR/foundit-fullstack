@@ -24,7 +24,7 @@ const baseQuerySchema = z.object({
 });
 
 const seriesQuerySchema = baseQuerySchema.extend({
-  status: z.enum(["returning", "ended", "canceled"]).optional(),
+  status: z.enum(["returning", "ended", "canceled", "upcoming"]).optional(),
 });
 
 function resolveLocale(lang: string | undefined): SupportedLocale {

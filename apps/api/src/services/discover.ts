@@ -26,7 +26,11 @@ export interface DiscoverParams {
   page: number;
 }
 
-export type SeriesStatusFilter = "returning" | "ended" | "canceled";
+export type SeriesStatusFilter =
+  | "returning"
+  | "ended"
+  | "canceled"
+  | "upcoming";
 
 export interface SeriesDiscoverParams extends DiscoverParams {
   status?: SeriesStatusFilter;
@@ -44,13 +48,14 @@ const SORT_TO_TMDB_SERIES: Record<DiscoverSort, string> = {
   release_date: "first_air_date.desc",
 };
 
-// TMDB's own numeric with_status codes (0=Returning Series, 1=Planned,
-// 2=In Production, 3=Ended, 4=Canceled, 5=Pilot) — only the 3 the ticket
-// asks for are exposed as a filter.
-const STATUS_TO_TMDB_CODE: Record<SeriesStatusFilter, number> = {
-  returning: 0,
-  ended: 3,
-  canceled: 4,
+// TMDB's own with_status codes: 0=Returning Series, 1=Planned,
+// 2=In Production, 3=Ended, 4=Canceled, 5=Pilot. "upcoming" is our own
+// bucket folding 1/2/5 together (verified: pipe-joined = OR on this param).
+const STATUS_TO_TMDB_CODE: Record<SeriesStatusFilter, string> = {
+  returning: "0",
+  ended: "3",
+  canceled: "4",
+  upcoming: "1|2|5",
 };
 
 type TmdbDiscoverParams = Record<string, string | number | boolean | undefined>;
