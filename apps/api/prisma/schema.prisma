@@ -74,6 +74,18 @@ model Verification {
   @@map("verification")
 }
 
+model StreamingService {
+  id          String   @id @default(uuid())
+  providerId  Int
+  countryCode String
+  name        String
+  logoPath    String?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([countryCode, providerId])
+  @@map("streaming_service")
+}
+
 model UserCountry {
   id          String   @id @default(uuid())
   userId      String

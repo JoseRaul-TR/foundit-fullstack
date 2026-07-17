@@ -19,6 +19,9 @@ import seriesRouter from "@/routes/series";
 import searchRouter from "@/routes/search";
 import discoverRouter from "@/routes/discover";
 import peopleRouter from "@/routes/people";
+import genresRouter from "@/routes/genres";
+import providersRouter from "@/routes/providers";
+import countriesRouter from "@/routes/countries";
 
 // Create the Express app
 const app = express();
@@ -55,6 +58,9 @@ app.use("/api/series", tmdbLimiter, seriesRouter);
 app.use("/api/search", tmdbLimiter, searchRouter);
 app.use("/api/discover", tmdbLimiter, discoverRouter);
 app.use("/api/people", tmdbLimiter, peopleRouter);
+app.use("/api/genres", tmdbLimiter, genresRouter);
+app.use("/api/providers", tmdbLimiter, providersRouter);
+app.use("/api/countries", tmdbLimiter, countriesRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {
