@@ -815,6 +815,16 @@ hemlighet) noterat som framtida arkitekturbeslut när apps/web byggs
 
 ---
 
+### Fredag 17/7
+
+| | |
+|---|---|
+| **Vad jag gjorde** | Verifierade TMDB:s `with_status`-beteende live via Postman (uppskjutet sedan igår): testade enskilda koder (0–5) samt kombinerat med komma och pipe. Bekräftade att pipe fungerar som OR (`1\|2\|5` gav ~4093 träffar, nära summan 4091 av de tre enskilda) och komma som AND (gav 0 träffar, rimligt eftersom en serie inte kan ha tre statusar samtidigt). Lade till "upcoming" som fjärde värde i discover/series statusfilter, mappat till TMDB-koderna `1\|2\|5`. Implementerade och verifierade #42 (genres), #43 (providers) och #44 (countries), med en delad in-memory TTL-cache (lib/cache.ts) som återanvänds av alla tre. La till en ny StreamingService-modell i schema.prisma (katalogtabell för proveedores per land) och körde migrationen. Justerade #44 efter eget önskemål: tog bort den hårdkodade listan av "relevanta" länder och bytte till att hämta alla länder TMDB faktiskt har watch-provider-data för, via `/watch/providers/regions`. Implementerade och verifierade #45 (GET/PUT /api/profile) och #46 (GET/POST/DELETE /api/profile/countries). |
+| **Beslut** | "upcoming" läggs till som fjärde statusvärde i discover/series, mappat till TMDB:s `with_status=1\|2\|5` (Planned/In Production/Pilot). #44 hämtar länder dynamiskt från TMDB istället för en hårdkodad lista — cachen på 7 dagar fungerar redan som den periodiska uppdateringen. StreamingService (katalog) och UserStreamingService (användarens val) kopplas ihop i applikationskod, inte via en hård Prisma-relation/FK — StreamingService är bara en TTL-cachad spegel av TMDB, inte auktoritativ data, så en hård FK hade kunnat blockera giltiga val eller radera användardata vid en framtida cache-städning. |
+| **Problem och lösningar** | `prisma.StreamingService` (versalt) → kompileringsfel → rättat till camelCase `prisma.streamingService`. Saknad `/` i en TMDB-sökväg i countries.ts → hade gett trasig URL i produktion, upptäckt innan det nådde runtime. Verifierade med faktiska Postman-anrop mot TMDB att pipe/komma-semantiken för `with_status` stämmer innan koden ändrades, istället för att gissa. |
+| **Commits** | `feat(api): add "upcoming" status filter to discover/series (#37)` · `feat(api): implement GET /api/genres, /api/providers, /api/countries (#42, #43, #44)` · `feat(api): implement GET/PUT /api/profile (#45)` · `feat(api): implement GET/POST/DELETE /api/profile/countries (#46)` |
+| **Nästa steg** | Fortsätta med nästa ticket i profil-sviten (troligen #47, hantering av användarens streamingtjänster), sedan vidare till #48–51 (watchlist/historik/betyg). |
+
 ## Vecka 4 (20–23 juli 2026)
 
 ### Måndag 20/7
