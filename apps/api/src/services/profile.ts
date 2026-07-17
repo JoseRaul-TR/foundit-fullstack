@@ -29,7 +29,7 @@ export interface UpdateProfileInput {
   name?: string;
 }
 
-async function buildCoountries(userId: string): Promise<ProfileCountry[]> {
+export async function buildCountries(userId: string): Promise<ProfileCountry[]> {
   const [userCountries, catalog] = await Promise.all([
     prisma.userCountry.findMany({ where: { userId } }),
     getCountries(),
@@ -92,7 +92,7 @@ async function buildServices(
 export async function getProfile(userId: string): Promise<ProfileResponse> {
   const [user, countries, services] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: userId } }),
-    buildCoountries(userId),
+    buildCountries(userId),
     buildServices(userId),
   ]);
 
