@@ -12,7 +12,7 @@ export interface ProfileStreamingService {
   providerId: number;
   name: string;
   logoPath: string | null;
-  counrtyCode: string;
+  countryCode: string;
 }
 
 export interface ProfileResponse {
@@ -29,7 +29,9 @@ export interface UpdateProfileInput {
   name?: string;
 }
 
-export async function buildCountries(userId: string): Promise<ProfileCountry[]> {
+export async function buildCountries(
+  userId: string,
+): Promise<ProfileCountry[]> {
   const [userCountries, catalog] = await Promise.all([
     prisma.userCountry.findMany({ where: { userId } }),
     getCountries(),
@@ -43,7 +45,7 @@ export async function buildCountries(userId: string): Promise<ProfileCountry[]> 
   }));
 }
 
-async function buildServices(
+export async function buildServices(
   userId: string,
 ): Promise<ProfileStreamingService[]> {
   const userServices = await prisma.userStreamingService.findMany({
@@ -73,7 +75,7 @@ async function buildServices(
   const services: ProfileStreamingService[] = [];
   for (const userService of userServices) {
     const catalogEntry = catalogByKey.get(
-      `${userService.countryCode}: ${userService.providerId}`,
+      `${userService.countryCode}:${userService.providerId}`,
     );
     if (!catalogEntry) {
       continue;
@@ -82,7 +84,7 @@ async function buildServices(
       providerId: userService.providerId,
       name: catalogEntry.name,
       logoPath: catalogEntry.logoPath,
-      counrtyCode: userService.countryCode,
+      countryCode: userService.countryCode,
     });
   }
 
