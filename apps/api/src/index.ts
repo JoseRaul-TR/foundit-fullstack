@@ -27,6 +27,7 @@ import profileCountriesRouter from "@/routes/profileCountries";
 import profileServicesRouter from "@/routes/profileServices";
 import watchlistRouter from "@/routes/watchlist";
 import historyRouter from "@/routes/history";
+import ratingsRouter from "@/routes/ratings";
 
 // Create the Express app
 const app = express();
@@ -71,6 +72,7 @@ app.use("/api/profile/countries", profileCountriesRouter);
 app.use("/api/profile/services", profileServicesRouter);
 app.use("/api/watchlist", tmdbLimiter, watchlistRouter);
 app.use("/api/history", tmdbLimiter, historyRouter);
+app.use("/api/ratings", tmdbLimiter, ratingsRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {
