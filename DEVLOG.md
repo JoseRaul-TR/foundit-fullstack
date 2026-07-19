@@ -825,6 +825,20 @@ hemlighet) noterat som framtida arkitekturbeslut när apps/web byggs
 | **Commits** | `feat(api): add "upcoming" status filter to discover/series (#37)` · `feat(api): implement GET /api/genres, /api/providers, /api/countries (#42, #43, #44)` · `feat(api): implement GET/PUT /api/profile (#45)` · `feat(api): implement GET/POST/DELETE /api/profile/countries (#46)` |
 | **Nästa steg** | Fortsätta med nästa ticket i profil-sviten (troligen #47, hantering av användarens streamingtjänster), sedan vidare till #48–51 (watchlist/historik/betyg). |
 
+---
+
+### Söndag 19/7
+
+| | |
+|---|---|
+| **Vad jag gjorde** | Implementerade och verifierade #48 (GET/POST/DELETE /api/watchlist), #49 (GET/POST/DELETE /api/history för filmer), #50 (GET/POST/DELETE /api/history/seasons för serier) och #51 (GET/POST/DELETE /api/ratings). Innan #48 skrevs, resonerade jag igenom en paginerings-/sorteringsfråga: eftersom watchlist-tabellen bara lagrade `tmdbId`/`mediaType`/`createdAt`, gick det inte att sortera korrekt på titel/år över en paginerad lista utan antingen att berika hela listan vid varje GET (dyrt) eller att denormalisera titel/år till databasen vid skapandet. Valde det senare, lade till nullable `title`/`year`-kolumner på `WatchlistItem` och körde migrationen. #49 och #50 implementerades tillsammans eftersom de delar samma GET-endpoint (`/api/history`, diskriminerad via `type`) — att bygga #49 ensam hade krävt en omskrivning när #50:s helt annorlunda (grupperade) svarsform kom in. #51 fick paginering tillagd i efterhand för att matcha mönstret från #48–#50. |
+| **Beslut** | Titel/år cachas på `WatchlistItem` vid tillägg, inte vid varje läsning — ger korrekt DB-nivå-sortering för alla tre sorteringslägen utan extra TMDB-anrop. `type=series` används i historik-queryn (inte `tv` som ticketens bokstavliga text sa) för konsekvens med resten av kodbasens egen namngivningskonvention. Säsongshistorik (#50) pagineras på antal distinkta serier via Prismas `groupBy`, inte på antal rader — samma typ av korrekthetsproblem som #48 löste för titel/år-sortering. POST-endpoints i #48–#51 returnerar det enskilda skapade/uppdaterade objektet, inte hela den uppdaterade listan, eftersom det senare skulle innebära onödiga extra TMDB-anrop. I #51 mappas `ratedAt` till `updatedAt` (inte `createdAt`), eftersom omvärdering ändrar `rating` utan att ändra när raden först skapades. Ingen separat PUT-route i #51 — ticketens egen "Routes"-sektion definierar bara GET/POST/DELETE, med POST uttryckligen som upsert. |
+| **Problem och lösningar** | Hittade ett verkligt kompileringsfel i #49: `seasonNumber: null` gick inte att använda i en `upsert`-lookup på det sammansatta unika nyckelfältet, eftersom Postgres behandlar varje NULL i ett unikt villkor som distinkt — en likhets-lookup med NULL kan därför aldrig matcha en befintlig rad. Löste det genom att byta till samma mönster som redan används i `services/movies.ts` (`findFirst` med explicit `seasonNumber: null`-filter, som Prisma översätter till `IS NULL`), följt av villkorad `create`/`update` på `id`. Verifierade all kod mot en handskriven Prisma-klientstub i en isolerad sandbox innan leverans, sedan bekräftat rent med `tsc --noEmit` mot den riktiga kodbasen för samtliga fyra tickets. |
+| **Commits** | `feat(api): add watchlist endpoints (#48)` · `feat(api): add watch history endpoints for movies and series (#49, #50)` · `feat(api): add personal ratings endpoints (#51)` |
+| **Nästa steg** | Gå vidare med nästa del av backloggen (sannolikt testerna #52–55). Uppskjutet sedan tidigare: Postman-testsvit för redan klara endpoints, samt en refactoring av mappstrukturen (undermappar per funktionsområde i services/routes). |
+
+---
+
 ## Vecka 4 (20–23 juli 2026)
 
 ### Måndag 20/7
