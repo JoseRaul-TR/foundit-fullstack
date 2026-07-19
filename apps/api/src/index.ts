@@ -26,6 +26,7 @@ import profileRouter from "@/routes/profile";
 import profileCountriesRouter from "@/routes/profileCountries";
 import profileServicesRouter from "@/routes/profileServices";
 import watchlistRouter from "@/routes/watchlist";
+import historyRouter from "@/routes/history";
 
 // Create the Express app
 const app = express();
@@ -69,6 +70,7 @@ app.use("/api/profile", profileRouter); // No tmdbLimiter, only calls to own db 
 app.use("/api/profile/countries", profileCountriesRouter);
 app.use("/api/profile/services", profileServicesRouter);
 app.use("/api/watchlist", tmdbLimiter, watchlistRouter);
+app.use("/api/history", tmdbLimiter, historyRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {
