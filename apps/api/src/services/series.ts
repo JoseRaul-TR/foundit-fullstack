@@ -67,7 +67,7 @@ export interface SeriesDetailResponse {
  * back to "returning" since neither "ended" nor "canceled" fit — flag if you
  * want a 4th "upcoming" bucket instead of folding those into "returning".
  */
-function toSeriesStatus(
+export function toSeriesStatus(
   tmdbStatus: string,
 ): "returning" | "ended" | "canceled" | "upcoming" {
   switch (tmdbStatus) {

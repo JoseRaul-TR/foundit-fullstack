@@ -117,6 +117,8 @@ model WatchlistItem {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tmdbId    Int
   mediaType String
+  title     String?
+  year      Int?
   createdAt DateTime @default(now())
 
   @@unique([userId, tmdbId, mediaType])

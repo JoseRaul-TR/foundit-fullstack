@@ -149,3 +149,27 @@ export function collectSubscribedNames(
 
   return [...names];
 }
+
+export function collectSubscribedServices(
+  providersByCountry: Record<string, ProvidersByType>,
+): { name: string; logoPath: string }[] {
+  const seen = new Map<string, { name: string; logoPath: string }>();
+  for (const byType of Object.values(providersByCountry)) {
+    for (const list of [
+      byType.flatrate,
+      byType.rent,
+      byType.buy,
+      byType.free,
+    ]) {
+      for (const provider of list) {
+        if (provider.subscribed && !seen.has(provider.name)) {
+          seen.set(provider.name, {
+            name: provider.name,
+            logoPath: provider.logoPath,
+          });
+        }
+      }
+    }
+  }
+  return [...seen.values()];
+}
