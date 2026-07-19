@@ -24,6 +24,7 @@ import providersRouter from "@/routes/providers";
 import countriesRouter from "@/routes/countries";
 import profileRouter from "@/routes/profile";
 import profileCountriesRouter from "@/routes/profileCountries";
+import profileServicesRouter from "@/routes/profileServices";
 
 // Create the Express app
 const app = express();
@@ -65,6 +66,7 @@ app.use("/api/providers", tmdbLimiter, providersRouter);
 app.use("/api/countries", tmdbLimiter, countriesRouter);
 app.use("/api/profile", profileRouter); // No tmdbLimiter, only calls to own db via Prisma
 app.use("/api/profile/countries", profileCountriesRouter);
+app.use("/api/profile/services", profileServicesRouter);
 
 // Protected Route Example
 app.get("/api/protected", requireAuth, (req: Request, res: Response) => {
