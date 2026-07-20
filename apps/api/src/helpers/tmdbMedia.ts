@@ -1,7 +1,8 @@
-// apps/api/src/helpers/tmdbMedia.ts
-
+//apps/api/src/helpers/tmdbMedia.ts
 import type {
   TmdbCredits,
+  TmdbMovie,
+  TmdbSeries,
   TmdbVideosResponse,
   TmdbWatchProviderEntry,
   TmdbWatchProvidersCountry,
@@ -13,24 +14,14 @@ import type {
   ProviderType,
   NormalizedSearchResult,
   MediaType,
+  ProvidersByType,
+  MediaTrailer,
+  NormalizedCastMember,
 } from "@foundit/types";
+import { fetchTmdb } from "@/lib/tmdb";
 
 export const MAX_CAST = 10;
 export const MAX_RECOMMENDATIONS = 10;
-
-export interface ProvidersByType {
-  flatrate: Provider[];
-  rent: Provider[];
-  buy: Provider[];
-  free: Provider[];
-}
-
-export interface NormalizedCastMember {
-  id: number;
-  name: string;
-  character: string;
-  profilePath: string | null;
-}
 
 export function parseYear(
   dateString: string | undefined | null,
@@ -42,7 +33,7 @@ export function parseYear(
 
 export function extractTrailer(
   videos: TmdbVideosResponse | undefined,
-): { youtubeKey: string } | null {
+): MediaTrailer | null {
   const trailer = videos?.results.find(
     (v) => v.type === "Trailer" && v.site === "YouTube",
   );
@@ -76,10 +67,6 @@ export function extractRecommendations(
     }));
 }
 
-/**
- * TMDB's `logo_path` can be null; our shared `Provider.logoPath` is typed as
- * a required string, so it's default to "" rather than widen the shared type.
- */
 export function toProvider(
   entry: TmdbWatchProviderEntry,
   type: ProviderType,
@@ -88,7 +75,6 @@ export function toProvider(
 ): Provider {
   const isSubscribed =
     subscribedSet?.has(`${countryCode}:${entry.provider_id}`) ?? false;
-
   return {
     providerId: entry.provider_id,
     name: entry.provider_name,
@@ -121,15 +107,9 @@ export function buildProviders(
       ),
     };
   }
-
   return providers;
 }
 
-/**
- * Distinct provider names the user is subscribed to, across every
- * coountry/type in an already-build providers map. Used for #39's
- * `availableOn` (new-season-available highlight).
- */
 export function collectSubscribedNames(
   providersByCountry: Record<string, ProvidersByType>,
 ): string[] {
@@ -146,7 +126,6 @@ export function collectSubscribedNames(
       }
     }
   }
-
   return [...names];
 }
 
@@ -172,4 +151,51 @@ export function collectSubscribedServices(
     }
   }
   return [...seen.values()];
+}
+
+export function extractTitle(
+  mediaType: MediaType,
+  raw: TmdbMovie | TmdbSeries,
+): string {
+  return mediaType === "movie"
+    ? (raw as TmdbMovie).title
+    : (raw as TmdbSeries).name;
+}
+
+export function extractYear(
+  mediaType: MediaType,
+  raw: TmdbMovie | TmdbSeries,
+): number | null {
+  return mediaType === "movie"
+    ? parseYear((raw as TmdbMovie).release_date)
+    : parseYear((raw as TmdbSeries).first_air_date);
+}
+
+export async function fetchMediaRaw(
+  tmdbId: number,
+  mediaType: MediaType,
+  params: Record<string, string | number | boolean | undefined> = {},
+): Promise<TmdbMovie | TmdbSeries> {
+  return mediaType === "movie"
+    ? fetchTmdb<TmdbMovie>(`/movie/${tmdbId}`, params)
+    : fetchTmdb<TmdbSeries>(`/tv/${tmdbId}`, params);
+}
+
+export interface BasicMediaTmdbInfo {
+  title: string;
+  posterPath: string | null;
+  year: number | null;
+}
+
+export async function fetchBasicMediaInfo(
+  tmdbId: number,
+  mediaType: MediaType,
+  language: string,
+): Promise<BasicMediaTmdbInfo> {
+  const raw = await fetchMediaRaw(tmdbId, mediaType, { language });
+  return {
+    title: extractTitle(mediaType, raw),
+    posterPath: raw.poster_path,
+    year: extractYear(mediaType, raw),
+  };
 }

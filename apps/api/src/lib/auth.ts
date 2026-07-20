@@ -38,7 +38,11 @@ export const auth = betterAuth({
   },
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
-  basePath: "/api/auth",
+  // Must match the path index.ts mounts the Better Auth handler at
+  // (`${API_V1}/auth`). If these ever drift apart, Better Auth's internal
+  // link/redirect generation (and the frontend's authClient baseURL) will
+  // silently point at the wrong path.
+  basePath: "/api/v1/auth",
   trustedOrigins: [env.FRONTEND_URL],
   advanced: {
     // HTTP-only + Secure cookies in production, relaxed locally over http
@@ -82,6 +86,22 @@ export async function requireAuth(
 
   req.session = session;
   next();
+}
+
+/**
+ * Reads the authenticated user's id off req.session, throwing 401 if
+ * missing. requireAuth guarantees req.session is set at runtime, but TS
+ * can't narrow that across separate middleware/handler functions — this
+ * centralizes the defensive check that was previously copy-pasted at the
+ * top of every authenticated route handler (15+ occurrences across
+ * #46-#51).
+ */
+export function getUserId(req: Request): string {
+  const userId = req.session?.user.id;
+  if (!userId) {
+    throw new AppError("Unauthorized", 401);
+  }
+  return userId;
 }
 
 export default auth;

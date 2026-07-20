@@ -1,4 +1,7 @@
 // apps/api/src/index.ts
+import fs from "node:fs";
+import http from "node:http";
+import https from "node:https";
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -14,23 +17,35 @@ import {
   tmdbLimiter,
 } from "@/middleware/rateLimit";
 
-import moviesRouter from "@/routes/movies";
-import seriesRouter from "@/routes/series";
-import searchRouter from "@/routes/search";
-import discoverRouter from "@/routes/discover";
-import peopleRouter from "@/routes/people";
-import genresRouter from "@/routes/genres";
-import providersRouter from "@/routes/providers";
-import countriesRouter from "@/routes/countries";
-import profileRouter from "@/routes/profile";
-import profileCountriesRouter from "@/routes/profileCountries";
-import profileServicesRouter from "@/routes/profileServices";
-import watchlistRouter from "@/routes/watchlist";
-import historyRouter from "@/routes/history";
-import ratingsRouter from "@/routes/ratings";
+// Catalog domain (public TMDB-backed read endpoints)
+import moviesRouter from "@/routes/catalog/movies";
+import seriesRouter from "@/routes/catalog/series";
+import searchRouter from "@/routes/catalog/search";
+import discoverRouter from "@/routes/catalog/discover";
+import peopleRouter from "@/routes/catalog/people";
+import genresRouter from "@/routes/catalog/genres";
+import providersRouter from "@/routes/catalog/providers";
+import countriesRouter from "@/routes/catalog/countries";
+
+// Profile domain (authenticated user settings)
+import profileRouter from "@/routes/profile/profile";
+import profileCountriesRouter from "@/routes/profile/countries";
+import profileServicesRouter from "@/routes/profile/services";
+
+// Library domain (authenticated user media tracking)
+import watchlistRouter from "@/routes/library/watchlist";
+import historyRouter from "@/routes/library/history";
+import ratingsRouter from "@/routes/library/ratings";
 
 // Create the Express app
 const app = express();
+
+// All versioned business routes live under this prefix. /health and / stay
+// unversioned on purpose: they're infra/meta endpoints (load balancer health
+// checks, a root sanity check), not part of the API's versioned contract —
+// tools like Railway's healthcheck shouldn't have to know about API versions.
+// basePath in lib/auth.ts's betterAuth({...}) config MUST match API_V1/auth.
+const API_V1 = "/api/v1";
 
 // Railway runs the API behind a reverse proxy. Without this, req.ip is the
 // proxy's IP and ALL users would share one rate-limit bucket. Trust exactly
@@ -49,41 +64,32 @@ app.use(
 app.use(globalLimiter);
 
 //Strict limit on auth BEFORE the Better Auth handler
-app.use("/api/auth", authLimiter);
+app.use(`${API_V1}/auth`, authLimiter);
 // IMPORTANT: Better Auth's handler must be mounted BEFORE express.json().
 // It needs the raw, unparsed request body — if express.json() runs first,
 // sign-up/sign-in requests will fail silently or with a body-parsing error.
 // Express 5 (path-to-regexp v8) requires named wildcards: "*splat", not "*".
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all(`${API_V1}/auth/*splat`, toNodeHandler(auth));
 
 // JSON body parser for everything else, mounted after the auth handler
 app.use(express.json());
 
-app.use("/api/movies", tmdbLimiter, moviesRouter);
-app.use("/api/series", tmdbLimiter, seriesRouter);
-app.use("/api/search", tmdbLimiter, searchRouter);
-app.use("/api/discover", tmdbLimiter, discoverRouter);
-app.use("/api/people", tmdbLimiter, peopleRouter);
-app.use("/api/genres", tmdbLimiter, genresRouter);
-app.use("/api/providers", tmdbLimiter, providersRouter);
-app.use("/api/countries", tmdbLimiter, countriesRouter);
-app.use("/api/profile", profileRouter); // No tmdbLimiter, only calls to own db via Prisma
-app.use("/api/profile/countries", profileCountriesRouter);
-app.use("/api/profile/services", profileServicesRouter);
-app.use("/api/watchlist", tmdbLimiter, watchlistRouter);
-app.use("/api/history", tmdbLimiter, historyRouter);
-app.use("/api/ratings", tmdbLimiter, ratingsRouter);
+app.use(`${API_V1}/movies`, tmdbLimiter, moviesRouter);
+app.use(`${API_V1}/series`, tmdbLimiter, seriesRouter);
+app.use(`${API_V1}/search`, tmdbLimiter, searchRouter);
+app.use(`${API_V1}/discover`, tmdbLimiter, discoverRouter);
+app.use(`${API_V1}/people`, tmdbLimiter, peopleRouter);
+app.use(`${API_V1}/genres`, tmdbLimiter, genresRouter);
+app.use(`${API_V1}/providers`, tmdbLimiter, providersRouter);
+app.use(`${API_V1}/countries`, tmdbLimiter, countriesRouter);
+app.use(`${API_V1}/profile`, profileRouter); // No tmdbLimiter, only calls to own db via Prisma
+app.use(`${API_V1}/profile/countries`, profileCountriesRouter);
+app.use(`${API_V1}/profile/services`, profileServicesRouter);
+app.use(`${API_V1}/watchlist`, tmdbLimiter, watchlistRouter);
+app.use(`${API_V1}/history`, tmdbLimiter, historyRouter);
+app.use(`${API_V1}/ratings`, tmdbLimiter, ratingsRouter);
 
-// Protected Route Example
-app.get("/api/protected", requireAuth, (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    message: "You are authenticated!",
-    user: req.session?.user,
-  });
-});
-
-// Health Endpoint
+// Health Endpoint (unversioned — see API_V1 comment above)
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
     status: "ok",
@@ -92,7 +98,7 @@ app.get("/health", (req: Request, res: Response) => {
   });
 });
 
-// Root Endpoint
+// Root Endpoint (unversioned — see API_V1 comment above)
 app.get("/", (req: Request, res: Response) => {
   res.send(
     `FoundIt API is running! LOCALE_TO_TMDB_LANG['es'] = ${LOCALE_TO_TMDB_LANG["es"]}`,
@@ -115,13 +121,40 @@ async function testDatabaseConnection() {
   }
 }
 
-// Start Server
-const server = app.listen(env.PORT, async () => {
+async function onServerReady(protocol: "http" | "https") {
   await testDatabaseConnection();
-  console.log(`API server running on http://localhost:${env.PORT}`);
+  console.log(`API server running on ${protocol}://localhost:${env.PORT}`);
   console.log(`Environment: ${env.NODE_ENV}`);
   console.log(`Frontend URL: ${env.FRONTEND_URL}`);
-});
+}
+
+// Start Server
+//
+// USE_HTTPS is meant for LOCAL DEVELOPMENT ONLY, to test things that behave
+// differently over a real TLS connection (Secure cookies, Google OAuth
+// callback restrictions) before deploying. In production this must stay
+// false: Railway (see "trust proxy" above) terminates TLS at its own edge
+// and forwards plain HTTP to the container, so the Node process binding
+// raw HTTPS itself would be redundant, not more secure — Railway already
+// provides the encryption between the browser and its edge.
+//
+// To generate local certs: `brew install mkcert && mkcert -install`, then
+// from a `certs/` folder (gitignored) run `mkcert localhost 127.0.0.1 ::1`
+// and point HTTPS_KEY_PATH/HTTPS_CERT_PATH at the generated files in .env.
+let server: http.Server | https.Server;
+
+if (env.USE_HTTPS && env.HTTPS_KEY_PATH && env.HTTPS_CERT_PATH) {
+  const httpsOptions = {
+    key: fs.readFileSync(env.HTTPS_KEY_PATH),
+    cert: fs.readFileSync(env.HTTPS_CERT_PATH),
+  };
+
+  server = https
+    .createServer(httpsOptions, app)
+    .listen(env.PORT, () => onServerReady("https"));
+} else {
+  server = app.listen(env.PORT, () => onServerReady("http"));
+}
 
 // Graceful Server Shutdown
 let shuttingDown = false;
