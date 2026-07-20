@@ -22,6 +22,7 @@ import {
 import { fetchBasicMediaInfo } from "@/helpers/tmdbMedia";
 import { PAGE_SIZE } from "@/config/constants";
 import prisma from "@/lib/prisma";
+import { AppError } from "@/middleware/errorHandler";
 
 const LANGUAGE = LOCALE_TO_TMDB_LANG.en; // no ?lang= support in this ticket, consistent with #48-#50
 
@@ -110,5 +111,10 @@ export async function removeRating(
   tmdbId: number,
   mediaType: MediaType,
 ): Promise<void> {
-  await prisma.userRating.deleteMany({ where: { userId, tmdbId, mediaType } });
+  const { count } = await prisma.userRating.deleteMany({
+    where: { userId, tmdbId, mediaType },
+  });
+  if (count === 0) {
+    throw new AppError("Rating not found", 404);
+  }
 }

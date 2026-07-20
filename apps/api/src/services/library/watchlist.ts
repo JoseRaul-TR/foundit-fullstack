@@ -39,6 +39,7 @@ import { PAGE_SIZE } from "@/config/constants";
 import prisma from "@/lib/prisma";
 import { toSeriesStatus } from "@/services/catalog/series";
 import type { TmdbMovie, TmdbSeries } from "@/types/tmdb.types";
+import { AppError } from "@/middleware/errorHandler";
 
 const BASIC_LANGUAGE = LOCALE_TO_TMDB_LANG.en; // no ?lang= in this ticket; see note in routes/watchlist.ts
 
@@ -251,7 +252,10 @@ export async function removeFromWatchlist(
   tmdbId: number,
   mediaType: MediaType,
 ): Promise<void> {
-  await prisma.watchlistItem.deleteMany({
+  const { count } = await prisma.watchlistItem.deleteMany({
     where: { userId, tmdbId, mediaType },
   });
+  if (count === 0) {
+    throw new AppError("Watchlist item not found", 404);
+  }
 }
