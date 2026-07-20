@@ -17,6 +17,11 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(3001),
   DATABASE_URL: z.url(),
   TMDB_API_KEY: z.string().min(1),
+  // Local-dev-only HTTPS support — see the USE_HTTPS comment in index.ts.
+  // Never set to true in production: Railway terminates TLS at its edge.
+  USE_HTTPS: z.coerce.boolean().default(false),
+  HTTPS_KEY_PATH: z.string().optional(),
+  HTTPS_CERT_PATH: z.string().optional(),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url().default("http://localhost:3001"),
   FRONTEND_URL: z.url(),

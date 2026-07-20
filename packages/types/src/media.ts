@@ -36,3 +36,21 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   page: number;
 }
+
+export interface ProvidersByType {
+  flatrate: Provider[];
+  rent: Provider[];
+  buy: Provider[];
+  free: Provider[];
+}
+
+export interface MediaTrailer {
+  youtubeKey: string;
+}
+
+export interface NormalizedCastMember {
+  id: number;
+  name: string;
+  character: string;
+  profilePath: string | null;
+}
