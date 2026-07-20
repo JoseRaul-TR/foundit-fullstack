@@ -1,7 +1,10 @@
-// apps/api/src/index.ts
-import fs from "node:fs";
-import http from "node:http";
-import https from "node:https";
+// apps/api/src/server.ts// apps/api/src/app.ts
+//
+// Express app construction ONLY — no listen(), no process-lifecycle code.
+// Split out from the former index.ts (now server.ts) so integration tests
+// can `import { app } from "@/app"` and drive it with Supertest without
+// binding a real port. server.ts imports this and is the actual process
+// entrypoint.
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -9,7 +12,6 @@ import { env } from "@/config/env";
 import { toNodeHandler } from "better-auth/node";
 import { LOCALE_TO_TMDB_LANG } from "@foundit/types";
 import { auth, requireAuth } from "@/lib/auth";
-import prisma, { pool } from "@/lib/prisma";
 import { errorHandler, notFoundHandler } from "@/middleware/errorHandler";
 import {
   authLimiter,
@@ -37,15 +39,13 @@ import watchlistRouter from "@/routes/library/watchlist";
 import historyRouter from "@/routes/library/history";
 import ratingsRouter from "@/routes/library/ratings";
 
-// Create the Express app
-const app = express();
-
 // All versioned business routes live under this prefix. /health and / stay
-// unversioned on purpose: they're infra/meta endpoints (load balancer health
-// checks, a root sanity check), not part of the API's versioned contract —
-// tools like Railway's healthcheck shouldn't have to know about API versions.
-// basePath in lib/auth.ts's betterAuth({...}) config MUST match API_V1/auth.
-const API_V1 = "/api/v1";
+// unversioned on purpose: infra/meta endpoints, not part of the versioned
+// contract. basePath in lib/auth.ts's betterAuth({...}) config MUST match
+// API_V1/auth.
+export const API_V1 = "/api/v1";
+
+export const app = express();
 
 // Railway runs the API behind a reverse proxy. Without this, req.ip is the
 // proxy's IP and ALL users would share one rate-limit bucket. Trust exactly
@@ -63,7 +63,7 @@ app.use(
 );
 app.use(globalLimiter);
 
-//Strict limit on auth BEFORE the Better Auth handler
+// Strict limit on auth BEFORE the Better Auth handler
 app.use(`${API_V1}/auth`, authLimiter);
 // IMPORTANT: Better Auth's handler must be mounted BEFORE express.json().
 // It needs the raw, unparsed request body — if express.json() runs first,
@@ -89,6 +89,15 @@ app.use(`${API_V1}/watchlist`, tmdbLimiter, watchlistRouter);
 app.use(`${API_V1}/history`, tmdbLimiter, historyRouter);
 app.use(`${API_V1}/ratings`, tmdbLimiter, ratingsRouter);
 
+// Protected Route Example
+app.get(`${API_V1}/protected`, requireAuth, (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: "You are authenticated!",
+    user: req.session?.user,
+  });
+});
+
 // Health Endpoint (unversioned — see API_V1 comment above)
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
@@ -111,86 +120,4 @@ app.use(notFoundHandler);
 // Global errors handler
 app.use(errorHandler);
 
-// Test the connection to the database
-async function testDatabaseConnection() {
-  try {
-    await prisma.$connect();
-    console.log("✅ Database connection successful");
-  } catch (error) {
-    console.error("❌ Database connection error:", error);
-  }
-}
-
-async function onServerReady(protocol: "http" | "https") {
-  await testDatabaseConnection();
-  console.log(`API server running on ${protocol}://localhost:${env.PORT}`);
-  console.log(`Environment: ${env.NODE_ENV}`);
-  console.log(`Frontend URL: ${env.FRONTEND_URL}`);
-}
-
-// Start Server
-//
-// USE_HTTPS is meant for LOCAL DEVELOPMENT ONLY, to test things that behave
-// differently over a real TLS connection (Secure cookies, Google OAuth
-// callback restrictions) before deploying. In production this must stay
-// false: Railway (see "trust proxy" above) terminates TLS at its own edge
-// and forwards plain HTTP to the container, so the Node process binding
-// raw HTTPS itself would be redundant, not more secure — Railway already
-// provides the encryption between the browser and its edge.
-//
-// To generate local certs: `brew install mkcert && mkcert -install`, then
-// from a `certs/` folder (gitignored) run `mkcert localhost 127.0.0.1 ::1`
-// and point HTTPS_KEY_PATH/HTTPS_CERT_PATH at the generated files in .env.
-let server: http.Server | https.Server;
-
-if (env.USE_HTTPS && env.HTTPS_KEY_PATH && env.HTTPS_CERT_PATH) {
-  const httpsOptions = {
-    key: fs.readFileSync(env.HTTPS_KEY_PATH),
-    cert: fs.readFileSync(env.HTTPS_CERT_PATH),
-  };
-
-  server = https
-    .createServer(httpsOptions, app)
-    .listen(env.PORT, () => onServerReady("https"));
-} else {
-  server = app.listen(env.PORT, () => onServerReady("http"));
-}
-
-// Graceful Server Shutdown
-let shuttingDown = false;
-
-async function shutdown(signal: string) {
-  if (shuttingDown) return; // ignore repeated signals
-  shuttingDown = true;
-  console.log(`\n${signal} received — shutting down gracefully the server...`);
-
-  // Force-exit if cleanup hangs (e.g. a stuck DB connection)
-  const forceExit = setTimeout(() => {
-    console.error("⏱️ Shutdown timed out, forcing exit");
-    process.exit(1);
-  }, 10_000);
-  forceExit.unref();
-
-  // 1. Stop accepting new connections; wait for in-flight requests to finish
-  server.close(async (err) => {
-    if (err) {
-      console.error("❌ Error closing HTTP server:", err);
-    } else {
-      console.log("✅ HTTP server closed");
-    }
-
-    // 2. Close database resources
-    try {
-      await prisma.$disconnect();
-      await pool.end();
-      console.log("✅ Database connections closed");
-      process.exit(err ? 1 : 0);
-    } catch (dbErr) {
-      console.error("❌ Error closing database connections:", dbErr);
-      process.exit(1);
-    }
-  });
-}
-
-process.on("SIGINT", () => shutdown("SIGINT")); // Ctrl+C
-process.on("SIGTERM", () => shutdown("SIGTERM")); // Railway/Docker stop
+export default app;
