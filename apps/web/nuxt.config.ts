@@ -3,7 +3,12 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
+  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/i18n", "@pinia/nuxt"],
+  vite: {
+    optimizeDeps: {
+      include: ["@tanstack/vue-query"],
+    },
+  },
   i18n: {
     strategy: "prefix_except_default",
     defaultLocale: "en",
