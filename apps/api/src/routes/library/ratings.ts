@@ -1,4 +1,4 @@
-// apps/api/src/routes/library/ratings.routes.ts
+// apps/api/src/routes/library/ratings.ts
 
 import { Router } from "express";
 import { requireAuth } from "@/lib/auth";

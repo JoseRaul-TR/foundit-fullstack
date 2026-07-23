@@ -1,4 +1,4 @@
-// apps/api/src/routes/library/history.routes.ts
+// apps/api/src/routes/library/history.ts
 
 import { Router } from "express";
 import { requireAuth } from "@/lib/auth";

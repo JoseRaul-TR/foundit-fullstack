@@ -1,4 +1,4 @@
-// apps/api/src/routes/catalog/search.routes.ts
+// apps/api/src/routes/catalog/search.ts
 
 import { Router } from "express";
 import { searchController } from "@/controllers/catalog/search";

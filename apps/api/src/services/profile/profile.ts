@@ -7,9 +7,11 @@ import type {
   ProfileStreamingService,
   ProfileResponse,
 } from "@foundit/types";
+import { assertValidCountryCode } from "./countries";
 
 export interface UpdateProfileInput {
   name?: string;
+  ageRatingCountry?: string | null;
 }
 
 export async function buildCountries(
@@ -80,6 +82,7 @@ export async function getProfile(userId: string): Promise<ProfileResponse> {
     createdAt: user.createdAt,
     countries,
     services,
+    ageRatingCountry: user.ageRatingCountry,
   };
 }
 
@@ -87,9 +90,18 @@ export async function updateProfile(
   userId: string,
   input: UpdateProfileInput,
 ): Promise<ProfileResponse> {
+  if (input.ageRatingCountry) {
+    await assertValidCountryCode(input.ageRatingCountry);
+  }
+
   await prisma.user.update({
     where: { id: userId },
-    data: { ...(input.name !== undefined ? { name: input.name } : {}) },
+    data: {
+      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.ageRatingCountry !== undefined
+        ? { ageRatingCountry: input.ageRatingCountry }
+        : {}),
+    },
   });
   return getProfile(userId);
 }
