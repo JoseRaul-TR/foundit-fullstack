@@ -9,6 +9,9 @@ export default defineNuxtConfig({
       include: ["@tanstack/vue-query"],
     },
   },
+  tailwindcss: {
+    cssPath: "~/assets/css/main.css",
+  },
   i18n: {
     strategy: "prefix_except_default",
     defaultLocale: "en",
