@@ -3,7 +3,23 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxtjs/tailwindcss"],
+  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
+  i18n: {
+    strategy: "prefix_except_default",
+    defaultLocale: "en",
+    locales: [
+      { code: "en", file: "en.json" },
+      { code: "es", file: "es.json" },
+      { code: "sv", file: "sv.json" },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_redirected",
+      redirectOn: "root",
+      alwaysRedirect: false,
+      fallbackLocale: "en",
+    },
+  },
   runtimeConfig: {
     // No server-only keys yet — the API base is public because the
     // browser calls it directly, nothing secret involved.

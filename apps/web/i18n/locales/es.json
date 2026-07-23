@@ -1,0 +1,239 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "search": "Buscar",
+    "discover": "Descubrir",
+    "watchlist": "Lista de seguimiento",
+    "history": "Historial",
+    "profile": "Perfil",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "home": {
+    "title": "FoundIt",
+    "tagline": "Descubre dónde ver tus películas y series favoritas."
+  },
+  "search": {
+    "placeholder": "Buscar películas, series, personas...",
+    "noResults": "No se encontraron resultados.",
+    "typeTabs": {
+      "all": "Todos",
+      "movie": "Películas",
+      "series": "Series",
+      "person": "Personas"
+    },
+    "sortBy": {
+      "label": "Ordenar por",
+      "name": "Nombre",
+      "year": "Año"
+    }
+  },
+  "discover": {
+    "title": "Descubrir",
+    "noResults": "No se encontraron resultados.",
+    "filters": {
+      "genre": "Género",
+      "year": "Año",
+      "minRating": "Puntuación mínima",
+      "platform": "Plataforma",
+      "ageRating": "Clasificación por edad",
+      "sortBy": "Ordenar por",
+      "apply": "Aplicar filtros",
+      "clear": "Borrar filtros"
+    },
+    "typeTabs": {
+      "movie": "Películas",
+      "series": "Series"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "back": "Volver",
+    "showTrailer": "Mostrar tráiler",
+    "providerType": {
+      "flatrate": "Streaming",
+      "rent": "Alquiler",
+      "buy": "Comprar",
+      "free": "Gratis"
+    },
+    "rating": {
+      "tmdbLabel": "TMDB",
+      "votes": "votos",
+      "founditAvg": "Media de FoundIt {avg} ({count} valoraciones)",
+      "founditAvgCompact": "Tu valoración: {userRating}/5 · Media de FoundIt {avg} ({count})"
+    }
+  },
+  "movie": {
+    "hero": {
+      "directedBy": "Dirigida por {name}"
+    },
+    "cast": "Reparto",
+    "recommendations": "También te puede gustar",
+    "providers": "Dónde ver",
+    "providersByCountry": "Dónde ver — {country}",
+    "trailer": "Tráiler",
+    "overview": "Sinopsis",
+    "addToWatchlist": "Añadir a la lista de seguimiento",
+    "removeFromWatchlist": "Quitar de la lista de seguimiento",
+    "markWatched": "Marcar como vista",
+    "markUnwatched": "Marcar como no vista"
+  },
+  "series": {
+    "cast": "Reparto",
+    "recommendations": "También te puede gustar",
+    "providers": "Dónde ver",
+    "providersByCountry": "Dónde ver — {country}",
+    "trailer": "Tráiler",
+    "overview": "Sinopsis",
+    "seasons": "Temporadas",
+    "specials": "Especiales",
+    "episodes": "Episodios",
+    "newSeasonsAvailable": "Nueva temporada disponible",
+    "addToWatchlist": "Añadir a la lista de seguimiento",
+    "removeFromWatchlist": "Quitar de la lista de seguimiento",
+    "markSeasonWatched": "Marcar temporada como vista",
+    "markSeasonUnwatched": "Marcar temporada como no vista",
+    "status": {
+      "returning": "Serie en emisión",
+      "ended": "Finalizada",
+      "canceled": "Cancelada",
+      "upcoming": "Próximamente"
+    }
+  },
+  "person": {
+    "biography": "Biografía",
+    "knownFor": "Conocido por",
+    "movieCredits": "Películas",
+    "seriesCredits": "Series",
+    "cast": "Como intérprete",
+    "crew": "Como equipo técnico",
+    "birthday": "Fecha de nacimiento",
+    "placeOfBirth": "Lugar de nacimiento"
+  },
+  "watchlist": {
+    "title": "Lista de seguimiento",
+    "empty": "Tu lista de seguimiento está vacía.",
+    "remove": "Quitar",
+    "newSeasonsAvailable": "Nueva temporada disponible",
+    "availableOn": "Disponible en",
+    "typeFilter": {
+      "all": "Todos",
+      "movie": "Películas",
+      "series": "Series"
+    },
+    "sortBy": {
+      "label": "Ordenar por",
+      "added": "Añadido recientemente",
+      "title": "Título",
+      "year": "Año"
+    }
+  },
+  "history": {
+    "title": "Historial",
+    "empty": "Aún no tienes historial de visualización.",
+    "moviesTab": "Películas",
+    "seriesTab": "Series",
+    "watchedSeasons": "Temporadas vistas",
+    "lastWatchedAt": "Última vez visto",
+    "markUnwatched": "Quitar del historial"
+  },
+  "profile": {
+    "title": "Perfil",
+    "identity": {
+      "syncedFromGoogle": "Sincronizado con Google · solo lectura"
+    },
+    "manualAccount": {
+      "title": "Cuenta manual (identidad editable)",
+      "description": "Las cuentas creadas con email/contraseña pueden editar su nombre, email y contraseña, a diferencia de las cuentas sincronizadas con Google, que permanecen de solo lectura.",
+      "changePassword": "Cambiar contraseña"
+    },
+    "countries": {
+      "title": "Países",
+      "description": "Selecciona los países para los que quieres ver disponibilidad de streaming.",
+      "add": "Añadir país",
+      "empty": "Aún no has seleccionado ningún país."
+    },
+    "streamingServices": {
+      "title": "Servicios de streaming",
+      "description": "Marca a qué servicios estás suscrito en cada país.",
+      "selectCountryFirst": "Selecciona un país arriba para ver aquí los servicios de streaming disponibles."
+    },
+    "ageRating": {
+      "title": "Región para clasificación por edad",
+      "description": "Se usa para determinar las clasificaciones y calificaciones por edad del contenido (un único país).",
+      "selectPlaceholder": "Selecciona un país"
+    },
+    "dangerZone": {
+      "title": "Zona de peligro",
+      "description": "Eliminar tu cuenta borra permanentemente todos tus datos, incluidos tu lista de seguimiento y tu historial. Esta acción no se puede deshacer.",
+      "deleteAccount": "Eliminar cuenta"
+    },
+    "deleteConfirm": {
+      "title": "¿Eliminar tu cuenta?",
+      "description": "Esto eliminará permanentemente tu cuenta, incluidos tu lista de seguimiento, tu historial y tus valoraciones personales. Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar cuenta"
+    },
+    "save": "Guardar cambios",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "login": {
+      "redirectBanner": "Inicia sesión para continuar",
+      "title": "Iniciar sesión",
+      "subtitle": "Bienvenido de nuevo a FoundIt.",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "submit": "Iniciar sesión",
+      "or": "o",
+      "googleButton": "Continuar con Google",
+      "noAccount": "¿No tienes una cuenta?",
+      "registerLink": "Registrarse",
+      "validation": {
+        "invalidEmail": "Introduce una dirección de correo electrónico válida.",
+        "passwordRequired": "La contraseña es obligatoria."
+      }
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Empieza a registrar lo que ves.",
+      "nameLabel": "Nombre",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "confirmPasswordLabel": "Confirmar contraseña",
+      "submit": "Crear cuenta",
+      "or": "o",
+      "googleButton": "Continuar con Google",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "loginLink": "Iniciar sesión",
+      "termsLabel": "Acepto los {terms} y la {privacy}.",
+      "termsLink": "Términos de Servicio",
+      "privacyLink": "Política de Privacidad",
+      "passwordStrength": "Seguridad de la contraseña: {level}",
+      "validation": {
+        "nameRequired": "El nombre es obligatorio.",
+        "invalidEmail": "Introduce una dirección de correo electrónico válida.",
+        "passwordTooShort": "La contraseña debe tener al menos 8 caracteres.",
+        "passwordMismatch": "Las contraseñas no coinciden."
+      }
+    },
+    "errors": {
+      "invalidCredentials": "Correo electrónico o contraseña incorrectos.",
+      "emailInUse": "Este correo electrónico ya está registrado."
+    }
+  },
+  "errors": {
+    "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "network": "No se pudo conectar con el servidor. Comprueba tu conexión.",
+    "notFound": "No hemos podido encontrar lo que buscas.",
+    "unauthorized": "Inicia sesión para continuar.",
+    "validation": "Revisa los campos marcados."
+  }
+}

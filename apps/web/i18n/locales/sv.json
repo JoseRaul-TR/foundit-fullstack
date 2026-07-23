@@ -1,0 +1,239 @@
+{
+  "nav": {
+    "home": "Hem",
+    "search": "Sök",
+    "discover": "Upptäck",
+    "watchlist": "Bevakningslista",
+    "history": "Historik",
+    "profile": "Profil",
+    "login": "Logga in",
+    "register": "Registrera dig",
+    "logout": "Logga ut"
+  },
+  "home": {
+    "title": "FoundIt",
+    "tagline": "Ta reda på var du kan se dina favoritfilmer och -serier."
+  },
+  "search": {
+    "placeholder": "Sök filmer, serier, personer...",
+    "noResults": "Inga resultat hittades.",
+    "typeTabs": {
+      "all": "Alla",
+      "movie": "Filmer",
+      "series": "Serier",
+      "person": "Personer"
+    },
+    "sortBy": {
+      "label": "Sortera efter",
+      "name": "Namn",
+      "year": "År"
+    }
+  },
+  "discover": {
+    "title": "Upptäck",
+    "noResults": "Inga resultat hittades.",
+    "filters": {
+      "genre": "Genre",
+      "year": "År",
+      "minRating": "Lägsta betyg",
+      "platform": "Plattform",
+      "ageRating": "Åldersgräns",
+      "sortBy": "Sortera efter",
+      "apply": "Använd filter",
+      "clear": "Rensa filter"
+    },
+    "typeTabs": {
+      "movie": "Filmer",
+      "series": "Serier"
+    }
+  },
+  "common": {
+    "loading": "Laddar...",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "delete": "Ta bort",
+    "confirm": "Bekräfta",
+    "yes": "Ja",
+    "no": "Nej",
+    "back": "Tillbaka",
+    "showTrailer": "Visa trailer",
+    "providerType": {
+      "flatrate": "Streaming",
+      "rent": "Hyra",
+      "buy": "Köp",
+      "free": "Gratis"
+    },
+    "rating": {
+      "tmdbLabel": "TMDB",
+      "votes": "röster",
+      "founditAvg": "FoundIt-snitt {avg} ({count} betyg)",
+      "founditAvgCompact": "Ditt betyg: {userRating}/5 · FoundIt-snitt {avg} ({count})"
+    }
+  },
+  "movie": {
+    "hero": {
+      "directedBy": "Regisserad av {name}"
+    },
+    "cast": "Skådespelare",
+    "recommendations": "Du kanske också gillar",
+    "providers": "Var du kan se den",
+    "providersByCountry": "Var du kan se den — {country}",
+    "trailer": "Trailer",
+    "overview": "Handling",
+    "addToWatchlist": "Lägg till i bevakningslistan",
+    "removeFromWatchlist": "Ta bort från bevakningslistan",
+    "markWatched": "Markera som sedd",
+    "markUnwatched": "Markera som osedd"
+  },
+  "series": {
+    "cast": "Skådespelare",
+    "recommendations": "Du kanske också gillar",
+    "providers": "Var du kan se den",
+    "providersByCountry": "Var du kan se den — {country}",
+    "trailer": "Trailer",
+    "overview": "Handling",
+    "seasons": "Säsonger",
+    "specials": "Specialavsnitt",
+    "episodes": "Avsnitt",
+    "newSeasonsAvailable": "Ny säsong tillgänglig",
+    "addToWatchlist": "Lägg till i bevakningslistan",
+    "removeFromWatchlist": "Ta bort från bevakningslistan",
+    "markSeasonWatched": "Markera säsong som sedd",
+    "markSeasonUnwatched": "Markera säsong som osedd",
+    "status": {
+      "returning": "Pågående serie",
+      "ended": "Avslutad",
+      "canceled": "Nedlagd",
+      "upcoming": "Kommande"
+    }
+  },
+  "person": {
+    "biography": "Biografi",
+    "knownFor": "Känd för",
+    "movieCredits": "Filmer",
+    "seriesCredits": "Serier",
+    "cast": "Som skådespelare",
+    "crew": "I produktionsteamet",
+    "birthday": "Födelsedag",
+    "placeOfBirth": "Födelseort"
+  },
+  "watchlist": {
+    "title": "Bevakningslista",
+    "empty": "Din bevakningslista är tom.",
+    "remove": "Ta bort",
+    "newSeasonsAvailable": "Ny säsong tillgänglig",
+    "availableOn": "Tillgänglig på",
+    "typeFilter": {
+      "all": "Alla",
+      "movie": "Filmer",
+      "series": "Serier"
+    },
+    "sortBy": {
+      "label": "Sortera efter",
+      "added": "Nyligen tillagd",
+      "title": "Titel",
+      "year": "År"
+    }
+  },
+  "history": {
+    "title": "Historik",
+    "empty": "Ingen visningshistorik än.",
+    "moviesTab": "Filmer",
+    "seriesTab": "Serier",
+    "watchedSeasons": "Sedda säsonger",
+    "lastWatchedAt": "Senast sedd",
+    "markUnwatched": "Ta bort från historiken"
+  },
+  "profile": {
+    "title": "Profil",
+    "identity": {
+      "syncedFromGoogle": "Synkroniserad från Google · skrivskyddad"
+    },
+    "manualAccount": {
+      "title": "Manuellt konto (redigerbar identitet)",
+      "description": "Konton som skapats med e-post/lösenord kan redigera sitt namn, sin e-postadress och sitt lösenord — till skillnad från Google-synkroniserade konton, som förblir skrivskyddade.",
+      "changePassword": "Byt lösenord"
+    },
+    "countries": {
+      "title": "Länder",
+      "description": "Välj de länder du vill se streamingtillgänglighet för.",
+      "add": "Lägg till land",
+      "empty": "Inga länder valda än."
+    },
+    "streamingServices": {
+      "title": "Streamingtjänster",
+      "description": "Markera vilka tjänster du prenumererar på i varje land.",
+      "selectCountryFirst": "Välj ett land ovan för att se tillgängliga streamingtjänster här."
+    },
+    "ageRating": {
+      "title": "Region för åldersgräns",
+      "description": "Används för att avgöra åldersgränser och klassificeringar för innehåll (ett enda land).",
+      "selectPlaceholder": "Välj ett land"
+    },
+    "dangerZone": {
+      "title": "Farozon",
+      "description": "Om du tar bort ditt konto raderas all din data permanent, inklusive din bevakningslista och historik. Detta går inte att ångra.",
+      "deleteAccount": "Ta bort konto"
+    },
+    "deleteConfirm": {
+      "title": "Vill du ta bort ditt konto?",
+      "description": "Detta raderar ditt konto permanent, inklusive din bevakningslista, historik och personliga betyg. Detta går inte att ångra.",
+      "cancel": "Avbryt",
+      "confirm": "Ta bort konto"
+    },
+    "save": "Spara ändringar",
+    "logout": "Logga ut"
+  },
+  "auth": {
+    "login": {
+      "redirectBanner": "Logga in för att fortsätta",
+      "title": "Logga in",
+      "subtitle": "Välkommen tillbaka till FoundIt.",
+      "emailLabel": "E-post",
+      "passwordLabel": "Lösenord",
+      "submit": "Logga in",
+      "or": "eller",
+      "googleButton": "Fortsätt med Google",
+      "noAccount": "Har du inget konto?",
+      "registerLink": "Registrera dig",
+      "validation": {
+        "invalidEmail": "Ange en giltig e-postadress.",
+        "passwordRequired": "Lösenord krävs."
+      }
+    },
+    "register": {
+      "title": "Skapa ditt konto",
+      "subtitle": "Börja hålla koll på vad du ser.",
+      "nameLabel": "Namn",
+      "emailLabel": "E-post",
+      "passwordLabel": "Lösenord",
+      "confirmPasswordLabel": "Bekräfta lösenord",
+      "submit": "Skapa konto",
+      "or": "eller",
+      "googleButton": "Fortsätt med Google",
+      "hasAccount": "Har du redan ett konto?",
+      "loginLink": "Logga in",
+      "termsLabel": "Jag godkänner {terms} och {privacy}.",
+      "termsLink": "Användarvillkoren",
+      "privacyLink": "Integritetspolicyn",
+      "passwordStrength": "Lösenordsstyrka: {level}",
+      "validation": {
+        "nameRequired": "Namn krävs.",
+        "invalidEmail": "Ange en giltig e-postadress.",
+        "passwordTooShort": "Lösenordet måste vara minst 8 tecken långt.",
+        "passwordMismatch": "Lösenorden matchar inte."
+      }
+    },
+    "errors": {
+      "invalidCredentials": "Fel e-postadress eller lösenord.",
+      "emailInUse": "Den här e-postadressen är redan registrerad."
+    }
+  },
+  "errors": {
+    "generic": "Något gick fel. Försök igen.",
+    "network": "Det gick inte att ansluta till servern. Kontrollera din anslutning.",
+    "notFound": "Vi kunde inte hitta det du letar efter.",
+    "unauthorized": "Logga in för att fortsätta.",
+    "validation": "Kontrollera de markerade fälten."
+  }
+}

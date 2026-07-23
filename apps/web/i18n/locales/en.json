@@ -1,0 +1,239 @@
+{
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "discover": "Discover",
+    "watchlist": "Watchlist",
+    "history": "History",
+    "profile": "Profile",
+    "login": "Log in",
+    "register": "Register",
+    "logout": "Log out"
+  },
+  "home": {
+    "title": "FoundIt",
+    "tagline": "Find out where to watch your favorite movies and series."
+  },
+  "search": {
+    "placeholder": "Search movies, series, people...",
+    "noResults": "No results found.",
+    "typeTabs": {
+      "all": "All",
+      "movie": "Movies",
+      "series": "Series",
+      "person": "People"
+    },
+    "sortBy": {
+      "label": "Sort by",
+      "name": "Name",
+      "year": "Year"
+    }
+  },
+  "discover": {
+    "title": "Discover",
+    "noResults": "No results found.",
+    "filters": {
+      "genre": "Genre",
+      "year": "Year",
+      "minRating": "Minimum rating",
+      "platform": "Platform",
+      "ageRating": "Age rating",
+      "sortBy": "Sort by",
+      "apply": "Apply filters",
+      "clear": "Clear filters"
+    },
+    "typeTabs": {
+      "movie": "Movies",
+      "series": "Series"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "showTrailer": "Show trailer",
+    "providerType": {
+      "flatrate": "Stream",
+      "rent": "Rent",
+      "buy": "Buy",
+      "free": "Free"
+    },
+    "rating": {
+      "tmdbLabel": "TMDB",
+      "votes": "votes",
+      "founditAvg": "FoundIt avg {avg} ({count} ratings)",
+      "founditAvgCompact": "Your rating: {userRating}/5 · FoundIt avg {avg} ({count})"
+    }
+  },
+  "movie": {
+    "hero": {
+      "directedBy": "Directed by {name}"
+    },
+    "cast": "Cast",
+    "recommendations": "You might also like",
+    "providers": "Where to watch",
+    "providersByCountry": "Where to watch — {country}",
+    "trailer": "Trailer",
+    "overview": "Overview",
+    "addToWatchlist": "Add to watchlist",
+    "removeFromWatchlist": "Remove from watchlist",
+    "markWatched": "Mark as watched",
+    "markUnwatched": "Mark as unwatched"
+  },
+  "series": {
+    "cast": "Cast",
+    "recommendations": "You might also like",
+    "providers": "Where to watch",
+    "providersByCountry": "Where to watch — {country}",
+    "trailer": "Trailer",
+    "overview": "Overview",
+    "seasons": "Seasons",
+    "specials": "Specials",
+    "episodes": "Episodes",
+    "newSeasonsAvailable": "New season available",
+    "addToWatchlist": "Add to watchlist",
+    "removeFromWatchlist": "Remove from watchlist",
+    "markSeasonWatched": "Mark season as watched",
+    "markSeasonUnwatched": "Mark season as unwatched",
+    "status": {
+      "returning": "Returning series",
+      "ended": "Ended",
+      "canceled": "Canceled",
+      "upcoming": "Upcoming"
+    }
+  },
+  "person": {
+    "biography": "Biography",
+    "knownFor": "Known for",
+    "movieCredits": "Movies",
+    "seriesCredits": "Series",
+    "cast": "As cast",
+    "crew": "As crew",
+    "birthday": "Birthday",
+    "placeOfBirth": "Place of birth"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "empty": "Your watchlist is empty.",
+    "remove": "Remove",
+    "newSeasonsAvailable": "New season available",
+    "availableOn": "Available on",
+    "typeFilter": {
+      "all": "All",
+      "movie": "Movies",
+      "series": "Series"
+    },
+    "sortBy": {
+      "label": "Sort by",
+      "added": "Recently added",
+      "title": "Title",
+      "year": "Year"
+    }
+  },
+  "history": {
+    "title": "History",
+    "empty": "No watch history yet.",
+    "moviesTab": "Movies",
+    "seriesTab": "Series",
+    "watchedSeasons": "Watched seasons",
+    "lastWatchedAt": "Last watched",
+    "markUnwatched": "Remove from history"
+  },
+  "profile": {
+    "title": "Profile",
+    "identity": {
+      "syncedFromGoogle": "Synced from Google · read-only"
+    },
+    "manualAccount": {
+      "title": "Manual account (editable identity)",
+      "description": "Accounts created with email/password can edit their name, email, and password — unlike Google-synced accounts, which stay read-only.",
+      "changePassword": "Change password"
+    },
+    "countries": {
+      "title": "Countries",
+      "description": "Select the countries you want streaming availability for.",
+      "add": "Add country",
+      "empty": "No countries selected yet."
+    },
+    "streamingServices": {
+      "title": "Streaming services",
+      "description": "Mark which services you're subscribed to in each country.",
+      "selectCountryFirst": "Select a country above to see available streaming services here."
+    },
+    "ageRating": {
+      "title": "Age rating region",
+      "description": "Used to determine content age ratings and classifications (single country).",
+      "selectPlaceholder": "Select a country"
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "description": "Deleting your account permanently removes all your data, including your watchlist and history. This action cannot be undone.",
+      "deleteAccount": "Delete Account"
+    },
+    "deleteConfirm": {
+      "title": "Delete your account?",
+      "description": "This will permanently delete your account, including your watchlist, history, and personal ratings. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete Account"
+    },
+    "save": "Save changes",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": {
+      "redirectBanner": "Sign in to continue",
+      "title": "Log in",
+      "subtitle": "Welcome back to FoundIt.",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Log in",
+      "or": "or",
+      "googleButton": "Continue with Google",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register",
+      "validation": {
+        "invalidEmail": "Enter a valid email address.",
+        "passwordRequired": "Password is required."
+      }
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start tracking what you watch.",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm password",
+      "submit": "Create account",
+      "or": "or",
+      "googleButton": "Continue with Google",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "termsLabel": "I agree to the {terms} and {privacy}.",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy",
+      "passwordStrength": "Password strength: {level}",
+      "validation": {
+        "nameRequired": "Name is required.",
+        "invalidEmail": "Enter a valid email address.",
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordMismatch": "Passwords do not match."
+      }
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "emailInUse": "This email is already registered."
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Couldn't connect to the server. Check your connection.",
+    "notFound": "We couldn't find what you're looking for.",
+    "unauthorized": "Please log in to continue.",
+    "validation": "Please check the highlighted fields."
+  }
+}
