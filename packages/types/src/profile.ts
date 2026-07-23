@@ -16,4 +16,5 @@ export interface ProfileStreamingService {
 export interface ProfileResponse extends User {
   countries: ProfileCountry[];
   services: ProfileStreamingService[];
+  ageRatingCountry: string | null;
 }

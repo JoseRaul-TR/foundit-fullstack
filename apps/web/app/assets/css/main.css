@@ -1,0 +1,24 @@
+/* apps/web/app/assets/css/main.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #0a0e1a;
+  --color-surface: #131a2b;
+  --color-surface-elevated: #1c2540;
+  --color-border: #2a3352;
+  --color-text-primary: #eef1f8;
+  --color-text-secondary: #8d97b3;
+  --color-accent-gold: #e8a33d;
+  --color-accent-blue: #6ea8ff;
+  --color-success: #4ade80;
+  --color-error: #f87171;
+}
+
+@layer base {
+  body {
+    @apply bg-page text-primary;
+  }
+}
