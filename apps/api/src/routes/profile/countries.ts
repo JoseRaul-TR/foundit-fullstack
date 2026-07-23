@@ -1,4 +1,4 @@
-// apps/api/src/routes/profile/countries.routes.ts
+// apps/api/src/routes/profile/countries.ts
 
 import { Router } from "express";
 import { requireAuth } from "@/lib/auth";

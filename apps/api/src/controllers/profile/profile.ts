@@ -12,6 +12,7 @@ import { getProfile, updateProfile } from "@/services/profile/profile";
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(50).optional(),
+  ageRatingCountry: z.string().nullable().optional(),
 });
 
 export async function getProfileController(req: Request, res: Response) {
@@ -22,7 +23,7 @@ export async function getProfileController(req: Request, res: Response) {
 
 export async function updateProfileController(req: Request, res: Response) {
   const userId = getUserId(req);
-  const { name } = updateProfileSchema.parse(req.body);
-  const profile = await updateProfile(userId, { name });
+  const { name, ageRatingCountry } = updateProfileSchema.parse(req.body);
+  const profile = await updateProfile(userId, { name, ageRatingCountry });
   res.json({ success: true, data: profile });
 }

@@ -1,4 +1,4 @@
-// apps/api/src/routes/library/watchlist.routes.ts
+// apps/api/src/routes/library/watchlist.ts
 
 import { Router } from "express";
 import { requireAuth } from "@/lib/auth";
