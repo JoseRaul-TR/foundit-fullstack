@@ -5,10 +5,10 @@
     "discover": "Discover",
     "watchlist": "Watchlist",
     "history": "History",
-    "profile": "Profile",
-    "login": "Log in",
-    "register": "Register",
-    "logout": "Log out"
+    "settings": "Settings",
+    "login": "Log In",
+    "register": "Sign Up",
+    "logout": "Log Out"
   },
   "home": {
     "title": "FoundIt",
@@ -68,7 +68,13 @@
       "votes": "votes",
       "founditAvg": "FoundIt avg {avg} ({count} ratings)",
       "founditAvgCompact": "Your rating: {userRating}/5 · FoundIt avg {avg} ({count})"
-    }
+    },
+    "language": "Language"
+  },
+  "footer": {
+    "about": "About us",
+    "github": "GitHub",
+    "copyright": "© {year} FoundIt. All rights reserved."
   },
   "movie": {
     "hero": {

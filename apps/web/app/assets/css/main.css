@@ -22,3 +22,9 @@
     @apply bg-page text-primary;
   }
 }
+
+@layer components {
+  .glass {
+    @apply bg-gradient-to-br from-white/15 to-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm;
+  }
+}

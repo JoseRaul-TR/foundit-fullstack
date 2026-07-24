@@ -3,9 +3,9 @@
     "home": "Inicio",
     "search": "Buscar",
     "discover": "Descubrir",
-    "watchlist": "Lista de seguimiento",
+    "watchlist": "Mi lista",
     "history": "Historial",
-    "profile": "Perfil",
+    "settings": "Ajustes",
     "login": "Iniciar sesión",
     "register": "Registrarse",
     "logout": "Cerrar sesión"
@@ -68,7 +68,13 @@
       "votes": "votos",
       "founditAvg": "Media de FoundIt {avg} ({count} valoraciones)",
       "founditAvgCompact": "Tu valoración: {userRating}/5 · Media de FoundIt {avg} ({count})"
-    }
+    },
+    "language": "Idioma"
+  },
+  "footer": {
+    "about": "Acerca de",
+    "github": "GitHub",
+    "copyright": "© {year} FoundIt. Todos los derechos reservados."
   },
   "movie": {
     "hero": {

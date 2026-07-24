@@ -5,7 +5,7 @@
     "discover": "Upptäck",
     "watchlist": "Bevakningslista",
     "history": "Historik",
-    "profile": "Profil",
+    "settings": "Inställningar",
     "login": "Logga in",
     "register": "Registrera dig",
     "logout": "Logga ut"
@@ -68,8 +68,15 @@
       "votes": "röster",
       "founditAvg": "FoundIt-snitt {avg} ({count} betyg)",
       "founditAvgCompact": "Ditt betyg: {userRating}/5 · FoundIt-snitt {avg} ({count})"
-    }
+    },
+    "language": "Språk"
   },
+  "footer": {
+    "about": "Om oss",
+    "github": "GitHub",
+    "copyright": "© {year} FoundIt. Alla rättigheter förbehållna."
+  },
+
   "movie": {
     "hero": {
       "directedBy": "Regisserad av {name}"
