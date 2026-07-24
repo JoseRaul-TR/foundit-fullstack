@@ -3,8 +3,11 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
-  '@parcel/watcher': true
-  '@prisma/engines': false
+  "@parcel/watcher": true
+  "@prisma/engines": false
   esbuild: true
   prisma: false
   vue-demi: true
+overrides:
+  vue-router: ^5.2.0
+  typescript: ^6.0.3

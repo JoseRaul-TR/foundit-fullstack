@@ -17,6 +17,9 @@
   "search": {
     "placeholder": "Buscar películas, series, personas...",
     "noResults": "No se encontraron resultados.",
+    "resultsTitle": "Resultados de búsqueda",
+    "noResultsFor": "No se encontraron resultados para “{query}”.",
+    "tryDifferentTerm": "Prueba con otro término de búsqueda.",
     "typeTabs": {
       "all": "Todos",
       "movie": "Películas",
@@ -49,6 +52,7 @@
   },
   "common": {
     "loading": "Cargando...",
+    "loadingMore": "Cargando más…",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
@@ -57,6 +61,11 @@
     "no": "No",
     "back": "Volver",
     "showTrailer": "Mostrar tráiler",
+    "mediaType": {
+      "movie": "Película",
+      "series": "Serie",
+      "person": "Persona"
+    },
     "providerType": {
       "flatrate": "Streaming",
       "rent": "Alquiler",
