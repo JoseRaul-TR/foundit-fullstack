@@ -1,4 +1,4 @@
-<!-- apps/web/app/layout/auth.vue -->
+<!-- apps/web/app/layouts/auth.vue -->
 <template>
   <div
     class="flex min-h-screen items-center justify-center bg-page px-4 py-12 text-primary"
