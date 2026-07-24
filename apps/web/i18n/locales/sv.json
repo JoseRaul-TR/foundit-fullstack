@@ -17,6 +17,9 @@
   "search": {
     "placeholder": "Sök filmer, serier, personer...",
     "noResults": "Inga resultat hittades.",
+    "resultsTitle": "Sökresultat",
+    "noResultsFor": "Inga resultat hittades för “{query}”.",
+    "tryDifferentTerm": "Prova en annan sökterm.",
     "typeTabs": {
       "all": "Alla",
       "movie": "Filmer",
@@ -49,6 +52,7 @@
   },
   "common": {
     "loading": "Laddar...",
+    "loadingMore": "Laddar mer…",
     "save": "Spara",
     "cancel": "Avbryt",
     "delete": "Ta bort",
@@ -57,6 +61,11 @@
     "no": "Nej",
     "back": "Tillbaka",
     "showTrailer": "Visa trailer",
+    "mediaType": {
+      "movie": "Film",
+      "series": "Serie",
+      "person": "Person"
+    },
     "providerType": {
       "flatrate": "Streaming",
       "rent": "Hyra",
