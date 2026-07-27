@@ -8,6 +8,8 @@
 
     <SearchBar />
 
+    <LandingPerks v-if="!authStore.isAuthenticated && isIdle" />
+
     <section v-if="!isIdle" class="w-full">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 class="text-lg font-bold text-primary">
@@ -49,11 +51,16 @@
         <p class="text-base font-semibold text-primary">
           {{ $t("search.noResultsFor", { query: searchQuery }) }}
         </p>
-        <p class="text-sm text-secondary">{{ $t("search.tryDifferentTerm") }}</p>
+        <p class="text-sm text-secondary">
+          {{ $t("search.tryDifferentTerm") }}
+        </p>
+        <AccountPrompt v-if="!authStore.isAuthenticated" />
       </div>
 
       <template v-else>
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+        <div
+          class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6"
+        >
           <MediaCard
             v-for="item in results"
             :key="`${item.mediaType}-${item.id}`"
@@ -63,6 +70,11 @@
             :poster-path="item.posterPath"
             :year="item.year"
             :tmdb-rating="item.tmdbRating"
+            :genres="
+              item.mediaType !== 'person'
+                ? getGenreNames(item.genreIds, item.mediaType)
+                : undefined
+            "
           />
         </div>
 
@@ -98,6 +110,8 @@ const {
   loadFromQuery,
   fetchNextPage,
 } = useSearch();
+
+const { getGenreNames } = useGenres();
 
 const routeQuery = computed(() => route.query.q?.toString() ?? "");
 const routeType = computed(
