@@ -10,14 +10,19 @@ export interface PersonMovieCastCredit {
   character: string;
   posterPath: string | null;
   year: number | null;
+  tmdbRating: number | null;
+  popularity: number | null;
 }
 
 export interface PersonMovieCrewCredit {
   id: number;
   title: string;
   job: string;
+  department: string;
   posterPath: string | null;
   year: number | null;
+  tmdbRating: number | null;
+  popularity: number | null;
 }
 
 export interface PersonSeriesCastCredit {
@@ -26,19 +31,25 @@ export interface PersonSeriesCastCredit {
   character: string;
   posterPath: string | null;
   firstAirYear: number | null;
+  tmdbRating: number | null;
+  popularity: number | null;
 }
 
 export interface PersonSeriesCrewCredit {
   id: number;
   name: string;
   job: string;
+  department: string;
   posterPath: string | null;
   firstAirYear: number | null;
+  tmdbRating: number | null;
+  popularity: number | null;
 }
 
 export interface PersonDetailResponse {
   id: number;
   name: string;
+  knownForDepartment: string;
   biography: string | null;
   birthday: string | null;
   placeOfBirth: string | null;
