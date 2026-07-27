@@ -13,6 +13,11 @@
  * No fetchTmdbWithFallback here: search results don't carry overview/
  * biography text, so there's nothing for the language-fallback merge
  * to backfill — a plain fetchTmdb is enough.
+ *
+ * `include_adult: false` is passed explicitly to TMDB, plus a defensive
+ * `!item.adult` filter on the response — belt and suspenders, since
+ * /search/multi can still surface adult-flagged people even with
+ * include_adult off for the movie/tv side of the results.
  */
 
 import { fetchTmdb } from "@/lib/tmdb";
@@ -62,18 +67,22 @@ export async function searchTmdb(
       query,
       language: LOCALE_TO_TMDB_LANG[locale],
       page,
+      include_adult: false,
     },
   );
 
-  const results: NormalizedSearchResult[] = response.results.map((item) => ({
-    id: item.id,
-    mediaType: toMediaType(item.media_type, type),
-    title: item.title ?? item.name ?? "",
-    // Person results have profile_path, not poster_path — fall back to it.
-    posterPath: item.poster_path ?? item.profile_path ?? null,
-    year: parseYear(item.release_date ?? item.first_air_date),
-    tmdbRating: item.vote_average ?? null,
-  }));
+  const results: NormalizedSearchResult[] = response.results
+    .filter((item) => !item.adult)
+    .map((item) => ({
+      id: item.id,
+      mediaType: toMediaType(item.media_type, type),
+      title: item.title ?? item.name ?? "",
+      // Person results have profile_path, not poster_path — fall back to it.
+      posterPath: item.poster_path ?? item.profile_path ?? null,
+      year: parseYear(item.release_date ?? item.first_air_date),
+      tmdbRating: item.vote_average ?? null,
+      genreIds: item.genre_ids ?? [],
+    }));
 
   return {
     results,

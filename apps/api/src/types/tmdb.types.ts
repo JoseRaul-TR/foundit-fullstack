@@ -28,6 +28,7 @@ export interface TmdbCastMember {
   name: string;
   character: string;
   profile_path: string | null;
+  adult?: boolean;
   order: number;
 }
 
@@ -37,6 +38,7 @@ export interface TmdbCrewMember {
   job: string;
   department: string;
   profile_path: string | null;
+  adult?: boolean;
 }
 
 export interface TmdbCredits {
@@ -101,6 +103,7 @@ export interface TmdbMovie extends TmdbBaseMedia {
   original_title: string;
   release_date: string;
   runtime: number | null;
+  release_dates?: TmdbMovieReleaseDatesResponse;
 }
 
 export interface TmdbSeason {
@@ -139,6 +142,7 @@ export interface TmdbSeries extends TmdbBaseMedia {
   number_of_episodes: number;
   status: "Returning Series" | "Ended" | "Canceled" | string;
   seasons: TmdbSeason[];
+  content_ratings?: TmdbContentRatingsResponse;
 }
 
 export interface TmdbPersonMovieCredit {
@@ -146,6 +150,10 @@ export interface TmdbPersonMovieCredit {
   title: string;
   character?: string;
   job?: string;
+  department?: string;
+  vote_average?: number;
+  popularity?: number;
+  adult?: boolean;
   poster_path: string | null;
   release_date: string;
 }
@@ -155,6 +163,9 @@ export interface TmdbPersonSeriesCredit {
   name: string;
   character?: string;
   job?: string;
+  department?: string;
+  vote_average?: number;
+  popularity?: number;
   poster_path: string | null;
   first_air_date: string;
 }
@@ -195,10 +206,12 @@ export interface TmdbSearchResultItem {
   overview?: string;
   poster_path: string | null;
   profile_path?: string | null;
+  genre_ids?: number[];
   release_date?: string;
   first_air_date?: string;
   vote_average?: number;
   vote_count?: number;
+  adult?: boolean;
 }
 
 export interface TmdbPaginatedResponse<T> {
@@ -220,4 +233,28 @@ export interface TmdbWatchProviderRegionsResponse {
 
 export interface TmdbGenreListResponse {
   genres: TmdbGenre[];
+}
+
+export interface TmdbReleaseDate {
+  certification: string;
+  release_date: string;
+  type: number;
+}
+
+export interface TmdbReleaseDatesCountry {
+  iso_3166_1: string;
+  release_dates: TmdbReleaseDate[];
+}
+
+export interface TmdbMovieReleaseDatesResponse {
+  results: TmdbReleaseDatesCountry[];
+}
+
+export interface TmdbContentRating {
+  iso_3166_1: string;
+  rating: string;
+}
+
+export interface TmdbContentRatingsResponse {
+  results: TmdbContentRating[];
 }
