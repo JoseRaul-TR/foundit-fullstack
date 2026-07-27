@@ -15,13 +15,15 @@ import {
   extractRecommendations,
   buildProviders,
   collectSubscribedNames,
+  extractCrew,
+  extractSeriesAgeRating,
 } from "@/helpers/tmdbMedia";
 import prisma from "@/lib/prisma";
 import { fetchTmdbWithFallback } from "@/lib/tmdb";
 import type { TmdbSeasonDetail, TmdbSeries } from "@/types/tmdb.types";
 
 const SERIES_APPEND_TO_RESPONSE =
-  "credits,videos,recommendations,watch/providers";
+  "credits,videos,recommendations,watch/providers,content_ratings";
 
 export function toSeriesStatus(tmdbStatus: string): SeriesStatus {
   switch (tmdbStatus) {
@@ -151,8 +153,10 @@ export async function getSeriesDetail(
     runtime: null,
     tmdbRating: series.vote_average ?? null,
     voteCount: series.vote_count ?? null,
+    ageRating: extractSeriesAgeRating(series.content_ratings, locale),
     trailer: extractTrailer(series.videos),
     cast: extractCast(series.credits),
+    crew: extractCrew(series.credits),
     providers,
     recommendations: extractRecommendations(series.recommendations, "series"),
     user,
