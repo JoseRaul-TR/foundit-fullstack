@@ -12,7 +12,33 @@
   },
   "home": {
     "title": "FoundIt",
-    "tagline": "Descubre dónde ver tus películas y series favoritas."
+    "tagline": "Descubre dónde ver tus películas y series favoritas.",
+    "perks": {
+      "title": "Lo que obtienes con una cuenta gratuita",
+      "items": {
+        "discover": {
+          "title": "Descubre personalizado",
+          "description": "Recomendaciones adaptadas a lo que ves."
+        },
+        "watchlist": {
+          "title": "Lista de seguimiento",
+          "description": "Guarda títulos para ver más tarde."
+        },
+        "history": {
+          "title": "Historial de visualización",
+          "description": "Lleva el control de lo que ya has visto."
+        },
+        "filterPlatform": {
+          "title": "Filtrar por plataforma",
+          "description": "Ve solo lo disponible en tus servicios."
+        }
+      },
+      "cta": "Crear cuenta gratis"
+    },
+    "accountPrompt": {
+      "title": "Regístrate para desbloquear resultados personalizados y más.",
+      "cta": "Crear cuenta gratis"
+    }
   },
   "search": {
     "placeholder": "Buscar películas, series, personas...",
@@ -66,71 +92,74 @@
       "series": "Serie",
       "person": "Persona"
     },
-    "providerType": {
-      "flatrate": "Streaming",
-      "rent": "Alquiler",
-      "buy": "Comprar",
-      "free": "Gratis"
-    },
-    "rating": {
-      "tmdbLabel": "TMDB",
-      "votes": "votos",
-      "founditAvg": "Media de FoundIt {avg} ({count} valoraciones)",
-      "founditAvgCompact": "Tu valoración: {userRating}/5 · Media de FoundIt {avg} ({count})"
-    },
     "language": "Idioma"
+  },
+  "mediaDetail": {
+    "addToWatchlist": "Añadir a mi lista",
+    "inWatchlist": "En mi lista",
+    "markWatched": "Marcar como visto",
+    "watched": "Visto",
+    "yourRating": "Tu puntuación: {rating}/10",
+    "loginToTrack": "Inicia sesión para guardar en tu lista y marcar como visto",
+    "loginToTrackSeries": "Inicia sesión para guardar en tu lista y llevar el control de las temporadas que has visto",
+    "noOverview": "No hay sinopsis disponible.",
+    "cast": "Reparto",
+    "crew": "Equipo técnico",
+    "whereToWatch": "Dónde ver",
+    "providerTypes": {
+      "flatrate": "Suscripción",
+      "free": "Gratis",
+      "rent": "Alquiler",
+      "buy": "Compra"
+    },
+    "loginToSeeAvailability": "Inicia sesión y configura tus plataformas para ver qué está disponible para ti",
+    "noProviders": "Aún no hay información de streaming para este título.",
+    "recommendations": "También te puede interesar",
+    "loginForRecommendations": "Regístrate o inicia sesión para ver sugerencias",
+    "loadError": "Algo salió mal al cargar este título.",
+    "seasons": "Temporadas",
+    "seasonLabel": "Temporada {number} · {count} episodios",
+    "markSeasonWatched": "Marcar visto",
+    "newSeason": "NUEVO",
+    "newSeasonAvailable": "Nueva temporada disponible en {services}",
+    "firstAired": "Estreno {year}",
+    "seasonsCount": "{count} temporadas",
+    "seriesStatus": {
+      "returning": "En emisión",
+      "ended": "Finalizada",
+      "canceled": "Cancelada",
+      "upcoming": "Próximamente"
+    },
+    "knownFor": "Conocido/a por: {department}",
+    "bornOn": "Nacido/a el {date}",
+    "bornInPlace": "Nacido/a el {date} en {place}",
+    "biography": "Biografía",
+    "noBiography": "No hay biografía disponible.",
+    "votes": "votos",
+    "readMore": "Leer más",
+    "readLess": "Leer menos",
+    "photos": "Fotos",
+    "filmographyAs": "Filmografía como {role}",
+    "filmographyOther": "Filmografía — otros roles",
+    "departmentRoles": {
+      "Acting": "Actor",
+      "Directing": "Director",
+      "Writing": "Guionista",
+      "Production": "Productor",
+      "Camera": "Director de fotografía",
+      "Editing": "Editor",
+      "Sound": "Sonido",
+      "Art": "Director de arte",
+      "Costume & Make-Up": "Vestuario y maquillaje",
+      "Visual Effects": "Efectos visuales",
+      "Crew": "Equipo técnico"
+    },
+    "trailer": "Trailer"
   },
   "footer": {
     "about": "Acerca de",
     "github": "GitHub",
     "copyright": "© {year} FoundIt. Todos los derechos reservados."
-  },
-  "movie": {
-    "hero": {
-      "directedBy": "Dirigida por {name}"
-    },
-    "cast": "Reparto",
-    "recommendations": "También te puede gustar",
-    "providers": "Dónde ver",
-    "providersByCountry": "Dónde ver — {country}",
-    "trailer": "Tráiler",
-    "overview": "Sinopsis",
-    "addToWatchlist": "Añadir a la lista de seguimiento",
-    "removeFromWatchlist": "Quitar de la lista de seguimiento",
-    "markWatched": "Marcar como vista",
-    "markUnwatched": "Marcar como no vista"
-  },
-  "series": {
-    "cast": "Reparto",
-    "recommendations": "También te puede gustar",
-    "providers": "Dónde ver",
-    "providersByCountry": "Dónde ver — {country}",
-    "trailer": "Tráiler",
-    "overview": "Sinopsis",
-    "seasons": "Temporadas",
-    "specials": "Especiales",
-    "episodes": "Episodios",
-    "newSeasonsAvailable": "Nueva temporada disponible",
-    "addToWatchlist": "Añadir a la lista de seguimiento",
-    "removeFromWatchlist": "Quitar de la lista de seguimiento",
-    "markSeasonWatched": "Marcar temporada como vista",
-    "markSeasonUnwatched": "Marcar temporada como no vista",
-    "status": {
-      "returning": "Serie en emisión",
-      "ended": "Finalizada",
-      "canceled": "Cancelada",
-      "upcoming": "Próximamente"
-    }
-  },
-  "person": {
-    "biography": "Biografía",
-    "knownFor": "Conocido por",
-    "movieCredits": "Películas",
-    "seriesCredits": "Series",
-    "cast": "Como intérprete",
-    "crew": "Como equipo técnico",
-    "birthday": "Fecha de nacimiento",
-    "placeOfBirth": "Lugar de nacimiento"
   },
   "watchlist": {
     "title": "Lista de seguimiento",
