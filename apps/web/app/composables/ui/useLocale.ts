@@ -1,4 +1,4 @@
-// apps/web/app/composables/useLocale.ts
+// apps/web/app/composables/ui/useLocale.ts
 //
 // Bridges Nuxt i18n's active locale to the TMDB language code the API
 // expects. Keeps LOCALE_TO_TMDB_LANG (from @foundit/types) as the single

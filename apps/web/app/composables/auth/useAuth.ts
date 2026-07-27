@@ -1,4 +1,4 @@
-// apps/web/app/composables/useAuth.ts
+// apps/web/app/composables/auth/useAuth.ts
 //
 // Thin wrapper around Better Auth's sign-out endpoint, mirroring the raw
 // $fetch style already used in plugins/auth.ts (not routed through

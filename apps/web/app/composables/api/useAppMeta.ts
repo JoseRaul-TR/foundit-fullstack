@@ -1,4 +1,4 @@
-// apps/web/app/composables/useAppMeta.ts
+// apps/web/app/composables/qpi/useAppMeta.ts
 //
 // Minimal composable proving runtimeConfig.public resolves inside
 // composables (not just pages) — the #56 acceptance criterion. The

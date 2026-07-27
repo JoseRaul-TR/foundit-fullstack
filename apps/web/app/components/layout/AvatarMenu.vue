@@ -1,4 +1,4 @@
-<!-- apps/web/app/components/AvatarMenu.vue -->
+<!-- apps/web/app/components/layout/AvatarMenu.vue -->
 <template>
   <div
     class="z-50 w-56 rounded-xl border border-border bg-surface-elevated p-1.5 shadow-xl"

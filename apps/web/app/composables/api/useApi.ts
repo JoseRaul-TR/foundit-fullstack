@@ -1,4 +1,4 @@
-// apps/web/app/composables/useApi.ts
+// apps/web/app/composables/api/useApi.ts
 //
 // Thin typed wrapper around Nuxt's $fetch for every apps/api call.
 // - Prefixes requests with runtimeConfig.public.apiBase.
