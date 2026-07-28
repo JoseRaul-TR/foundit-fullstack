@@ -1,4 +1,4 @@
-<!-- apps/web/app/components/AppFooter.vue -->
+<!-- apps/web/app/components/layout/AppFooter.vue -->
 <template>
   <footer class="border-t border-border bg-surface">
     <div

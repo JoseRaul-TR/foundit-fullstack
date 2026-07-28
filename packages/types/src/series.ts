@@ -3,6 +3,7 @@ import type {
   Genre,
   MediaTrailer,
   NormalizedCastMember,
+  NormalizedCrewMember,
   NormalizedSearchResult,
   ProvidersByType,
 } from "./media";
@@ -37,6 +38,7 @@ export interface SeriesDetailResponse {
   voteCount: number | null;
   trailer: MediaTrailer | null;
   cast: NormalizedCastMember[];
+  crew: NormalizedCrewMember[];
   providers: Record<string, ProvidersByType>;
   recommendations: NormalizedSearchResult[];
   user: SeriesDetailUser | null;
@@ -46,6 +48,7 @@ export interface SeriesDetailResponse {
   seasons: SeriesSeasonSummary[];
   newSeasonsAvailable: boolean;
   availableOn: string[];
+  ageRating: string | null;
 }
 
 export interface SeriesEpisodeSummary {

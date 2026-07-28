@@ -1,4 +1,4 @@
-<!-- apps/web/app/components/LanguageMenu.vue -->
+<!-- apps/web/app/components/layout/LanguageMenu.vue -->
 <template>
   <div
     class="w-40 rounded-xl border border-border bg-surface-elevated p-1.5 shadow-xl"

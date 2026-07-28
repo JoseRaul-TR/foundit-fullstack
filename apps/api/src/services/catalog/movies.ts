@@ -11,13 +11,15 @@ import type {
 import {
   buildProviders,
   extractCast,
+  extractCrew,
   extractRecommendations,
   extractTrailer,
+  extractMovieAgeRating,
   parseYear,
 } from "@/helpers/tmdbMedia";
 
 const MOVIE_APPEND_TO_RESPONSE =
-  "credits,videos,recommendations,watch/providers";
+  "credits,videos,recommendations,watch/providers,release_dates";
 
 async function loadUserContext(
   userId: string,
@@ -81,8 +83,10 @@ export async function getMovieDetail(
     runtime: movie.runtime ?? null,
     tmdbRating: movie.vote_average ?? null,
     voteCount: movie.vote_count ?? null,
+    ageRating: extractMovieAgeRating(movie.release_dates, locale),
     trailer: extractTrailer(movie.videos),
     cast: extractCast(movie.credits),
+    crew: extractCrew(movie.credits),
     providers: buildProviders(movie["watch/providers"]?.results, subscribedSet),
     recommendations: extractRecommendations(movie.recommendations, "movie"),
     user,

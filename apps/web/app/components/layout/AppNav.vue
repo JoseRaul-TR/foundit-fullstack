@@ -1,4 +1,4 @@
-<!-- apps/web/app/components/AppNav.vue -->
+<!-- apps/web/app/components/layout/AppNav.vue -->
 <template>
   <header
     class="fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-2 px-3 py-3 sm:px-8 sm:py-3.5"

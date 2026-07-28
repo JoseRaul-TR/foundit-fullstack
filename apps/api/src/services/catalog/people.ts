@@ -39,10 +39,14 @@ export async function getPersonDetail(
 
   const movieCast: TmdbPersonMovieCredit[] = [
     ...(person.movie_credits?.cast ?? []),
-  ].sort((a, b) => compareDateDesc(a.release_date, b.release_date));
+  ]
+    .filter((c) => !c.adult)
+    .sort((a, b) => compareDateDesc(a.release_date, b.release_date));
   const movieCrew: TmdbPersonMovieCredit[] = [
     ...(person.movie_credits?.crew ?? []),
-  ].sort((a, b) => compareDateDesc(a.release_date, b.release_date));
+  ]
+    .filter((c) => !c.adult)
+    .sort((a, b) => compareDateDesc(a.release_date, b.release_date));
   const seriesCast: TmdbPersonSeriesCredit[] = [
     ...(person.tv_credits?.cast ?? []),
   ].sort((a, b) => compareDateDesc(a.first_air_date, b.first_air_date));
@@ -53,6 +57,7 @@ export async function getPersonDetail(
   return {
     id: person.id,
     name: person.name,
+    knownForDepartment: person.known_for_department,
     biography: person.biography || null,
     birthday: person.birthday,
     placeOfBirth: person.place_of_birth,
@@ -65,13 +70,18 @@ export async function getPersonDetail(
         character: c.character ?? "",
         posterPath: c.poster_path,
         year: parseYear(c.release_date),
+        tmdbRating: c.vote_average ?? null,
+        popularity: c.popularity ?? null,
       })),
       crew: movieCrew.map((c) => ({
         id: c.id,
         title: c.title,
         job: c.job ?? "",
+        department: c.department ?? "Crew",
         posterPath: c.poster_path,
         year: parseYear(c.release_date),
+        tmdbRating: c.vote_average ?? null,
+        popularity: c.popularity ?? null,
       })),
     },
     seriesCredits: {
@@ -81,13 +91,18 @@ export async function getPersonDetail(
         character: c.character ?? "",
         posterPath: c.poster_path,
         firstAirYear: parseYear(c.first_air_date),
+        tmdbRating: c.vote_average ?? null,
+        popularity: c.popularity ?? null,
       })),
       crew: seriesCrew.map((c) => ({
         id: c.id,
         name: c.name,
         job: c.job ?? "",
+        department: c.department ?? "Crew",
         posterPath: c.poster_path,
         firstAirYear: parseYear(c.first_air_date),
+        tmdbRating: c.vote_average ?? null,
+        popularity: c.popularity ?? null,
       })),
     },
   };

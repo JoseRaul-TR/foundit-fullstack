@@ -1,4 +1,4 @@
-// apps/web/app/composables/useClickOutside.ts
+// apps/web/app/composables/ui/useClickOutside.ts
 //
 // Minimal click-outside detection for dropdown/flyout menus (AvatarMenu,
 // LanguageMenu). No @vueuse/core in this package yet, so implemented

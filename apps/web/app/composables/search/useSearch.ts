@@ -1,4 +1,4 @@
-// apps/web/app/composables/useSearch.ts
+// apps/web/app/composables/search/useSearch.ts
 import type { NormalizedSearchResult, PaginatedResponse } from "@foundit/types";
 import type { SearchType } from "~/stores/search";
 
@@ -6,6 +6,7 @@ export function useSearch() {
   const store = useSearchStore();
   const { public: publicConfig } = useRuntimeConfig();
   const { locale } = useLocale();
+  const localePath = useLocalePath();
 
   async function fetchPage(page: number) {
     if (store.loading) return;
@@ -59,10 +60,9 @@ export function useSearch() {
   // watcher reacts to the route change and does the actual fetch, so
   // there's exactly one code path that ever calls the API.
   async function search(query: string, type: SearchType) {
-    await navigateTo(
-      { path: "/", query: { q: query, type } },
-      { replace: true },
-    );
+    await navigateTo(localePath({ path: "/", query: { q: query, type } }), {
+      replace: true,
+    });
   }
 
   async function fetchNextPage() {
@@ -71,7 +71,7 @@ export function useSearch() {
   }
 
   function clear() {
-    navigateTo({ path: "/" }, { replace: true });
+    navigateTo(localePath("/"), { replace: true });
   }
 
   return {

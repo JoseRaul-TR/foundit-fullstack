@@ -3,6 +3,7 @@ import type {
   Genre,
   MediaTrailer,
   NormalizedCastMember,
+  NormalizedCrewMember,
   NormalizedSearchResult,
   ProvidersByType,
 } from "./media";
@@ -26,7 +27,9 @@ export interface MovieDetailResponse {
   voteCount: number | null;
   trailer: MediaTrailer | null;
   cast: NormalizedCastMember[];
+  crew: NormalizedCrewMember[];
   providers: Record<string, ProvidersByType>;
   recommendations: NormalizedSearchResult[];
   user: MovieDetailUser | null;
+  ageRating: string | null;
 }

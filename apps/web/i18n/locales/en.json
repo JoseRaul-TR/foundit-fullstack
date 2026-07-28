@@ -12,7 +12,33 @@
   },
   "home": {
     "title": "FoundIt",
-    "tagline": "Find out where to watch your favorite movies and series."
+    "tagline": "Find out where to watch your favorite movies and series.",
+    "perks": {
+      "title": "What you get with a free account",
+      "items": {
+        "discover": {
+          "title": "Personalized Discover",
+          "description": "Recommendations tailored to what you watch."
+        },
+        "watchlist": {
+          "title": "Watchlist",
+          "description": "Save titles to watch later."
+        },
+        "history": {
+          "title": "Watch history",
+          "description": "Keep track of what you've already seen."
+        },
+        "filterPlatform": {
+          "title": "Filter by platform",
+          "description": "Only see what's available on your services."
+        }
+      },
+      "cta": "Create free account"
+    },
+    "accountPrompt": {
+      "title": "Sign up to unlock personalized results and more.",
+      "cta": "Create free account"
+    }
   },
   "search": {
     "placeholder": "Search movies, series, people...",
@@ -66,71 +92,74 @@
       "series": "Series",
       "person": "Person"
     },
-    "providerType": {
-      "flatrate": "Stream",
-      "rent": "Rent",
-      "buy": "Buy",
-      "free": "Free"
-    },
-    "rating": {
-      "tmdbLabel": "TMDB",
-      "votes": "votes",
-      "founditAvg": "FoundIt avg {avg} ({count} ratings)",
-      "founditAvgCompact": "Your rating: {userRating}/5 · FoundIt avg {avg} ({count})"
-    },
     "language": "Language"
+  },
+  "mediaDetail": {
+    "addToWatchlist": "Add to Watchlist",
+    "inWatchlist": "In Watchlist",
+    "markWatched": "Mark as Watched",
+    "watched": "Watched",
+    "yourRating": "Your rating: {rating}/10",
+    "loginToTrack": "Log in to save to your watchlist and mark as watched",
+    "loginToTrackSeries": "Log in to save to your watchlist and track which seasons you've watched",
+    "noOverview": "No overview available.",
+    "cast": "Cast",
+    "crew": "Crew",
+    "whereToWatch": "Where to watch",
+    "providerTypes": {
+      "flatrate": "Stream",
+      "free": "Free",
+      "rent": "Rent",
+      "buy": "Buy"
+    },
+    "loginToSeeAvailability": "Log in and set your platforms to see what's available for you",
+    "noProviders": "No streaming information available for this title yet.",
+    "recommendations": "You might also like",
+    "loginForRecommendations": "Register or log in to get suggestions",
+    "loadError": "Something went wrong loading this title.",
+    "seasons": "Seasons",
+    "seasonLabel": "Season {number} · {count} episodes",
+    "markSeasonWatched": "Mark watched",
+    "newSeason": "NEW",
+    "newSeasonAvailable": "New season available on {services}",
+    "firstAired": "First aired {year}",
+    "seasonsCount": "{count} seasons",
+    "seriesStatus": {
+      "returning": "Ongoing",
+      "ended": "Ended",
+      "canceled": "Canceled",
+      "upcoming": "Upcoming"
+    },
+    "knownFor": "Known for: {department}",
+    "bornOn": "Born {date}",
+    "bornInPlace": "Born {date} in {place}",
+    "biography": "Biography",
+    "noBiography": "No biography available.",
+    "votes": "votes",
+    "readMore": "Read more",
+    "readLess": "Read less",
+    "photos": "Photos",
+    "filmographyAs": "Filmography as {role}",
+    "filmographyOther": "Filmography — other roles",
+    "departmentRoles": {
+      "Acting": "Actor",
+      "Directing": "Director",
+      "Writing": "Writer",
+      "Production": "Producer",
+      "Camera": "Cinematographer",
+      "Editing": "Editor",
+      "Sound": "Sound Artist",
+      "Art": "Art Director",
+      "Costume & Make-Up": "Costume & Make-Up Artist",
+      "Visual Effects": "Visual Effects Artist",
+      "Crew": "Crew Member"
+    },
+    "trailer": "Trailer"
   },
   "footer": {
     "about": "About us",
     "github": "GitHub",
     "copyright": "© {year} FoundIt. All rights reserved."
-  },
-  "movie": {
-    "hero": {
-      "directedBy": "Directed by {name}"
-    },
-    "cast": "Cast",
-    "recommendations": "You might also like",
-    "providers": "Where to watch",
-    "providersByCountry": "Where to watch — {country}",
-    "trailer": "Trailer",
-    "overview": "Overview",
-    "addToWatchlist": "Add to watchlist",
-    "removeFromWatchlist": "Remove from watchlist",
-    "markWatched": "Mark as watched",
-    "markUnwatched": "Mark as unwatched"
-  },
-  "series": {
-    "cast": "Cast",
-    "recommendations": "You might also like",
-    "providers": "Where to watch",
-    "providersByCountry": "Where to watch — {country}",
-    "trailer": "Trailer",
-    "overview": "Overview",
-    "seasons": "Seasons",
-    "specials": "Specials",
-    "episodes": "Episodes",
-    "newSeasonsAvailable": "New season available",
-    "addToWatchlist": "Add to watchlist",
-    "removeFromWatchlist": "Remove from watchlist",
-    "markSeasonWatched": "Mark season as watched",
-    "markSeasonUnwatched": "Mark season as unwatched",
-    "status": {
-      "returning": "Returning series",
-      "ended": "Ended",
-      "canceled": "Canceled",
-      "upcoming": "Upcoming"
-    }
-  },
-  "person": {
-    "biography": "Biography",
-    "knownFor": "Known for",
-    "movieCredits": "Movies",
-    "seriesCredits": "Series",
-    "cast": "As cast",
-    "crew": "As crew",
-    "birthday": "Birthday",
-    "placeOfBirth": "Place of birth"
   },
   "watchlist": {
     "title": "Watchlist",

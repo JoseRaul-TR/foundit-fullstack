@@ -17,10 +17,12 @@ import type {
   ProvidersByType,
   MediaTrailer,
   NormalizedCastMember,
+  NormalizedCrewMember,
 } from "@foundit/types";
 import { fetchTmdb } from "@/lib/tmdb";
 
 export const MAX_CAST = 10;
+export const MAX_CREW = 10;
 export const MAX_RECOMMENDATIONS = 10;
 
 export function parseYear(
@@ -43,12 +45,29 @@ export function extractTrailer(
 export function extractCast(
   credits: TmdbCredits | undefined,
 ): NormalizedCastMember[] {
-  return (credits?.cast ?? []).slice(0, MAX_CAST).map((member) => ({
-    id: member.id,
-    name: member.name,
-    character: member.character,
-    profilePath: member.profile_path,
-  }));
+  return (credits?.cast ?? [])
+    .filter((member) => !member.adult)
+    .slice(0, MAX_CAST)
+    .map((member) => ({
+      id: member.id,
+      name: member.name,
+      character: member.character,
+      profilePath: member.profile_path,
+    }));
+}
+
+export function extractCrew(
+  credits: TmdbCredits | undefined,
+): NormalizedCrewMember[] {
+  return (credits?.crew ?? [])
+    .filter((member) => !member.adult)
+    .slice(0, MAX_CREW)
+    .map((member) => ({
+      id: member.id,
+      name: member.name,
+      job: member.job,
+      profilePath: member.profile_path,
+    }));
 }
 
 export function extractRecommendations(
@@ -56,6 +75,7 @@ export function extractRecommendations(
   mediaType: MediaType,
 ): NormalizedSearchResult[] {
   return (recommendations?.results ?? [])
+    .filter((item) => !item.adult)
     .slice(0, MAX_RECOMMENDATIONS)
     .map((item) => ({
       id: item.id,
@@ -64,6 +84,7 @@ export function extractRecommendations(
       posterPath: item.poster_path,
       year: parseYear(item.release_date ?? item.first_air_date),
       tmdbRating: item.vote_average ?? null,
+      genreIds: item.genre_ids ?? [],
     }));
 }
 
@@ -198,4 +219,45 @@ export async function fetchBasicMediaInfo(
     posterPath: raw.poster_path,
     year: extractYear(mediaType, raw),
   };
+}
+
+import type { SupportedLocale } from "@foundit/types";
+import type {
+  TmdbMovieReleaseDatesResponse,
+  TmdbContentRatingsResponse,
+} from "@/types/tmdb.types";
+
+const LOCALE_TO_CERT_COUNTRY: Record<SupportedLocale, string> = {
+  en: "US",
+  es: "ES",
+  sv: "SE",
+};
+
+export function extractMovieAgeRating(
+  releaseDates: TmdbMovieReleaseDatesResponse | undefined,
+  locale: SupportedLocale,
+): string | null {
+  if (!releaseDates?.results?.length) return null;
+  const targetCountry = LOCALE_TO_CERT_COUNTRY[locale] ?? "US";
+  const preferred = releaseDates.results.find(
+    (r) => r.iso_3166_1 === targetCountry,
+  );
+  const fallback = releaseDates.results.find((r) => r.iso_3166_1 === "US");
+  const entry = preferred ?? fallback ?? releaseDates.results[0];
+  const withCert = entry?.release_dates.find((d) => d.certification);
+  return withCert?.certification || null;
+}
+
+export function extractSeriesAgeRating(
+  contentRatings: TmdbContentRatingsResponse | undefined,
+  locale: SupportedLocale,
+): string | null {
+  if (!contentRatings?.results?.length) return null;
+  const targetCountry = LOCALE_TO_CERT_COUNTRY[locale] ?? "US";
+  const preferred = contentRatings.results.find(
+    (r) => r.iso_3166_1 === targetCountry,
+  );
+  const fallback = contentRatings.results.find((r) => r.iso_3166_1 === "US");
+  const entry = preferred ?? fallback ?? contentRatings.results[0];
+  return entry?.rating || null;
 }

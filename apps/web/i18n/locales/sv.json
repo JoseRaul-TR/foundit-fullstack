@@ -12,7 +12,33 @@
   },
   "home": {
     "title": "FoundIt",
-    "tagline": "Ta reda på var du kan se dina favoritfilmer och -serier."
+    "tagline": "Ta reda på var du kan se dina favoritfilmer och -serier.",
+    "perks": {
+      "title": "Det här får du med ett gratis konto",
+      "items": {
+        "discover": {
+          "title": "Personlig Upptäck",
+          "description": "Rekommendationer anpassade efter vad du tittar på."
+        },
+        "watchlist": {
+          "title": "Bevakningslista",
+          "description": "Spara titlar att titta på senare."
+        },
+        "history": {
+          "title": "Visningshistorik",
+          "description": "Håll koll på vad du redan har sett."
+        },
+        "filterPlatform": {
+          "title": "Filtrera efter plattform",
+          "description": "Se bara det som finns på dina tjänster."
+        }
+      },
+      "cta": "Skapa gratiskonto"
+    },
+    "accountPrompt": {
+      "title": "Registrera dig för att låsa upp personliga resultat och mer.",
+      "cta": "Skapa gratiskonto"
+    }
   },
   "search": {
     "placeholder": "Sök filmer, serier, personer...",
@@ -66,72 +92,74 @@
       "series": "Serie",
       "person": "Person"
     },
-    "providerType": {
-      "flatrate": "Streaming",
-      "rent": "Hyra",
-      "buy": "Köp",
-      "free": "Gratis"
-    },
-    "rating": {
-      "tmdbLabel": "TMDB",
-      "votes": "röster",
-      "founditAvg": "FoundIt-snitt {avg} ({count} betyg)",
-      "founditAvgCompact": "Ditt betyg: {userRating}/5 · FoundIt-snitt {avg} ({count})"
-    },
     "language": "Språk"
+  },
+  "mediaDetail": {
+    "addToWatchlist": "Lägg till i min lista",
+    "inWatchlist": "I min lista",
+    "markWatched": "Markera som sedd",
+    "watched": "Sedd",
+    "yourRating": "Ditt betyg: {rating}/10",
+    "loginToTrack": "Logga in för att spara till din lista och markera som sedd",
+    "loginToTrackSeries": "Logga in för att spara till din lista och hålla koll på vilka säsonger du har sett",
+    "noOverview": "Ingen sammanfattning tillgänglig.",
+    "cast": "Skådespelare",
+    "crew": "Team",
+    "whereToWatch": "Var du kan titta",
+    "providerTypes": {
+      "flatrate": "Streaming",
+      "free": "Gratis",
+      "rent": "Hyra",
+      "buy": "Köp"
+    },
+    "loginToSeeAvailability": "Logga in och ange dina plattformar för att se vad som är tillgängligt för dig",
+    "noProviders": "Ingen streaminginformation tillgänglig för den här titeln än.",
+    "recommendations": "Du kanske också gillar",
+    "loginForRecommendations": "Registrera dig eller logga in för att se förslag",
+    "loadError": "Något gick fel när titeln skulle laddas.",
+    "seasons": "Säsonger",
+    "seasonLabel": "Säsong {number} · {count} avsnitt",
+    "markSeasonWatched": "Markera sedd",
+    "newSeason": "NY",
+    "newSeasonAvailable": "Ny säsong tillgänglig på {services}",
+    "firstAired": "Premiär {year}",
+    "seasonsCount": "{count} säsonger",
+    "seriesStatus": {
+      "returning": "Pågående",
+      "ended": "Avslutad",
+      "canceled": "Nedlagd",
+      "upcoming": "Kommande"
+    },
+    "knownFor": "Känd för: {department}",
+    "bornOn": "Född {date}",
+    "bornInPlace": "Född {date} i {place}",
+    "biography": "Biografi",
+    "noBiography": "Ingen biografi tillgänglig.",
+    "votes": "röster",
+    "readMore": "Läs mer",
+    "readLess": "Läs mindre",
+    "photos": "Foton",
+    "filmographyAs": "Filmografi som {role}",
+    "filmographyOther": "Filmografi — andra roller",
+    "departmentRoles": {
+      "Acting": "Skådespelare",
+      "Directing": "Regissör",
+      "Writing": "Manusförfattare",
+      "Production": "Producent",
+      "Camera": "Fotograf",
+      "Editing": "Redigerare",
+      "Sound": "Ljud",
+      "Art": "Art Director",
+      "Costume & Make-Up": "Kostym och smink",
+      "Visual Effects": "Visuella effekter",
+      "Crew": "Teammedlem"
+    },
+    "trailer": "Trailer"
   },
   "footer": {
     "about": "Om oss",
     "github": "GitHub",
     "copyright": "© {year} FoundIt. Alla rättigheter förbehållna."
-  },
-
-  "movie": {
-    "hero": {
-      "directedBy": "Regisserad av {name}"
-    },
-    "cast": "Skådespelare",
-    "recommendations": "Du kanske också gillar",
-    "providers": "Var du kan se den",
-    "providersByCountry": "Var du kan se den — {country}",
-    "trailer": "Trailer",
-    "overview": "Handling",
-    "addToWatchlist": "Lägg till i bevakningslistan",
-    "removeFromWatchlist": "Ta bort från bevakningslistan",
-    "markWatched": "Markera som sedd",
-    "markUnwatched": "Markera som osedd"
-  },
-  "series": {
-    "cast": "Skådespelare",
-    "recommendations": "Du kanske också gillar",
-    "providers": "Var du kan se den",
-    "providersByCountry": "Var du kan se den — {country}",
-    "trailer": "Trailer",
-    "overview": "Handling",
-    "seasons": "Säsonger",
-    "specials": "Specialavsnitt",
-    "episodes": "Avsnitt",
-    "newSeasonsAvailable": "Ny säsong tillgänglig",
-    "addToWatchlist": "Lägg till i bevakningslistan",
-    "removeFromWatchlist": "Ta bort från bevakningslistan",
-    "markSeasonWatched": "Markera säsong som sedd",
-    "markSeasonUnwatched": "Markera säsong som osedd",
-    "status": {
-      "returning": "Pågående serie",
-      "ended": "Avslutad",
-      "canceled": "Nedlagd",
-      "upcoming": "Kommande"
-    }
-  },
-  "person": {
-    "biography": "Biografi",
-    "knownFor": "Känd för",
-    "movieCredits": "Filmer",
-    "seriesCredits": "Serier",
-    "cast": "Som skådespelare",
-    "crew": "I produktionsteamet",
-    "birthday": "Födelsedag",
-    "placeOfBirth": "Födelseort"
   },
   "watchlist": {
     "title": "Bevakningslista",

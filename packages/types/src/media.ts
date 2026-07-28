@@ -28,6 +28,7 @@ export interface NormalizedSearchResult {
   posterPath: string | null;
   year: number | null;
   tmdbRating: number | null;
+  genreIds: number[];
 }
 
 export interface PaginatedResponse<T> {
@@ -52,5 +53,12 @@ export interface NormalizedCastMember {
   id: number;
   name: string;
   character: string;
+  profilePath: string | null;
+}
+
+export interface NormalizedCrewMember {
+  id: number;
+  name: string;
+  job: string;
   profilePath: string | null;
 }

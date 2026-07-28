@@ -1,4 +1,4 @@
-// apps/web/app/composables/useMediaModal.ts
+// apps/web/app/composables/media/useMediaModal.ts
 import { storeToRefs } from "pinia";
 import { useMediaModalStore, type ModalMediaType } from "~/stores/mediaModal";
 
