@@ -155,7 +155,10 @@
       "Crew": "Teammedlem"
     },
     "trailer": "Trailer",
-    "showTrailer": "Spela upp trailer för {title}"
+    "showTrailer": "Spela upp trailer för {title}",
+    "providerSubscribed": "{name}, prenumererad",
+    "providerNotSubscribed": "{name}, inte prenumererad",
+    "rateThis": "Betygsätt"
   },
   "footer": {
     "about": "Om oss",

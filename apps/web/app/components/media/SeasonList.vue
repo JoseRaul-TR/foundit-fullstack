@@ -80,17 +80,23 @@ defineEmits<{ "toggle-watched": [seasonNumber: number] }>();
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w154";
 
-// Acceptance criteria #65: "Seasons sorted by season number ascending"
+// Acceptance criteria #76: sorted by season number ascending, EXCEPT
+// Specials (season 0) which TMDB always numbers as 0 regardless of when
+// they actually aired — shown last instead of first.
 const sortedSeasons = computed(() =>
-  [...props.seasons].sort((a, b) => a.seasonNumber - b.seasonNumber),
+  [...props.seasons].sort((a, b) => {
+    if (a.seasonNumber === 0) return 1;
+    if (b.seasonNumber === 0) return -1;
+    return a.seasonNumber - b.seasonNumber;
+  }),
 );
 
 const highestSeasonNumber = computed(() =>
   props.seasons.reduce((max, s) => Math.max(max, s.seasonNumber), -Infinity),
 );
 
-// La API solo expone newSeasonsAvailable/availableOn a nivel de serie, no
-// por temporada -- el badge se asigna a la temporada más reciente sin ver.
+// The API only exposes newSeasonsAvailable/availableOn at the series level, not
+// per season -- the badge is assigned to the most recent unviewed season.
 function isNewSeason(season: SeriesSeasonSummary): boolean {
   return (
     props.newSeasonsAvailable &&

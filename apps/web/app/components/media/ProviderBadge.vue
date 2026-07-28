@@ -7,12 +7,14 @@
         ? 'border-[1.5px] border-success bg-success/[0.14] text-success'
         : 'bg-surface-elevated text-primary'
     "
+    :aria-label="ariaLabel"
   >
     <img
-      v-if="logoUrl"
+      v-if="logoUrl && !imgFailed"
       :src="logoUrl"
       :alt="name"
       class="h-[26px] w-[26px] rounded-[5px]"
+      @error="handleImgError"
     />
     <span
       v-else
@@ -30,8 +32,24 @@ const props = defineProps<{
   subscribed?: boolean;
 }>();
 
+const { t } = useI18n();
+
 const TMDB_LOGO_BASE = "https://image.tmdb.org/t/p/original";
 const logoUrl = computed(() =>
   props.logoPath ? `${TMDB_LOGO_BASE}${props.logoPath}` : null,
+);
+
+// Covers both cases: no logoPath at all (logoUrl null, handled by v-else
+// above already) AND a valid path that fails to actually load at runtime
+// (404, network error, TMDB CDN hiccup) — imgFailed catches the latter.
+const imgFailed = ref(false);
+function handleImgError() {
+  imgFailed.value = true;
+}
+
+const ariaLabel = computed(() =>
+  props.subscribed
+    ? t("mediaDetail.providerSubscribed", { name: props.name })
+    : t("mediaDetail.providerNotSubscribed", { name: props.name }),
 );
 </script>
