@@ -185,3 +185,6 @@ apps/api/prisma/migrations/
 #Claude
 CLAUDE.md
 cookies.txt
+
+#GitHub Commit Messages
+nano commit-msg.txt

@@ -23,5 +23,12 @@ export function useGenres() {
       .filter((name): name is string => !!name);
   }
 
-  return { getGenreNames };
+  return {
+    getGenreNames,
+    // Raw catalogs for DiscoverFilters' genre multi-select. Kept as
+    // separate exports rather than overloading getGenreNames, since the
+    // filter UI needs {id, name} pairs to render+toggle, not just names.
+    movieGenres: computed(() => data.value?.movie ?? []),
+    seriesGenres: computed(() => data.value?.tv ?? []),
+  };
 }

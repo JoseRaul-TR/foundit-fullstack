@@ -1,6 +1,5 @@
 // apps/api/src/services/catalog/genres.ts
-
-import { getOrSetCache, ONE_DAY_MS } from "@/lib/cache";
+import { getOrSetCache, ONE_WEEK_MS } from "@/lib/cache";
 import { fetchTmdb } from "@/lib/tmdb";
 import type { TmdbGenreListResponse } from "@/types/tmdb.types";
 import {
@@ -21,7 +20,7 @@ function dedupeById(genres: GenreItem[]): GenreItem[] {
 export async function getGenres(
   locale: SupportedLocale,
 ): Promise<GenresResponse> {
-  return getOrSetCache(`genres:${locale}`, ONE_DAY_MS, async () => {
+  return getOrSetCache(`genres:${locale}`, ONE_WEEK_MS, async () => {
     const language = LOCALE_TO_TMDB_LANG[locale];
     const [movieRes, tvRes] = await Promise.all([
       fetchTmdb<TmdbGenreListResponse>("/genre/movie/list", { language }),

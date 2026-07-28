@@ -1,29 +1,56 @@
-// apps/api/src/services/discover.ts
+// apps/api/src/services/catalog/discover.ts
 /**
  * Naming: exposed as /api/discover/series, not /api/discover/tv (ticket's
  * literal text) — same tv->series convention as #39/#35.
  *
  * "upcoming" status filter (2026-07-17): verified live against TMDB that
  * /discover/tv's with_status uses the same separator convention as
- * with_genres — comma is AND (with_status=1,2,5 returned 0 results, since a
- * show can't hold three statuses at once), pipe is OR
- * (with_status=1|2|5 returned ~4093 total_results, matching the sum of the
- * three individual queries: 805+2876+410=4091). So "upcoming" (TMDB's
+ * with_genres — comma is AND, pipe is OR. So "upcoming" (TMDB's
  * Planned/In Production/Pilot, codes 1/2/5) is safely expressed as the
  * pipe-joined string "1|2|5".
  *
- * Reuses `extractRecommendations` from tmdbMedia.ts for the response
- * normalization — its signature (TmdbPaginatedResponse<TmdbSearchResultItem>,
- * MediaType) -> NormalizedSearchResult[] already does exactly what discover
- * needs (discover/movie and discover/tv results carry no media_type field,
- * so a fixed mediaType per call is correct, same as recommendations).
- * It's doing more than its name suggests now (movies.ts, tv.ts,
- * discover.ts) — worth a rename to something like `normalizeMediaResults`
- * at some point, not urgent.
+ * ─── Ticket #63 additions (multi-region personalized Discover) ──────────
+ *
+ * TMDB only accepts ONE watch_region per /discover call, but multiple
+ * providers CAN be OR'd within a single call for that region
+ * (with_watch_providers=8|337). So combining a user's ES+SE subscriptions
+ * means ONE call per country (providers OR'd inside it), not one call per
+ * provider — see discoverMoviesMultiRegion/discoverSeriesMultiRegion.
+ *
+ * No-data-loss merge algorithm: each region gets its own buffer + page
+ * cursor. Pages are fetched (in parallel, one per still-open region) until
+ * the combined, deduped, filtered item count is enough to satisfy the
+ * requested page, or every region is exhausted. Only then is everything
+ * merged, deduped by tmdbId, sorted by the user's chosen criterion, and
+ * sliced to the exact page window. Nothing fetched from TMDB is ever
+ * discarded before being considered — only excluded by an explicit filter
+ * (watched/age-rating), never dropped by an early slice.
+ *
+ * AgeRating: /discover/movie has a native certification.lte + certification_country
+ * filter — used directly, no extra TMDB calls. /discover/tv has NO
+ * equivalent — per José's decision (2026-07-28), series get a bounded
+ * post-filter instead: only the items actually sitting in the current
+ * buffer window get one extra /tv/{id}?append_to_response=content_ratings
+ * call each, compared against TMDB's own per-country certification order
+ * (via certifications.ts). This is still bounded by page depth, not by
+ * the full catalog.
+ *
+ * excludeWatched: movies is a plain WatchedItem set-difference (no extra
+ * calls). Series "fully watched" needs each candidate's number_of_seasons,
+ * which discover/tv list items don't carry — so, same bounded-N+1
+ * principle, only candidates where the user has watched AT LEAST one
+ * season already get a /tv/{id} detail call (reusing the same call as the
+ * age-rating check when both apply, via append_to_response=content_ratings
+ * regardless — cheap to always append since it's a single small field).
  */
 
 import { fetchTmdb } from "@/lib/tmdb";
-import { extractRecommendations } from "@/helpers/tmdbMedia";
+import {
+  extractRecommendations,
+  extractSeriesCertificationForCountry,
+} from "@/helpers/tmdbMedia";
+import { getCertificationOrderMap } from "@/services/catalog/certifications";
+import prisma from "@/lib/prisma";
 import { LOCALE_TO_TMDB_LANG } from "@foundit/types";
 import type {
   NormalizedSearchResult,
@@ -33,19 +60,35 @@ import type {
 import type {
   TmdbPaginatedResponse,
   TmdbSearchResultItem,
+  TmdbSeries,
 } from "@/types/tmdb.types";
 
-export type DiscoverSort = "popularity" | "rating" | "release_date";
+export type DiscoverSort = "popularity" | "rating" | "release_date" | "title";
+
+export interface RegionGroup {
+  countryCode: string;
+  providerIds: number[];
+}
 
 export interface DiscoverParams {
-  genre?: number;
-  year?: number;
+  genres?: number[];
+  yearFrom?: number;
+  yearTo?: number;
   minRating?: number;
-  provider?: number;
-  region?: string;
+  voteCountMin?: number;
+  ageRatingCountry?: string;
+  ageRatingMax?: string;
   sort: DiscoverSort;
   locale: SupportedLocale;
   page: number;
+  userId?: string | null;
+  excludeWatched?: boolean;
+  // Legacy single-region shape, kept working for whatever #36/#37 already
+  // shipped it for — untouched code path below (discoverMovies/discoverSeries).
+  provider?: number;
+  region?: string;
+  // New: personalized multi-region mode. When present, takes over.
+  regions?: RegionGroup[];
 }
 
 export type SeriesStatusFilter =
@@ -58,21 +101,25 @@ export interface SeriesDiscoverParams extends DiscoverParams {
   status?: SeriesStatusFilter;
 }
 
+const PAGE_SIZE = 20;
+const DEFAULT_VOTE_COUNT_MIN = 20; // assumption — no explicit floor was given; tune freely, it's a one-line change here.
+
+// ─── Legacy single-region path (#36/#37) — unchanged behavior ───────────
+
 const SORT_TO_TMDB_MOVIE: Record<DiscoverSort, string> = {
   popularity: "popularity.desc",
   rating: "vote_average.desc",
   release_date: "primary_release_date.desc",
+  title: "original_title.asc", // TMDB has no localized-title sort; only used pre-#63
 };
 
 const SORT_TO_TMDB_SERIES: Record<DiscoverSort, string> = {
   popularity: "popularity.desc",
   rating: "vote_average.desc",
   release_date: "first_air_date.desc",
+  title: "name.asc",
 };
 
-// TMDB's own with_status codes: 0=Returning Series, 1=Planned,
-// 2=In Production, 3=Ended, 4=Canceled, 5=Pilot. "upcoming" is our own
-// bucket folding 1/2/5 together (verified: pipe-joined = OR on this param).
 const STATUS_TO_TMDB_CODE: Record<SeriesStatusFilter, string> = {
   returning: "0",
   ended: "3",
@@ -82,12 +129,12 @@ const STATUS_TO_TMDB_CODE: Record<SeriesStatusFilter, string> = {
 
 type TmdbDiscoverParams = Record<string, string | number | boolean | undefined>;
 
-function buildBaseParams(
+function buildLegacyBaseParams(
   params: DiscoverParams,
   sortMap: Record<DiscoverSort, string>,
 ): TmdbDiscoverParams {
   return {
-    with_genres: params.genre,
+    with_genres: params.genres?.join("|"),
     "vote_average.gte": params.minRating,
     with_watch_providers: params.provider,
     watch_region: params.region,
@@ -102,7 +149,7 @@ function toPaginated(
   mediaType: "movie" | "series",
 ): PaginatedResponse<NormalizedSearchResult> {
   return {
-    results: extractRecommendations(response, mediaType),
+    results: extractRecommendations(response, mediaType, PAGE_SIZE),
     totalResults: response.total_results,
     totalPages: response.total_pages,
     page: response.page,
@@ -112,9 +159,20 @@ function toPaginated(
 export async function discoverMovies(
   params: DiscoverParams,
 ): Promise<PaginatedResponse<NormalizedSearchResult>> {
+  if (params.regions?.length) {
+    return discoverMoviesMultiRegion(params.regions, params);
+  }
+
   const tmdbParams: TmdbDiscoverParams = {
-    ...buildBaseParams(params, SORT_TO_TMDB_MOVIE),
-    primary_release_year: params.year,
+    ...buildLegacyBaseParams(params, SORT_TO_TMDB_MOVIE),
+    primary_release_year: params.yearFrom,
+    "vote_count.gte": params.voteCountMin ?? DEFAULT_VOTE_COUNT_MIN,
+    ...(params.ageRatingMax && params.ageRatingCountry
+      ? {
+          "certification.lte": params.ageRatingMax,
+          certification_country: params.ageRatingCountry,
+        }
+      : {}),
   };
 
   const response = await fetchTmdb<TmdbPaginatedResponse<TmdbSearchResultItem>>(
@@ -127,9 +185,14 @@ export async function discoverMovies(
 export async function discoverSeries(
   params: SeriesDiscoverParams,
 ): Promise<PaginatedResponse<NormalizedSearchResult>> {
+  if (params.regions?.length) {
+    return discoverSeriesMultiRegion(params.regions, params);
+  }
+
   const tmdbParams: TmdbDiscoverParams = {
-    ...buildBaseParams(params, SORT_TO_TMDB_SERIES),
-    first_air_date_year: params.year,
+    ...buildLegacyBaseParams(params, SORT_TO_TMDB_SERIES),
+    first_air_date_year: params.yearFrom,
+    "vote_count.gte": params.voteCountMin ?? DEFAULT_VOTE_COUNT_MIN,
     with_status: params.status ? STATUS_TO_TMDB_CODE[params.status] : undefined,
   };
 
@@ -138,4 +201,337 @@ export async function discoverSeries(
     tmdbParams,
   );
   return toPaginated(response, "series");
+}
+
+// ─── New: multi-region personalized path (#63) ───────────────────────────
+
+interface RegionBuffer {
+  countryCode: string;
+  items: NormalizedSearchResult[];
+  nextPage: number;
+  totalPages: number;
+  exhausted: boolean;
+}
+
+function initBuffers(regions: RegionGroup[]): RegionBuffer[] {
+  return regions.map((r) => ({
+    countryCode: r.countryCode,
+    items: [],
+    nextPage: 1,
+    totalPages: Infinity,
+    exhausted: false,
+  }));
+}
+
+function dedupeAndMerge(buffers: RegionBuffer[]): NormalizedSearchResult[] {
+  const seen = new Set<number>();
+  const merged: NormalizedSearchResult[] = [];
+  for (const buffer of buffers) {
+    for (const item of buffer.items) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        merged.push(item);
+      }
+    }
+  }
+  return merged;
+}
+
+const SORT_COMPARATORS: Record<
+  DiscoverSort,
+  (a: NormalizedSearchResult, b: NormalizedSearchResult) => number
+> = {
+  popularity: (a, b) => (b.popularity ?? 0) - (a.popularity ?? 0),
+  rating: (a, b) => (b.tmdbRating ?? 0) - (a.tmdbRating ?? 0),
+  release_date: (a, b) => (b.year ?? 0) - (a.year ?? 0),
+  title: (a, b) => a.title.localeCompare(b.title),
+};
+
+async function fetchMovieRegionPage(
+  countryCode: string,
+  providerIds: number[],
+  page: number,
+  params: DiscoverParams,
+): Promise<TmdbPaginatedResponse<TmdbSearchResultItem>> {
+  return fetchTmdb<TmdbPaginatedResponse<TmdbSearchResultItem>>(
+    "/discover/movie",
+    {
+      with_genres: params.genres?.join("|"),
+      "primary_release_date.gte": params.yearFrom
+        ? `${params.yearFrom}-01-01`
+        : undefined,
+      "primary_release_date.lte": params.yearTo
+        ? `${params.yearTo}-12-31`
+        : undefined,
+      "vote_average.gte": params.minRating,
+      "vote_count.gte": params.voteCountMin ?? DEFAULT_VOTE_COUNT_MIN,
+      with_watch_providers: providerIds.join("|"),
+      watch_region: countryCode,
+      ...(params.ageRatingMax && params.ageRatingCountry
+        ? {
+            "certification.lte": params.ageRatingMax,
+            certification_country: params.ageRatingCountry,
+          }
+        : {}),
+      // Always fetch by TMDB popularity order — the final in-memory sort
+      // (whatever the user picked) is applied after merging, regardless of
+      // fetch order. This keeps the fetch order stable and simple.
+      sort_by: "popularity.desc",
+      language: LOCALE_TO_TMDB_LANG[params.locale],
+      page,
+    },
+  );
+}
+
+async function fetchSeriesRegionPage(
+  countryCode: string,
+  providerIds: number[],
+  page: number,
+  params: SeriesDiscoverParams,
+): Promise<TmdbPaginatedResponse<TmdbSearchResultItem>> {
+  return fetchTmdb<TmdbPaginatedResponse<TmdbSearchResultItem>>(
+    "/discover/tv",
+    {
+      with_genres: params.genres?.join("|"),
+      "first_air_date.gte": params.yearFrom
+        ? `${params.yearFrom}-01-01`
+        : undefined,
+      "first_air_date.lte": params.yearTo
+        ? `${params.yearTo}-12-31`
+        : undefined,
+      "vote_average.gte": params.minRating,
+      "vote_count.gte": params.voteCountMin ?? DEFAULT_VOTE_COUNT_MIN,
+      with_watch_providers: providerIds.join("|"),
+      watch_region: countryCode,
+      with_status: params.status
+        ? STATUS_TO_TMDB_CODE[params.status]
+        : undefined,
+      sort_by: "popularity.desc",
+      language: LOCALE_TO_TMDB_LANG[params.locale],
+      page,
+    },
+  );
+}
+
+async function fillBuffers(
+  buffers: RegionBuffer[],
+  needed: number,
+  fetchPage: (
+    countryCode: string,
+    page: number,
+  ) => Promise<TmdbPaginatedResponse<TmdbSearchResultItem>>,
+  mediaType: "movie" | "series",
+): Promise<void> {
+  let total = buffers.reduce((sum, b) => sum + b.items.length, 0);
+
+  while (total < needed && buffers.some((b) => !b.exhausted)) {
+    await Promise.all(
+      buffers
+        .filter((b) => !b.exhausted)
+        .map(async (b) => {
+          const response = await fetchPage(b.countryCode, b.nextPage);
+          b.items.push(
+            ...extractRecommendations(response, mediaType, PAGE_SIZE),
+          );
+          b.totalPages = response.total_pages;
+          b.nextPage += 1;
+          b.exhausted = b.nextPage > response.total_pages;
+        }),
+    );
+    total = buffers.reduce((sum, b) => sum + b.items.length, 0);
+  }
+}
+
+async function loadWatchedMovieIds(userId: string): Promise<Set<number>> {
+  const rows = await prisma.watchedItem.findMany({
+    where: { userId, mediaType: "movie", seasonNumber: null },
+    select: { tmdbId: true },
+  });
+  return new Set(rows.map((r) => r.tmdbId));
+}
+
+/** tmdbId -> count of distinct watched seasons, for the fully-watched series check. */
+async function loadWatchedSeriesSeasonCounts(
+  userId: string,
+): Promise<Map<number, number>> {
+  const rows = await prisma.watchedItem.findMany({
+    where: { userId, mediaType: "series" },
+    select: { tmdbId: true, seasonNumber: true },
+  });
+  const counts = new Map<number, Set<number>>();
+  for (const row of rows) {
+    if (row.seasonNumber === null) continue;
+    const set = counts.get(row.tmdbId) ?? new Set<number>();
+    set.add(row.seasonNumber);
+    counts.set(row.tmdbId, set);
+  }
+  return new Map([...counts.entries()].map(([id, set]) => [id, set.size]));
+}
+
+export async function discoverMoviesMultiRegion(
+  regions: RegionGroup[],
+  params: DiscoverParams,
+): Promise<PaginatedResponse<NormalizedSearchResult>> {
+  const buffers = initBuffers(regions);
+  const excludeWatched = params.excludeWatched && !!params.userId;
+  const watchedIds = excludeWatched
+    ? await loadWatchedMovieIds(params.userId!)
+    : new Set<number>();
+
+  let survivors: NormalizedSearchResult[] = [];
+  let target = params.page * PAGE_SIZE;
+
+  // Loop: fill, filter, check if enough survived; if not (and there's
+  // still more to fetch), raise the target and try again. Bounded by all
+  // regions eventually exhausting.
+  for (;;) {
+    await fillBuffers(
+      buffers,
+      target,
+      (countryCode, page) => {
+        const providerIds = regions.find(
+          (r) => r.countryCode === countryCode,
+        )!.providerIds;
+        return fetchMovieRegionPage(countryCode, providerIds, page, params);
+      },
+      "movie",
+    );
+
+    const merged = dedupeAndMerge(buffers).sort(SORT_COMPARATORS[params.sort]);
+    survivors = excludeWatched
+      ? merged.filter((item) => !watchedIds.has(item.id))
+      : merged;
+
+    const allExhausted = buffers.every((b) => b.exhausted);
+    if (survivors.length >= target || allExhausted) break;
+    target += PAGE_SIZE;
+  }
+
+  const start = (params.page - 1) * PAGE_SIZE;
+  const pageItems = survivors.slice(start, start + PAGE_SIZE);
+  const hasMore =
+    survivors.length > start + PAGE_SIZE || buffers.some((b) => !b.exhausted);
+
+  return {
+    results: pageItems,
+    totalResults: survivors.length, // approximate: merged-so-far count, not a true TMDB total across regions
+    totalPages: hasMore ? params.page + 1 : params.page,
+    page: params.page,
+  };
+}
+
+export async function discoverSeriesMultiRegion(
+  regions: RegionGroup[],
+  params: SeriesDiscoverParams,
+): Promise<PaginatedResponse<NormalizedSearchResult>> {
+  const buffers = initBuffers(regions);
+  const excludeWatched = params.excludeWatched && !!params.userId;
+  const watchedSeasonCounts = excludeWatched
+    ? await loadWatchedSeriesSeasonCounts(params.userId!)
+    : new Map<number, number>();
+
+  const needsAgeRatingCheck = !!(
+    params.ageRatingMax && params.ageRatingCountry
+  );
+  const ageRatingOrderMap = needsAgeRatingCheck
+    ? await getCertificationOrderMap("series", params.ageRatingCountry!)
+    : new Map<string, number>();
+  const ageRatingMaxOrder = needsAgeRatingCheck
+    ? ageRatingOrderMap.get(params.ageRatingMax!)
+    : undefined;
+
+  // Bounded N+1: only fetch full detail for candidates that either (a)
+  // the user has at least one watched season for (fully-watched check) or
+  // (b) need the age-rating post-filter — never for the whole buffer.
+  async function enrichAndFilter(
+    items: NormalizedSearchResult[],
+  ): Promise<NormalizedSearchResult[]> {
+    const survivors: NormalizedSearchResult[] = [];
+
+    await Promise.all(
+      items.map(async (item) => {
+        const watchedSeasons = watchedSeasonCounts.get(item.id) ?? 0;
+        const needsDetail =
+          needsAgeRatingCheck || (excludeWatched && watchedSeasons > 0);
+
+        if (!needsDetail) {
+          survivors.push(item);
+          return;
+        }
+
+        const detail = await fetchTmdb<TmdbSeries>(`/tv/${item.id}`, {
+          append_to_response: "content_ratings",
+        });
+
+        if (
+          excludeWatched &&
+          watchedSeasons > 0 &&
+          watchedSeasons >= detail.number_of_seasons
+        ) {
+          return; // fully watched — excluded
+        }
+
+        if (needsAgeRatingCheck) {
+          const rating = extractSeriesCertificationForCountry(
+            detail.content_ratings,
+            params.ageRatingCountry!,
+          );
+          const ratingOrder = rating
+            ? ageRatingOrderMap.get(rating)
+            : undefined;
+          // Unrated (no certification data for that country) is let through
+          // rather than excluded — TMDB certification coverage for series
+          // is patchy, and silently hiding unrated shows would remove a lot
+          // of legitimate results.
+          if (
+            ratingOrder !== undefined &&
+            ageRatingMaxOrder !== undefined &&
+            ratingOrder > ageRatingMaxOrder
+          ) {
+            return;
+          }
+        }
+
+        survivors.push(item);
+      }),
+    );
+
+    return survivors;
+  }
+
+  let survivors: NormalizedSearchResult[] = [];
+  let target = params.page * PAGE_SIZE;
+
+  for (;;) {
+    await fillBuffers(
+      buffers,
+      target,
+      (countryCode, page) => {
+        const providerIds = regions.find(
+          (r) => r.countryCode === countryCode,
+        )!.providerIds;
+        return fetchSeriesRegionPage(countryCode, providerIds, page, params);
+      },
+      "series",
+    );
+
+    const merged = dedupeAndMerge(buffers).sort(SORT_COMPARATORS[params.sort]);
+    survivors = await enrichAndFilter(merged);
+
+    const allExhausted = buffers.every((b) => b.exhausted);
+    if (survivors.length >= target || allExhausted) break;
+    target += PAGE_SIZE;
+  }
+
+  const start = (params.page - 1) * PAGE_SIZE;
+  const pageItems = survivors.slice(start, start + PAGE_SIZE);
+  const hasMore =
+    survivors.length > start + PAGE_SIZE || buffers.some((b) => !b.exhausted);
+
+  return {
+    results: pageItems,
+    totalResults: survivors.length,
+    totalPages: hasMore ? params.page + 1 : params.page,
+    page: params.page,
+  };
 }

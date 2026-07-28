@@ -1,4 +1,4 @@
-// apps/api/src/services/search.ts
+// apps/api/src/services/catalog/search.ts
 /**
  * Two deliberate deviations from the ticket text, flagged for José:
  *  - `type` uses "series" instead of TMDB's "tv", per the 2026-07-15
@@ -82,6 +82,7 @@ export async function searchTmdb(
       year: parseYear(item.release_date ?? item.first_air_date),
       tmdbRating: item.vote_average ?? null,
       genreIds: item.genre_ids ?? [],
+      popularity: item.popularity ?? null,
     }));
 
   return {
