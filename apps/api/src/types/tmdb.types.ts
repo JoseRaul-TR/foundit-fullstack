@@ -212,6 +212,7 @@ export interface TmdbSearchResultItem {
   vote_average?: number;
   vote_count?: number;
   adult?: boolean;
+  popularity?: number;
 }
 
 export interface TmdbPaginatedResponse<T> {
@@ -257,4 +258,18 @@ export interface TmdbContentRating {
 
 export interface TmdbContentRatingsResponse {
   results: TmdbContentRating[];
+}
+
+// GET /certification/movie/list and /certification/tv/list — used to
+// populate the Discover AgeRating filter's options per country, and (for
+// series, where /discover/tv has no native certification param) to build
+// the ordering used by the bounded post-filter in discover.ts.
+export interface TmdbCertificationEntry {
+  certification: string;
+  meaning: string;
+  order: number;
+}
+
+export interface TmdbCertificationsResponse {
+  certifications: Record<string, TmdbCertificationEntry[]>;
 }

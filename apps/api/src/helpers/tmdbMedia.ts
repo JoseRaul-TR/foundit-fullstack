@@ -1,4 +1,4 @@
-//apps/api/src/helpers/tmdbMedia.ts
+// apps/api/src/helpers/tmdbMedia.ts
 import type {
   TmdbCredits,
   TmdbMovie,
@@ -70,13 +70,19 @@ export function extractCrew(
     }));
 }
 
+// NOTE: no longer slices to MAX_RECOMMENDATIONS unconditionally — discover.ts's
+// multi-region buffers need the FULL page (20 items), not a top-10 cut, since
+// it's the one doing its own merge/slice afterward. Recommendations callers
+// (movies.ts/series.ts) still want the top-10 behavior, so slicing moved to
+// an explicit `limit` param defaulting to MAX_RECOMMENDATIONS.
 export function extractRecommendations(
   recommendations: TmdbPaginatedResponse<TmdbSearchResultItem> | undefined,
   mediaType: MediaType,
+  limit: number = MAX_RECOMMENDATIONS,
 ): NormalizedSearchResult[] {
   return (recommendations?.results ?? [])
     .filter((item) => !item.adult)
-    .slice(0, MAX_RECOMMENDATIONS)
+    .slice(0, limit)
     .map((item) => ({
       id: item.id,
       mediaType,
@@ -85,6 +91,7 @@ export function extractRecommendations(
       year: parseYear(item.release_date ?? item.first_air_date),
       tmdbRating: item.vote_average ?? null,
       genreIds: item.genre_ids ?? [],
+      popularity: item.popularity ?? null,
     }));
 }
 
@@ -259,5 +266,19 @@ export function extractSeriesAgeRating(
   );
   const fallback = contentRatings.results.find((r) => r.iso_3166_1 === "US");
   const entry = preferred ?? fallback ?? contentRatings.results[0];
+  return entry?.rating || null;
+}
+
+// Same idea as extractSeriesAgeRating, but keyed by an arbitrary raw
+// country code (not one of our 3 locales) — used by discover.ts's bounded
+// per-item post-filter, where the country comes from the user's own
+// ageRatingCountry setting, not from the active UI locale.
+export function extractSeriesCertificationForCountry(
+  contentRatings: TmdbContentRatingsResponse | undefined,
+  countryCode: string,
+): string | null {
+  const entry = contentRatings?.results?.find(
+    (r) => r.iso_3166_1 === countryCode,
+  );
   return entry?.rating || null;
 }

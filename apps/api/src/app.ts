@@ -28,6 +28,7 @@ import peopleRouter from "@/routes/catalog/people";
 import genresRouter from "@/routes/catalog/genres";
 import providersRouter from "@/routes/catalog/providers";
 import countriesRouter from "@/routes/catalog/countries";
+import certificationsRouter from "@/routes/catalog/certifications";
 
 // Profile domain (authenticated user settings)
 import profileRouter from "@/routes/profile/profile";
@@ -81,6 +82,7 @@ app.use(`${API_V1}/discover`, tmdbLimiter, discoverRouter);
 app.use(`${API_V1}/people`, tmdbLimiter, peopleRouter);
 app.use(`${API_V1}/genres`, tmdbLimiter, genresRouter);
 app.use(`${API_V1}/providers`, tmdbLimiter, providersRouter);
+app.use(`${API_V1}/certifications`, tmdbLimiter, certificationsRouter);
 app.use(`${API_V1}/countries`, tmdbLimiter, countriesRouter);
 app.use(`${API_V1}/profile`, profileRouter); // No tmdbLimiter, only calls to own db via Prisma
 app.use(`${API_V1}/profile/countries`, profileCountriesRouter);

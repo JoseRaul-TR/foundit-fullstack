@@ -9,6 +9,7 @@
     <SearchBar />
 
     <LandingPerks v-if="!authStore.isAuthenticated && isIdle" />
+    <DiscoverPanel v-if="authStore.isAuthenticated && isIdle" />
 
     <section v-if="!isIdle" class="w-full">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">

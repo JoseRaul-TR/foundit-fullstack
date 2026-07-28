@@ -24,3 +24,12 @@ export interface CountryItem {
   name: string;
   nativeName: string;
 }
+
+// TMDB's own ordering within a country (e.g. US: G < PG < PG-13 < R
+// NC-17) — `order` is what makes a "show me X or below" ceiling filter
+// possible for series, where TMDB's discover has no native certification
+// param (unlike /discover/movie's certification.lte).
+export interface CertificationItem {
+  certification: string;
+  order: number;
+}

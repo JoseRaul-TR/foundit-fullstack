@@ -29,6 +29,7 @@ export interface NormalizedSearchResult {
   year: number | null;
   tmdbRating: number | null;
   genreIds: number[];
+  popularity: number | null;
 }
 
 export interface PaginatedResponse<T> {
