@@ -255,6 +255,7 @@
       "nameLabel": "Name",
       "emailLabel": "Email",
       "passwordLabel": "Password",
+      "strength": { "weak": "Weak", "medium": "Medium", "strong": "Strong" },
       "confirmPasswordLabel": "Confirm password",
       "submit": "Create account",
       "or": "or",

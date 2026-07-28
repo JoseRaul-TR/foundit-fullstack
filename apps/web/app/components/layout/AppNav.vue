@@ -73,13 +73,13 @@
 
     <div v-else class="flex items-center gap-3 sm:gap-[18px]">
       <NuxtLink
-        to="/login"
+        :to="localePath('/login')"
         class="whitespace-nowrap text-xs font-medium text-secondary transition-colors hover:text-primary sm:text-sm"
       >
         {{ $t("nav.login") }}
       </NuxtLink>
       <NuxtLink
-        to="/register"
+        :to="localePath('/register')"
         class="glass whitespace-nowrap rounded-full bg-brand/32 px-3.5 py-2 text-xs font-bold text-brand transition hover:brightness-110 sm:px-5 sm:py-2.5 sm:text-[13px]"
       >
         {{ $t("nav.register") }}
@@ -93,6 +93,7 @@ const {
   public: { appName },
 } = useRuntimeConfig();
 
+const localePath = useLocalePath();
 const authStore = useAuthStore();
 const route = useRoute();
 

@@ -239,6 +239,7 @@
       "subtitle": "Välkommen tillbaka till FoundIt.",
       "emailLabel": "E-post",
       "passwordLabel": "Lösenord",
+      "strength": { "weak": "Svag", "medium": "Medel", "strong": "Stark" },
       "submit": "Logga in",
       "or": "eller",
       "googleButton": "Fortsätt med Google",
