@@ -154,7 +154,8 @@
       "Visual Effects": "Visuella effekter",
       "Crew": "Teammedlem"
     },
-    "trailer": "Trailer"
+    "trailer": "Trailer",
+    "showTrailer": "Spela upp trailer för {title}"
   },
   "footer": {
     "about": "Om oss",

@@ -154,7 +154,8 @@
       "Visual Effects": "Efectos visuales",
       "Crew": "Equipo técnico"
     },
-    "trailer": "Trailer"
+    "trailer": "Trailer",
+    "showTrailer": "Reproducir tráiler de {title}"
   },
   "footer": {
     "about": "Acerca de",

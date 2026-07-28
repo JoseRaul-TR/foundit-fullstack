@@ -1,22 +1,32 @@
 <!-- apps/web/app/components/media-detail/SeriesDetailContent.vue -->
 <template>
-  <div v-if="pending" class="flex min-h-[320px] items-center justify-center p-8">
+  <div
+    v-if="pending"
+    class="flex min-h-[320px] items-center justify-center p-8"
+  >
     <p class="text-sm text-secondary">{{ $t("common.loading") }}</p>
   </div>
 
-  <div v-else-if="error || !series" class="flex min-h-[320px] items-center justify-center p-8">
+  <div
+    v-else-if="error || !series"
+    class="flex min-h-[320px] items-center justify-center p-8"
+  >
     <p class="text-sm text-secondary">{{ $t("mediaDetail.loadError") }}</p>
   </div>
 
   <div v-else class="flex flex-col">
-    <div class="relative h-40 w-full overflow-hidden rounded-t-2xl sm:h-[360px]">
+    <div
+      class="relative h-40 w-full overflow-hidden rounded-t-2xl sm:h-[360px]"
+    >
       <img
         v-if="backdropUrl"
         :src="backdropUrl"
         :alt="series.title"
         class="h-full w-full object-cover"
       />
-      <div class="absolute inset-x-0 bottom-0 h-[39%] bg-gradient-to-t from-page to-transparent" />
+      <div
+        class="absolute inset-x-0 bottom-0 h-[39%] bg-gradient-to-t from-page to-transparent"
+      />
     </div>
 
     <div class="flex flex-col gap-6 px-5 pb-6 pt-0 sm:px-8">
@@ -31,8 +41,12 @@
             class="h-full w-full object-contain"
           />
         </div>
-        <div class="flex flex-1 flex-col gap-2 text-center sm:pb-2 sm:text-left">
-          <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+        <div
+          class="flex flex-1 flex-col gap-2 text-center sm:pb-2 sm:text-left"
+        >
+          <div
+            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
+          >
             <h2 class="text-xl font-bold text-primary sm:text-2xl">
               {{ series.title }}
             </h2>
@@ -46,29 +60,51 @@
           </div>
           <p class="text-sm text-secondary">
             <template v-if="series.releaseYear"
-              >{{ $t("mediaDetail.firstAired", { year: series.releaseYear }) }}<span class="px-1.5">·</span></template
+              >{{ $t("mediaDetail.firstAired", { year: series.releaseYear })
+              }}<span class="px-1.5">·</span></template
             >
-            {{ $t("mediaDetail.seasonsCount", { count: series.numberOfSeasons }) }}
+            {{
+              $t("mediaDetail.seasonsCount", { count: series.numberOfSeasons })
+            }}
             <span class="px-1.5">·</span>
             {{ series.genres.map((g) => g.name).join(", ") }}
           </p>
-          <p v-if="hasTmdbRating" class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span class="rounded-full bg-surface-elevated px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary">
+          <p
+            v-if="hasTmdbRating"
+            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
+          >
+            <span
+              class="rounded-full bg-surface-elevated px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary"
+            >
               TMDB
             </span>
             <span class="text-sm font-bold text-brand">
               ★ {{ series.tmdbRating!.toFixed(1) }}
-              <span class="font-normal text-secondary">· {{ formattedVoteCount }} {{ $t("mediaDetail.votes") }}</span>
+              <span class="font-normal text-secondary"
+                >· {{ formattedVoteCount }} {{ $t("mediaDetail.votes") }}</span
+              >
             </span>
           </p>
-          <p v-if="series.newSeasonsAvailable" class="text-xs font-bold text-accent">
-            {{ $t("mediaDetail.newSeasonAvailable", { services: series.availableOn.join(", ") }) }}
+          <p
+            v-if="series.newSeasonsAvailable"
+            class="text-xs font-bold text-accent"
+          >
+            {{
+              $t("mediaDetail.newSeasonAvailable", {
+                services: series.availableOn.join(", "),
+              })
+            }}
           </p>
         </div>
       </div>
 
-      <div class="flex flex-col items-center gap-3 border-y border-border py-4 sm:flex-row sm:justify-between">
-        <div v-if="authStore.isAuthenticated" class="flex flex-wrap items-center justify-center gap-2.5">
+      <div
+        class="flex flex-col items-center gap-3 border-y border-border py-4 sm:flex-row sm:justify-between"
+      >
+        <div
+          v-if="authStore.isAuthenticated"
+          class="flex flex-wrap items-center justify-center gap-2.5"
+        >
           <WatchlistButton
             :active="inWatchlist"
             :pending="watchlistPending"
@@ -80,7 +116,11 @@
             :disabled="markingAllWatched || allSeasonsWatched"
             @click="markAllSeasonsWatched"
           >
-            {{ allSeasonsWatched ? $t("mediaDetail.watched") : $t("mediaDetail.markWatched") }}
+            {{
+              allSeasonsWatched
+                ? $t("mediaDetail.watched")
+                : $t("mediaDetail.markWatched")
+            }}
           </button>
         </div>
         <p v-else class="text-center text-[13px] text-secondary">
@@ -103,11 +143,20 @@
         />
       </CollapsableSection>
 
-      <CollapsableSection v-if="series.trailer" :title="$t('mediaDetail.trailer')">
-        <TrailerEmbed :youtube-key="series.trailer.youtubeKey" />
+      <CollapsableSection
+        v-if="series.trailer"
+        :title="$t('mediaDetail.trailer')"
+      >
+        <TrailerEmbed
+          :youtube-key="series.trailer.youtubeKey"
+          :title="series.title"
+        />
       </CollapsableSection>
 
-      <CollapsableSection v-if="series.cast.length" :title="$t('mediaDetail.cast')">
+      <CollapsableSection
+        v-if="series.cast.length"
+        :title="$t('mediaDetail.cast')"
+      >
         <HorizontalScrollRow>
           <PersonCard
             v-for="member in series.cast"
@@ -120,7 +169,10 @@
         </HorizontalScrollRow>
       </CollapsableSection>
 
-      <CollapsableSection v-if="series.crew.length" :title="$t('mediaDetail.crew')">
+      <CollapsableSection
+        v-if="series.crew.length"
+        :title="$t('mediaDetail.crew')"
+      >
         <HorizontalScrollRow>
           <PersonCard
             v-for="member in series.crew"
@@ -144,7 +196,9 @@
         <h3 class="text-base font-bold text-primary">
           {{ $t("mediaDetail.recommendations") }}
         </h3>
-        <div class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
+        <div
+          class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8"
+        >
           <div
             v-for="item in series.recommendations"
             :key="`${item.mediaType}-${item.id}`"
@@ -191,13 +245,18 @@ const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
 
 const posterUrl = computed(() =>
-  series.value?.posterPath ? `${TMDB_IMAGE_BASE}${series.value.posterPath}` : null,
+  series.value?.posterPath
+    ? `${TMDB_IMAGE_BASE}${series.value.posterPath}`
+    : null,
 );
 const backdropUrl = computed(() =>
-  series.value?.backdropPath ? `${TMDB_BACKDROP_BASE}${series.value.backdropPath}` : null,
+  series.value?.backdropPath
+    ? `${TMDB_BACKDROP_BASE}${series.value.backdropPath}`
+    : null,
 );
 const hasTmdbRating = computed(
-  () => series.value?.tmdbRating !== null && (series.value?.tmdbRating ?? 0) > 0,
+  () =>
+    series.value?.tmdbRating !== null && (series.value?.tmdbRating ?? 0) > 0,
 );
 const formattedVoteCount = computed(() => {
   const count = series.value?.voteCount;
@@ -209,10 +268,16 @@ const {
   inWatchlist,
   pending: watchlistPending,
   toggle: toggleWatchlist,
-} = useWatchlistAction(props.id, "series", series.value?.user?.inWatchlist ?? false);
+} = useWatchlistAction(
+  props.id,
+  "series",
+  series.value?.user?.inWatchlist ?? false,
+);
 
 const initialWatchedSeasons = new Set(
-  (series.value?.seasons ?? []).filter((s) => s.watched).map((s) => s.seasonNumber),
+  (series.value?.seasons ?? [])
+    .filter((s) => s.watched)
+    .map((s) => s.seasonNumber),
 );
 const {
   isWatched: isSeasonWatched,
@@ -221,16 +286,22 @@ const {
 } = useSeasonWatchedAction(props.id, initialWatchedSeasons);
 
 const markingAllWatched = ref(false);
-const allSeasonsWatched = computed(() =>
-  series.value?.seasons.every((s) => isSeasonWatched(s.seasonNumber)) ?? false,
+const allSeasonsWatched = computed(
+  () =>
+    series.value?.seasons.every((s) => isSeasonWatched(s.seasonNumber)) ??
+    false,
 );
 
 async function markAllSeasonsWatched() {
   if (!series.value) return;
   markingAllWatched.value = true;
   try {
-    const unwatched = series.value.seasons.filter((s) => !isSeasonWatched(s.seasonNumber));
-    await Promise.all(unwatched.map((s) => toggleSeasonWatched(s.seasonNumber)));
+    const unwatched = series.value.seasons.filter(
+      (s) => !isSeasonWatched(s.seasonNumber),
+    );
+    await Promise.all(
+      unwatched.map((s) => toggleSeasonWatched(s.seasonNumber)),
+    );
   } finally {
     markingAllWatched.value = false;
   }
