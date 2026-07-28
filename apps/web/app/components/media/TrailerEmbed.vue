@@ -1,13 +1,14 @@
 <!-- apps/web/app/components/media/TrailerEmbed.vue -->
 <template>
   <div
+    v-if="youtubeKey"
     class="relative aspect-video w-full overflow-hidden rounded-2xl bg-surface-elevated"
   >
     <iframe
       v-if="loaded"
       class="absolute inset-0 h-full w-full"
-      :src="`https://www.youtube.com/embed/${youtubeKey}?autoplay=1`"
-      title="Trailer"
+      :src="`https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1`"
+      :title="title"
       frameborder="0"
       allow="
         accelerometer;
@@ -23,10 +24,17 @@
       v-else
       type="button"
       class="absolute inset-0 flex items-center justify-center"
+      :aria-label="$t('mediaDetail.showTrailer', { title })"
       @click="loaded = true"
     >
+      <img
+        :src="`https://i.ytimg.com/vi/${youtubeKey}/hqdefault.jpg`"
+        :alt="title"
+        class="absolute inset-0 h-full w-full object-cover"
+        loading="lazy"
+      />
       <span
-        class="grid h-16 w-16 place-items-center rounded-full bg-brand transition hover:brightness-110"
+        class="relative grid h-16 w-16 place-items-center rounded-full bg-brand transition hover:brightness-110"
       >
         <svg
           class="h-6 w-6 translate-x-0.5 text-page"
@@ -41,6 +49,6 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ youtubeKey: string }>();
-const loaded = ref(false); // iframe solo se monta tras interacción -> "loads lazily, not on page load"
+defineProps<{ youtubeKey: string | null; title: string }>();
+const loaded = ref(false); // iframe is only mounted after interaction -> "loads lazily, not on page load"
 </script>

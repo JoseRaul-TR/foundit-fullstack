@@ -154,7 +154,8 @@
       "Visual Effects": "Visual Effects Artist",
       "Crew": "Crew Member"
     },
-    "trailer": "Trailer"
+    "trailer": "Trailer",
+    "showTrailer": "Play trailer for {title}"
   },
   "footer": {
     "about": "About us",
