@@ -34,5 +34,8 @@ import DiscoverSection from "./DiscoverSection.vue";
 const discover = useDiscover();
 useDiscoverProfile();
 
-await useAsyncData("discover-initial", () => discover.loadInitial());
+await useAsyncData("discover-initial", async () => {
+  await discover.loadInitial();
+  return null;
+});
 </script>

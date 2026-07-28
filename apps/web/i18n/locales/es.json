@@ -239,6 +239,7 @@
       "subtitle": "Bienvenido de nuevo a FoundIt.",
       "emailLabel": "Correo electrónico",
       "passwordLabel": "Contraseña",
+      "strength": { "weak": "Débil", "medium": "Media", "strong": "Fuerte" },
       "submit": "Iniciar sesión",
       "or": "o",
       "googleButton": "Continuar con Google",
