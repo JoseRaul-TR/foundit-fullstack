@@ -155,7 +155,10 @@
       "Crew": "Equipo técnico"
     },
     "trailer": "Trailer",
-    "showTrailer": "Reproducir tráiler de {title}"
+    "showTrailer": "Reproducir tráiler de {title}",
+    "providerSubscribed": "{name}, suscrito",
+    "providerNotSubscribed": "{name}, no suscrito",
+    "rateThis": "Valorar"
   },
   "footer": {
     "about": "Acerca de",
