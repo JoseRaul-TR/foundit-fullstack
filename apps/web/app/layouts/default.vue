@@ -10,5 +10,6 @@
     </main>
 
     <AppFooter />
+    <ToastContainer />
   </div>
 </template>

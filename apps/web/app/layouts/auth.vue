@@ -5,7 +5,10 @@
   >
     <div class="w-full max-w-sm">
       <div class="mb-8 flex justify-center">
-        <NuxtLink to="/" class="text-2xl font-semibold text-brand">
+        <NuxtLink
+          :to="localePath('/')"
+          class="text-2xl font-semibold text-brand"
+        >
           {{ appName }}
         </NuxtLink>
       </div>
@@ -16,6 +19,7 @@
         <slot />
       </div>
     </div>
+    <ToastContainer />
   </div>
 </template>
 
@@ -23,4 +27,5 @@
 const {
   public: { appName },
 } = useRuntimeConfig();
+const localePath = useLocalePath();
 </script>

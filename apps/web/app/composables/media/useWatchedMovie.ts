@@ -1,31 +1,35 @@
 // apps/web/app/composables/media/useWatchedMovie.ts
-// Movie-only: marks the whole movie watched via /history/movie.
-// Series has no equivalent top-level action — only per-season (task #5).
+import { useMutation } from "@tanstack/vue-query";
+
 export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
   const { apiFetch } = useApi();
+  const { t } = useI18n();
+  const toast = useToast();
   const watched = ref(initialWatched);
-  const pending = ref(false);
 
-  async function toggle() {
-    if (pending.value) return;
-    const previous = watched.value;
-    watched.value = !previous;
-    pending.value = true;
-    try {
-      if (previous) {
-        await apiFetch(`/api/v1/history/movie/${tmdbId}`, { method: "DELETE" });
-      } else {
-        await apiFetch("/api/v1/history/movie", {
-          method: "POST",
-          body: { tmdbId },
-        });
-      }
-    } catch {
-      watched.value = previous;
-    } finally {
-      pending.value = false;
-    }
+  const mutation = useMutation<unknown, Error, boolean, { previous: boolean }>({
+    mutationFn: (nextValue) =>
+      nextValue
+        ? apiFetch("/api/v1/history/movie", {
+            method: "POST",
+            body: { tmdbId },
+          })
+        : apiFetch(`/api/v1/history/movie/${tmdbId}`, { method: "DELETE" }),
+    onMutate: (nextValue) => {
+      const previous = watched.value;
+      watched.value = nextValue;
+      return { previous };
+    },
+    onError: (_err, _nextValue, context) => {
+      if (context) watched.value = context.previous;
+      toast.error(t("errors.generic"));
+    },
+  });
+
+  function toggle() {
+    if (mutation.isPending.value) return;
+    mutation.mutate(!watched.value);
   }
 
-  return { watched, pending, toggle };
+  return { watched, pending: mutation.isPending, toggle };
 }
