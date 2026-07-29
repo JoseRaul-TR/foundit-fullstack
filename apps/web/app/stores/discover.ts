@@ -12,6 +12,7 @@ export interface DiscoverFiltersState {
   sort: DiscoverSort;
   movieAgeRatingMax: string | null;
   seriesAgeRatingMax: string | null;
+  selectedProviderIds: number[] | null;
 }
 
 interface SectionState {
@@ -35,6 +36,7 @@ function emptyFilters(): DiscoverFiltersState {
     sort: "popularity",
     movieAgeRatingMax: null,
     seriesAgeRatingMax: null,
+    selectedProviderIds: null,
   };
 }
 
@@ -53,7 +55,8 @@ export const useDiscoverStore = defineStore("discover", {
       state.filters.yearTo !== null ||
       state.filters.minRating !== null ||
       state.filters.movieAgeRatingMax !== null ||
-      state.filters.seriesAgeRatingMax !== null,
+      state.filters.seriesAgeRatingMax !== null ||
+      state.filters.selectedProviderIds !== null,
   },
   actions: {
     resetSection(section: "movies" | "series") {

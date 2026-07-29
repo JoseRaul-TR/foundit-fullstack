@@ -23,10 +23,22 @@ export function useDiscover() {
   function buildRegionsParam(): string | undefined {
     const entries = Object.entries(profileStore.subscribedServices);
     if (entries.length === 0) return undefined;
-    const regions = entries.map(([countryCode, services]) => ({
-      countryCode,
-      providerIds: services.map((s) => s.providerId),
-    }));
+    const selected = store.filters.selectedProviderIds;
+    if (selected !== null && selected.length === 0) return undefined;
+
+    const regions = entries
+      .map(([countryCode, services]) => ({
+        countryCode,
+        providerIds: selected
+          ? services
+              .map((s) => s.providerId)
+              .filter((id) => selected.includes(id))
+          : services.map((s) => s.providerId),
+      }))
+      .filter((region) => region.providerIds.length > 0);
+
+    if (regions.length === 0) return undefined;
+
     return JSON.stringify(regions);
   }
 
