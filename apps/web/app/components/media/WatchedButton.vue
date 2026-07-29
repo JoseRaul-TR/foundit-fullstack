@@ -2,6 +2,7 @@
 <template>
   <button
     type="button"
+    :aria-pressed="active"
     class="flex items-center gap-2 whitespace-nowrap rounded-full border-[1.5px] px-5 py-[11px] text-sm font-bold transition"
     :class="
       active

@@ -141,6 +141,7 @@ import ServiceSelectorSection from "~/components/profile/ServiceSelectorSection.
 import AgeRatingSelect from "~/components/profile/AgeRatingSelect.vue";
 import DeleteAccountModal from "~/components/profile/DeleteAccountModal.vue";
 import CollapsableSection from "~/components/media-detail/CollapsableSection.vue";
+import { useToast } from "~/composables/useToast";
 
 definePageMeta({ middleware: "authenticated" });
 
@@ -148,6 +149,8 @@ const profileStore = useProfileStore();
 const profileQuery = useProfileQuery();
 const countriesQuery = useCountriesQuery();
 const { signOut } = useAuth();
+
+const { t } = useI18n();
 
 const profile = computed(() => profileQuery.data.value);
 
@@ -196,8 +199,14 @@ async function handleCountriesChange(newCodes: string[]) {
   const added = newCodes.filter((c) => !current.includes(c));
   const removed = current.filter((c) => !newCodes.includes(c));
 
-  for (const code of added) await addCountry(code);
-  for (const code of removed) await removeCountry(code);
+  const toast = useToast();
+
+  try {
+    for (const code of added) await addCountry(code);
+    for (const code of removed) await removeCountry(code);
+  } catch {
+    toast.error(t("errors.generic"));
+  }
 }
 
 const { mutateAsync: updateAgeRatingCountry, isPending: updatingAgeRating } =

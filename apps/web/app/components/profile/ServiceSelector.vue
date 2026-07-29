@@ -42,6 +42,7 @@
 
 <script setup lang="ts">
 import type { ProviderItem } from "@foundit/types";
+import { useToast } from "~/composables/useToast";
 
 const props = defineProps<{
   countryCode: string;
@@ -95,6 +96,7 @@ async function toggle(providerId: number) {
     const rollback = new Set(localSubscribed.value);
     wasSubscribed ? rollback.add(providerId) : rollback.delete(providerId);
     localSubscribed.value = rollback;
+    useToast().error(useI18n().t("errors.generic"));
   } finally {
     pendingIds.delete(providerId);
   }

@@ -1,12 +1,32 @@
 // apps/web/app/composables/media/useWatchedSeason.ts
-// Series no tiene un "watched" a nivel de show -- solo por temporada.
+import { useMutation } from "@tanstack/vue-query";
+
+interface ToggleSeasonInput {
+  seasonNumber: number;
+  nextValue: boolean;
+}
+
 export function useSeasonWatchedAction(
   tmdbShowId: number,
   initialWatchedSeasons: Set<number>,
 ) {
   const { apiFetch } = useApi();
+  const { t } = useI18n();
+  const toast = useToast();
   const watchedSeasons = ref(new Set(initialWatchedSeasons));
   const pendingSeasons = ref(new Set<number>());
+
+  const mutation = useMutation({
+    mutationFn: ({ seasonNumber, nextValue }: ToggleSeasonInput) =>
+      nextValue
+        ? apiFetch("/api/v1/history/season", {
+            method: "POST",
+            body: { tmdbShowId, seasonNumber },
+          })
+        : apiFetch(`/api/v1/history/season/${tmdbShowId}/${seasonNumber}`, {
+            method: "DELETE",
+          }),
+  });
 
   function isWatched(seasonNumber: number) {
     return watchedSeasons.value.has(seasonNumber);
@@ -25,20 +45,12 @@ export function useSeasonWatchedAction(
     watchedSeasons.value = optimistic;
 
     try {
-      if (wasWatched) {
-        await apiFetch(`/api/v1/history/season/${tmdbShowId}/${seasonNumber}`, {
-          method: "DELETE",
-        });
-      } else {
-        await apiFetch("/api/v1/history/season", {
-          method: "POST",
-          body: { tmdbShowId, seasonNumber },
-        });
-      }
+      await mutation.mutateAsync({ seasonNumber, nextValue: !wasWatched });
     } catch {
       const rollback = new Set(watchedSeasons.value);
       wasWatched ? rollback.add(seasonNumber) : rollback.delete(seasonNumber);
       watchedSeasons.value = rollback;
+      toast.error(t("errors.generic"));
     } finally {
       const donePending = new Set(pendingSeasons.value);
       donePending.delete(seasonNumber);
