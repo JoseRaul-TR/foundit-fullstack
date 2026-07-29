@@ -92,7 +92,8 @@
       "series": "Serie",
       "person": "Persona"
     },
-    "language": "Idioma"
+    "language": "Idioma",
+    "search": "Buscar"
   },
   "mediaDetail": {
     "addToWatchlist": "Añadir a mi lista",

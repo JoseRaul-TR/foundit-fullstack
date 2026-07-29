@@ -105,3 +105,10 @@ export async function updateProfile(
   });
   return getProfile(userId);
 }
+
+export async function deleteProfile(userId: string): Promise<void> {
+  // Session, Account, UserCountry, UserStreamingService, WatchlistItem,
+  // WatchedItem and UserRating have onDelete: Cascade on their userId FK
+  // (see schema.prism) — delete the User cascade all in a single statement.
+  await prisma.user.delete({ where: { id: userId } });
+}
