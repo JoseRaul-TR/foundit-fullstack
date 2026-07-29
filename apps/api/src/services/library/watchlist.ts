@@ -123,6 +123,7 @@ async function buildResponse(
   userId: string,
   raw: TmdbMovie | TmdbSeries,
   subscribedSet: Set<string>,
+  watchedMovieSet: Set<number>,
 ): Promise<WatchlistItemResponse> {
   const mediaType = row.mediaType as MediaType;
   const { tmdb, highlight } = buildTmdbInfoAndHighlight(
@@ -140,8 +141,8 @@ async function buildResponse(
     highlight,
   };
 
-  if (mediaType !== "series") {
-    return base;
+  if (mediaType === "movie") {
+    return { ...base, watched: watchedMovieSet.has(row.tmdbId) };
   }
 
   const newSeasonsAvailable = await computeNewSeasonsAvailable(
@@ -158,9 +159,10 @@ async function enrichRow(
   row: WatchlistRow,
   userId: string,
   subscribedSet: Set<string>,
+  watchedMovieSet: Set<number>,
 ): Promise<WatchlistItemResponse> {
   const raw = await fetchRawTmdb(row.tmdbId, row.mediaType as MediaType);
-  return buildResponse(row, userId, raw, subscribedSet);
+  return buildResponse(row, userId, raw, subscribedSet, watchedMovieSet);
 }
 
 export async function getWatchlist(
@@ -194,8 +196,26 @@ export async function getWatchlist(
     userServices.map((s) => `${s.countryCode}:${s.providerId}`),
   );
 
+  // Batched, not per-row: one extra query covering every movie on this
+  // page, instead of a WatchedItem lookup per item.
+  const movieTmdbIds = rows
+    .filter((r) => r.mediaType === "movie")
+    .map((r) => r.tmdbId);
+  const watchedMovies = movieTmdbIds.length
+    ? await prisma.watchedItem.findMany({
+        where: {
+          userId,
+          mediaType: "movie",
+          seasonNumber: null,
+          tmdbId: { in: movieTmdbIds },
+        },
+        select: { tmdbId: true },
+      })
+    : [];
+  const watchedMovieSet = new Set(watchedMovies.map((w) => w.tmdbId));
+
   const results = await Promise.all(
-    rows.map((row) => enrichRow(row, userId, subscribedSet)),
+    rows.map((row) => enrichRow(row, userId, subscribedSet, watchedMovieSet)),
   );
 
   return {
@@ -237,14 +257,26 @@ export async function addToWatchlist(
     update: {},
   });
 
-  const userServices = await prisma.userStreamingService.findMany({
-    where: { userId },
-  });
+  const [userServices, watchedMovie] = await Promise.all([
+    prisma.userStreamingService.findMany({ where: { userId } }),
+    input.mediaType === "movie"
+      ? prisma.watchedItem.findFirst({
+          where: {
+            userId,
+            mediaType: "movie",
+            seasonNumber: null,
+            tmdbId: input.tmdbId,
+          },
+          select: { tmdbId: true },
+        })
+      : Promise.resolve(null),
+  ]);
   const subscribedSet = new Set(
     userServices.map((s) => `${s.countryCode}:${s.providerId}`),
   );
+  const watchedMovieSet = new Set(watchedMovie ? [watchedMovie.tmdbId] : []);
 
-  return buildResponse(row, userId, raw, subscribedSet);
+  return buildResponse(row, userId, raw, subscribedSet, watchedMovieSet);
 }
 
 export async function removeFromWatchlist(

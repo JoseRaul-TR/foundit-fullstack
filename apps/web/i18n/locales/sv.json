@@ -183,7 +183,10 @@
       "added": "Nyligen tillagd",
       "title": "Titel",
       "year": "År"
-    }
+    },
+    "loadError": "Något gick fel när din bevakningslista skulle läsas in.",
+    "emptyCta": "Sök efter filmer och program",
+    "emptyDescription": "Spara filmer och program du vill titta på senare — de visas här."
   },
   "history": {
     "title": "Historik",
