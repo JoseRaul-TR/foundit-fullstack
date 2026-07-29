@@ -8,7 +8,11 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { getUserId } from "@/lib/auth";
-import { getProfile, updateProfile } from "@/services/profile/profile";
+import {
+  getProfile,
+  updateProfile,
+  deleteProfile,
+} from "@/services/profile/profile";
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(50).optional(),
@@ -26,4 +30,10 @@ export async function updateProfileController(req: Request, res: Response) {
   const { name, ageRatingCountry } = updateProfileSchema.parse(req.body);
   const profile = await updateProfile(userId, { name, ageRatingCountry });
   res.json({ success: true, data: profile });
+}
+
+export async function deleteProfileController(req: Request, res: Response) {
+  const userId = getUserId(req);
+  await deleteProfile(userId);
+  res.json({ success: true });
 }

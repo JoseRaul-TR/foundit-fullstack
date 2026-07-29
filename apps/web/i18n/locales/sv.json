@@ -92,7 +92,8 @@
       "series": "Serie",
       "person": "Person"
     },
-    "language": "Språk"
+    "language": "Språk",
+    "search": "Sök"
   },
   "mediaDetail": {
     "addToWatchlist": "Lägg till i min lista",

@@ -4,9 +4,13 @@
 // $fetch style already used in plugins/auth.ts (not routed through
 // useApi()/apiFetch — that composable's 401-redirect behavior doesn't
 // apply here, and would be redundant since we redirect manually anyway).
+import { useQueryClient } from "@tanstack/vue-query";
+
 export function useAuth() {
   const { public: publicConfig } = useRuntimeConfig();
   const authStore = useAuthStore();
+  const queryClient = useQueryClient();
+  const localePath = useLocalePath();
 
   async function signOut() {
     try {
@@ -20,7 +24,13 @@ export function useAuth() {
       // unreachable auth service shouldn't trap the user in a
       // "logged in" UI they can no longer act on.
       authStore.clearUser();
-      await navigateTo("/");
+      // Without this, cached queries (profile, discover, etc.) from this
+      // session stay in the in-memory QueryClient and leak into whichever
+      // account signs in next in the same browser tab — the QueryClient
+      // is a singleton that only resets on a hard page reload, not on
+      // logout. Same reasoning applies to account deletion below.
+      queryClient.clear();
+      await navigateTo(localePath("/"));
     }
   }
 
