@@ -183,7 +183,10 @@
       "added": "Recently added",
       "title": "Title",
       "year": "Year"
-    }
+    },
+    "loadError": "Something went wrong loading your watchlist.",
+    "emptyCta": "Search movies & shows",
+    "emptyDescription": "Save movies and shows you want to watch later — they'll show up here."
   },
   "history": {
     "title": "History",

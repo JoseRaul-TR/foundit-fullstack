@@ -183,7 +183,10 @@
       "added": "Añadido recientemente",
       "title": "Título",
       "year": "Año"
-    }
+    },
+    "loadError": "Ha ocurrido un error al cargar tu lista de seguimiento.",
+    "emptyCta": "Buscar películas y series",
+    "emptyDescription": "Guarda las películas y series que quieras ver más tarde; aparecerán aquí."
   },
   "history": {
     "title": "Historial",

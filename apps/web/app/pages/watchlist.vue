@@ -1,0 +1,159 @@
+<!-- apps/web/app/pages/watchlist.vue -->
+<template>
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 py-6">
+    <h1 class="text-xl font-bold text-primary">{{ $t("watchlist.title") }}</h1>
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex gap-1.5 rounded-full bg-surface-elevated p-1">
+        <button
+          v-for="tab in tabs"
+          :key="tab.value"
+          type="button"
+          class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition"
+          :class="
+            filterType === tab.value
+              ? 'bg-brand text-page'
+              : 'text-secondary hover:text-primary'
+          "
+          @click="filterType = tab.value"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <label class="flex items-center gap-2 text-xs font-medium text-secondary">
+        {{ $t("watchlist.sortBy.label") }}
+        <select
+          v-model="sortBy"
+          class="rounded-lg border border-border bg-surface-elevated px-2 py-1.5 text-xs text-primary"
+        >
+          <option value="added">{{ $t("watchlist.sortBy.added") }}</option>
+          <option value="title">{{ $t("watchlist.sortBy.title") }}</option>
+          <option value="year">{{ $t("watchlist.sortBy.year") }}</option>
+        </select>
+      </label>
+    </div>
+
+    <div
+      v-if="query.isPending.value"
+      class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+    >
+      <div
+        v-for="n in 8"
+        :key="n"
+        class="aspect-[255/383] animate-pulse rounded-[20px] bg-surface-elevated"
+      />
+    </div>
+
+    <p
+      v-else-if="query.isError.value"
+      class="rounded-2xl bg-surface-elevated px-4 py-6 text-center text-sm text-secondary"
+    >
+      {{ $t("watchlist.loadError") }}
+    </p>
+
+    <div
+      v-else-if="filteredSorted.length === 0"
+      class="flex flex-col items-center gap-3 rounded-2xl bg-surface-elevated px-4 py-14 text-center"
+    >
+      <svg
+        class="h-10 w-10 text-secondary"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
+      </svg>
+      <p class="text-base font-bold text-primary">
+        {{ $t("watchlist.empty") }}
+      </p>
+      <p class="max-w-xs text-sm text-secondary">
+        {{ $t("watchlist.emptyDescription") }}
+      </p>
+      <NuxtLink
+        :to="localePath('/')"
+        class="mt-2 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-page transition hover:brightness-110"
+      >
+        {{ $t("watchlist.emptyCta") }}
+      </NuxtLink>
+    </div>
+
+    <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <MediaCard
+        v-for="item in filteredSorted"
+        :key="`${item.mediaType}-${item.tmdbId}`"
+        :id="item.tmdbId"
+        :media-type="item.mediaType"
+        :title="item.tmdb.title"
+        :poster-path="item.tmdb.posterPath"
+        :year="item.tmdb.year"
+        :tmdb-rating="item.tmdb.tmdbRating"
+        :subscribed="item.highlight.available"
+        :provider="item.highlight.services[0]?.name ?? null"
+        :new-season="item.newSeasonsAvailable ?? false"
+        removable
+        :removing="isRemoving(item)"
+        @remove="handleRemove(item)"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import MediaCard from "~/components/media/MediaCard.vue";
+import type { WatchlistItemResponse } from "@foundit/types";
+
+definePageMeta({ middleware: "authenticated" });
+
+const { t } = useI18n();
+const localePath = useLocalePath();
+
+const query = useWatchlistQuery();
+const {
+  mutate: removeItem,
+  variables: removingVariables,
+  isPending: removePending,
+} = useRemoveFromWatchlistMutation();
+
+const filterType = ref<"all" | "movie" | "series">("all");
+const sortBy = ref<"added" | "title" | "year">("added");
+
+const tabs = computed(() => [
+  { value: "all" as const, label: t("watchlist.typeFilter.all") },
+  { value: "movie" as const, label: t("watchlist.typeFilter.movie") },
+  { value: "series" as const, label: t("watchlist.typeFilter.series") },
+]);
+
+const filteredSorted = computed(() => {
+  const items = query.data.value ?? [];
+  const filtered =
+    filterType.value === "all"
+      ? items
+      : items.filter((i) => i.mediaType === filterType.value);
+
+  const sorted = [...filtered];
+  if (sortBy.value === "title") {
+    sorted.sort((a, b) => a.tmdb.title.localeCompare(b.tmdb.title));
+  } else if (sortBy.value === "year") {
+    sorted.sort((a, b) => (b.tmdb.year ?? 0) - (a.tmdb.year ?? 0));
+  } else {
+    sorted.sort(
+      (a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime(),
+    );
+  }
+  return sorted;
+});
+
+function isRemoving(item: WatchlistItemResponse): boolean {
+  return (
+    removePending.value &&
+    removingVariables.value?.tmdbId === item.tmdbId &&
+    removingVariables.value?.mediaType === item.mediaType
+  );
+}
+
+function handleRemove(item: WatchlistItemResponse) {
+  removeItem({ tmdbId: item.tmdbId, mediaType: item.mediaType });
+}
+</script>

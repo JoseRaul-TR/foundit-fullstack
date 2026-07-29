@@ -1,8 +1,11 @@
 <template>
-  <button
-    type="button"
+  <div
     class="group flex w-full flex-col gap-2 text-left"
+    role="button"
+    tabindex="0"
     @click="mediaModal.open(id, mediaType)"
+    @keydown.enter="mediaModal.open(id, mediaType)"
+    @keydown.space.prevent="mediaModal.open(id, mediaType)"
   >
     <div
       class="relative aspect-[255/383] w-full overflow-hidden rounded-[20px] bg-surface-elevated"
@@ -37,8 +40,21 @@
         v-else-if="newSeason"
         class="absolute left-2 top-2 shadow"
       />
+      <button
+        v-if="removable"
+        type="button"
+        class="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-page/70 text-brand backdrop-blur-sm transition hover:brightness-110 disabled:opacity-50"
+        :disabled="removing"
+        :aria-label="$t('watchlist.remove')"
+        @click.stop="$emit('remove')"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
+        </svg>
+      </button>
       <span
-        class="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-page/70 text-primary backdrop-blur-sm"
+        v-else
+        class="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-page/70 text-primary backdrop-blur-sm"
       >
         <svg
           v-if="mediaType === 'movie'"
@@ -85,7 +101,7 @@
         {{ ratingLine }}
       </p>
     </div>
-  </button>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -101,7 +117,10 @@ const props = defineProps<{
   newSeason?: boolean;
   genres?: string[];
   ageRating?: string | null;
+  removable?: boolean;
+  removing?: boolean;
 }>();
+const emit = defineEmits<{ remove: [] }>();
 
 const mediaModal = useMediaModal();
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";

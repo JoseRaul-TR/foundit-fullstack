@@ -29,4 +29,5 @@ export interface WatchlistItemResponse {
   tmdb: WatchlistItemTmdbInfo;
   highlight: WatchlistItemHighlight;
   newSeasonsAvailable?: boolean; // series only
+  watched?: boolean; // movie only
 }

@@ -7,7 +7,7 @@
       class="flex items-center gap-1.5 rounded-full bg-surface py-1.5 pl-1.5 pr-2 shadow-[0_4px_4px_rgba(0,0,0,0.25)] sm:gap-6 sm:py-2 sm:pl-2 sm:pr-3"
     >
       <NuxtLink
-        to="/"
+        :to="localePath('/')"
         class="glass flex items-center gap-1.5 rounded-full bg-page/20 px-2 py-1.5 transition hover:brightness-125 sm:gap-2.5 sm:px-3 sm:py-2"
         :class="
           authStore.isAuthenticated && isHomeActive
@@ -27,7 +27,7 @@
 
       <template v-if="authStore.isAuthenticated">
         <NuxtLink
-          to="/watchlist"
+          :to="localePath('/watchlist')"
           class="whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition sm:px-4 sm:py-2 sm:text-sm"
           :class="
             isWatchlistActive
@@ -38,7 +38,7 @@
           {{ $t("nav.watchlist") }}
         </NuxtLink>
         <NuxtLink
-          to="/history"
+          :to="localePath('/history')"
           class="whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition sm:px-4 sm:py-2 sm:text-sm"
           :class="
             isHistoryActive
