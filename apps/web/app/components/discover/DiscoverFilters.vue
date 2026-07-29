@@ -77,18 +77,25 @@
       <span class="text-xs font-semibold text-secondary">{{
         $t("discover.filters.platform")
       }}</span>
-      <div v-if="subscribedNames.length" class="flex flex-wrap gap-2">
-        <span
-          v-for="name in subscribedNames"
-          :key="name"
-          class="rounded-full bg-surface-elevated px-3 py-1 text-xs text-primary"
+      <div v-if="allSubscribedProviders.length" class="flex flex-wrap gap-2">
+        <button
+          v-for="provider in allSubscribedProviders"
+          :key="provider.providerId"
+          type="button"
+          class="rounded-full px-3 py-1.5 text-xs font-medium transition"
+          :class="
+            isProviderSelected(provider.providerId)
+              ? 'bg-brand text-page'
+              : 'border border-border text-secondary hover:text-primary'
+          "
+          @click="toggleProvider(provider.providerId)"
         >
-          {{ name }}
-        </span>
+          {{ provider.name }}
+        </button>
       </div>
       <NuxtLink
         v-else
-        to="/profile"
+        :to="localePath('/profile')"
         class="text-xs text-accent hover:underline"
       >
         {{ $t("profile.streamingServices.selectCountryFirst") }}
@@ -134,9 +141,11 @@
       </label>
     </div>
     <p v-else class="text-xs text-secondary">
-      <NuxtLink to="/profile" class="text-accent hover:underline">{{
-        $t("profile.ageRating.title")
-      }}</NuxtLink>
+      <NuxtLink
+        :to="localePath('/profile')"
+        class="text-accent hover:underline"
+        >{{ $t("profile.ageRating.title") }}</NuxtLink
+      >
     </p>
 
     <label class="flex flex-col gap-1.5 text-xs font-semibold text-secondary">
@@ -171,9 +180,10 @@ const store = useDiscoverStore();
 const profileStore = useProfileStore();
 const discover = useDiscover();
 const { movieGenres } = useGenres();
+const localePath = useLocalePath();
 
 const currentYear = new Date().getFullYear();
-const localFilters = reactive({ ...store.filters });
+const localFilters = reactive(structuredClone(toRaw(store.filters)));
 
 watch(
   () => store.filters,
@@ -191,20 +201,50 @@ const { certifications: seriesCertifications } = useCertifications(
   ageRatingCountryRef,
 );
 
-const subscribedNames = computed(() => {
-  const names = new Set<string>();
+// Flat, deduplicated by providerId across every configured country --
+// a compact sidebar panel isn't the place for per-country grouping
+// (that stays in /profile's ServiceSelector).
+const allSubscribedProviders = computed(() => {
+  const byId = new Map<number, string>();
   for (const services of Object.values(profileStore.subscribedServices)) {
-    for (const s of services) names.add(s.name);
+    for (const s of services) {
+      if (!byId.has(s.providerId)) byId.set(s.providerId, s.name);
+    }
   }
-  return [...names];
+  return [...byId.entries()].map(([providerId, name]) => ({
+    providerId,
+    name,
+  }));
 });
+
+// null (not yet touched) behaves as "everything checked" -- the default,
+// unchanged behavior. Once the user toggles anything, localFilters holds
+// a concrete array from then on.
+const effectiveSelectedIds = computed(
+  () =>
+    localFilters.selectedProviderIds ??
+    allSubscribedProviders.value.map((p) => p.providerId),
+);
+
+function isProviderSelected(providerId: number): boolean {
+  return effectiveSelectedIds.value.includes(providerId);
+}
+
+function toggleProvider(providerId: number) {
+  const next = new Set(effectiveSelectedIds.value);
+  if (next.has(providerId)) next.delete(providerId);
+  else next.add(providerId);
+  localFilters.selectedProviderIds = [...next];
+}
 
 const hasActiveFilters = computed(() => discover.hasActiveFilters.value);
 
 function toggleGenre(id: number) {
   const idx = localFilters.genres.indexOf(id);
-  if (idx === -1) localFilters.genres.push(id);
-  else localFilters.genres.splice(idx, 1);
+  localFilters.genres =
+    idx === -1
+      ? [...localFilters.genres, id]
+      : localFilters.genres.filter((g) => g !== id);
 }
 
 function apply() {
