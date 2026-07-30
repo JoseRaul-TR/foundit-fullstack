@@ -1,10 +1,12 @@
 // apps/web/app/composables/media/useWatchedMovie.ts
-import { useMutation } from "@tanstack/vue-query";
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { HISTORY_QUERY_KEY } from "~/composables/history/useHistoryQuery";
 
 export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
   const { apiFetch } = useApi();
   const { t } = useI18n();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const watched = ref(initialWatched);
 
   const mutation = useMutation<unknown, Error, boolean, { previous: boolean }>({
@@ -23,6 +25,9 @@ export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
     onError: (_err, _nextValue, context) => {
       if (context) watched.value = context.previous;
       toast.error(t("errors.generic"));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
     },
   });
 

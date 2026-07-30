@@ -101,6 +101,7 @@
               @toggle="toggleWatched"
             />
           </div>
+          <RatingStars :model-value="rating" @update:model-value="setRating" />
         </template>
         <p v-else class="text-center text-[13px] text-secondary">
           {{ $t("mediaDetail.loginToTrack") }}
@@ -253,5 +254,10 @@ const {
   toggle: toggleWatched,
 } = useWatchedMovieAction(props.id, movie.value?.user?.watched ?? false);
 
+const { rating, setRating } = useRatingAction(
+  props.id,
+  "movie",
+  movie.value?.user?.rating ?? null,
+);
 const { getGenreNames } = useGenres();
 </script>
