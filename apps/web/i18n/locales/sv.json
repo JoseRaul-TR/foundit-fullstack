@@ -160,7 +160,8 @@
     "showTrailer": "Spela upp trailer för {title}",
     "providerSubscribed": "{name}, prenumererad",
     "providerNotSubscribed": "{name}, inte prenumererad",
-    "rateThis": "Betygsätt"
+    "rateThis": "Betygsätt",
+    "justWatchAttribution": "Strömningsdata tillhandahållen av"
   },
   "footer": {
     "about": "Om oss",

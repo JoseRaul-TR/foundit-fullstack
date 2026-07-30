@@ -1,6 +1,10 @@
 <!-- apps/web/app/components/media/ProviderBadge.vue -->
 <template>
-  <span
+  <component
+    :is="href ? 'a' : 'span'"
+    :href="href ?? undefined"
+    :target="href ? '_blank' : undefined"
+    :rel="href ? 'noopener noreferrer' : undefined"
     class="flex h-9 items-center gap-2 rounded-full pl-1.5 pr-3.5 text-[13px]"
     :class="
       subscribed
@@ -22,7 +26,7 @@
       :class="subscribed ? 'bg-success/25' : 'bg-white/10'"
     />
     {{ name }}
-  </span>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -30,6 +34,8 @@ const props = defineProps<{
   name: string;
   logoPath: string;
   subscribed?: boolean;
+  /** TMDB's per-country watch link for this title. Non-clickable when absent. */
+  href?: string | null;
 }>();
 
 const { t } = useI18n();

@@ -44,6 +44,13 @@ export interface ProvidersByType {
   rent: Provider[];
   buy: Provider[];
   free: Provider[];
+  /**
+   * TMDB's per-country redirect to its own /watch page for this title
+   * (JustWatch-powered). Not a per-provider deep link — TMDB's licensing
+   * with JustWatch doesn't allow exposing those via the free API.
+   * `null` when TMDB has no link for this country/title.
+   */
+  link: string | null;
 }
 
 export interface MediaTrailer {
