@@ -44,6 +44,7 @@ export interface ProvidersByType {
   rent: Provider[];
   buy: Provider[];
   free: Provider[];
+  ads: Provider[];
   /**
    * TMDB's per-country redirect to its own /watch page for this title
    * (JustWatch-powered). Not a per-provider deep link — TMDB's licensing

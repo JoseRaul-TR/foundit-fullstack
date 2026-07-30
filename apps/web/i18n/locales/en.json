@@ -111,6 +111,7 @@
     "providerTypes": {
       "flatrate": "Stream",
       "free": "Free",
+      "ads": "Free with ads",
       "rent": "Rent",
       "buy": "Buy"
     },

@@ -133,6 +133,9 @@ export function buildProviders(
       free: (byType.free ?? []).map((p) =>
         toProvider(p, "free", countryCode, subscribedSet),
       ),
+      ads: (byType.ads ?? []).map((p) =>
+        toProvider(p, "ads", countryCode, subscribedSet),
+      ),
       link: byType.link || null,
     };
   }
@@ -149,6 +152,7 @@ export function collectSubscribedNames(
       byType.rent,
       byType.buy,
       byType.free,
+      byType.ads,
     ]) {
       for (const provider of list) {
         if (provider.subscribed) names.add(provider.name);
@@ -168,6 +172,7 @@ export function collectSubscribedServices(
       byType.rent,
       byType.buy,
       byType.free,
+      byType.ads,
     ]) {
       for (const provider of list) {
         if (provider.subscribed && !seen.has(provider.name)) {

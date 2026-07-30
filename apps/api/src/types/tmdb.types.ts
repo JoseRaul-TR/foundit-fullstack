@@ -76,6 +76,7 @@ export interface TmdbWatchProvidersCountry {
   rent?: TmdbWatchProviderEntry[];
   buy?: TmdbWatchProviderEntry[];
   free?: TmdbWatchProviderEntry[];
+  ads?: TmdbWatchProviderEntry[];
 }
 
 /** Response from watch/providers, appendix to /movie/:id and /tv/:id, and from /watch/providers/{movie|tv}. */
