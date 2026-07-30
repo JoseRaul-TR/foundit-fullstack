@@ -185,7 +185,7 @@
       "year": "År"
     },
     "loadError": "Något gick fel när din bevakningslista skulle läsas in.",
-    "emptyCta": "Sök filmer och series",
+    "emptyCta": "Sök filmer och serier",
     "emptyDescription": "Spara filmer och program du vill titta på senare — de visas här."
   },
   "history": {
@@ -293,5 +293,10 @@
     "notFound": "Vi kunde inte hitta det du letar efter.",
     "unauthorized": "Logga in för att fortsätta.",
     "validation": "Kontrollera de markerade fälten."
+  },
+  "about": {
+    "title": "Om",
+    "text": "Den här applikationen använder TMDB och TMDB:s API:er men är inte rekommenderad, certifierad eller på annat sätt godkänd av TMDB.",
+    "dataSource": { "title": "Datakälla" }
   }
 }

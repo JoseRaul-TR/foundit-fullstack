@@ -8,7 +8,7 @@
         class="flex flex-col items-center gap-1 text-center lg:flex-1 lg:items-start lg:text-left"
       >
         <NuxtLink
-          to="/"
+          :to="localePath('/')"
           class="flex items-center gap-2 rounded-lg transition hover:brightness-125"
         >
           <span
@@ -33,7 +33,7 @@
           {{ $t("footer.github") }}
         </a>
         <NuxtLink
-          to="/about"
+          :to="localePath('/about')"
           class="text-sm font-medium text-secondary transition-colors hover:text-primary"
         >
           {{ $t("footer.about") }}
@@ -73,6 +73,7 @@ const {
   public: { appName },
 } = useRuntimeConfig();
 const { locale } = useLocale();
+const localePath = useLocalePath();
 
 const year = new Date().getFullYear();
 
