@@ -36,5 +36,8 @@
       "onFail": "download"
     }
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "tar": "7.5.21"
+  }
 }
