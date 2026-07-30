@@ -111,6 +111,7 @@
     "providerTypes": {
       "flatrate": "Suscripción",
       "free": "Gratis",
+      "ads": "Gratis con anuncios",
       "rent": "Alquiler",
       "buy": "Compra"
     },

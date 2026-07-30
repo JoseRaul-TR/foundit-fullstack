@@ -42,7 +42,8 @@ JustWatch resolves the final destination to the specific platform.
             :logo-path="provider.logoPath"
             :href="grouped?.link"
             :subscribed="
-              (type === 'flatrate' || type === 'free') && provider.subscribed
+              (type === 'flatrate' || type === 'free' || type === 'ads') &&
+              provider.subscribed
             "
           />
         </div>
@@ -90,7 +91,7 @@ const props = defineProps<{
 
 const authStore = useAuthStore();
 const { locale } = useI18n();
-const providerTypes = ["flatrate", "free", "rent", "buy"] as const;
+const providerTypes = ["flatrate", "free", "ads", "rent", "buy"] as const;
 
 const regionNames = computed(
   () => new Intl.DisplayNames([locale.value], { type: "region" }),
