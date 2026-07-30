@@ -195,7 +195,11 @@
     "seriesTab": "Series",
     "watchedSeasons": "Temporadas vistas",
     "lastWatchedAt": "Última vez visto",
-    "markUnwatched": "Quitar del historial"
+    "markUnwatched": "Quitar del historial",
+    "sortBy": { "watched": "Fecha de visionado", "title": "Título" },
+    "loadError": "Ha ocurrido un error al cargar tu historial.",
+    "emptyDescription": "Las películas y series que marques como vistas aparecerán aquí.",
+    "emptyCta": "Buscar películas y series"
   },
   "profile": {
     "title": "Perfil",

@@ -1,5 +1,6 @@
 // apps/web/app/composables/media/useWatchedSeason.ts
-import { useMutation } from "@tanstack/vue-query";
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { HISTORY_QUERY_KEY } from "../history/useHistoryQuery";
 
 interface ToggleSeasonInput {
   seasonNumber: number;
@@ -13,6 +14,7 @@ export function useSeasonWatchedAction(
   const { apiFetch } = useApi();
   const { t } = useI18n();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const watchedSeasons = ref(new Set(initialWatchedSeasons));
   const pendingSeasons = ref(new Set<number>());
 
@@ -26,6 +28,9 @@ export function useSeasonWatchedAction(
         : apiFetch(`/api/v1/history/season/${tmdbShowId}/${seasonNumber}`, {
             method: "DELETE",
           }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+    },
   });
 
   function isWatched(seasonNumber: number) {

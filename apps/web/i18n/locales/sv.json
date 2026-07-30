@@ -185,7 +185,7 @@
       "year": "År"
     },
     "loadError": "Något gick fel när din bevakningslista skulle läsas in.",
-    "emptyCta": "Sök efter filmer och program",
+    "emptyCta": "Sök filmer och series",
     "emptyDescription": "Spara filmer och program du vill titta på senare — de visas här."
   },
   "history": {
@@ -195,7 +195,11 @@
     "seriesTab": "Serier",
     "watchedSeasons": "Sedda säsonger",
     "lastWatchedAt": "Senast sedd",
-    "markUnwatched": "Ta bort från historiken"
+    "markUnwatched": "Ta bort från historiken",
+    "sortBy": { "watched": "Visningsdatum", "title": "Titel" },
+    "loadError": "Något gick fel när din historik skulle läsas in.",
+    "emptyDescription": "Filmer och serier du markerar som sedda visas här.",
+    "emptyCta": "Sök filmer och serier"
   },
   "profile": {
     "title": "Profil",

@@ -195,7 +195,11 @@
     "seriesTab": "Series",
     "watchedSeasons": "Watched seasons",
     "lastWatchedAt": "Last watched",
-    "markUnwatched": "Remove from history"
+    "markUnwatched": "Remove from history",
+    "sortBy": { "watched": "Date Watched", "title": "Title" },
+    "loadError": "Something went wrong loading your history.",
+    "emptyDescription": "Movies and shows you mark as watched will show up here.",
+    "emptyCta": "Search movies & shows"
   },
   "profile": {
     "title": "Profile",

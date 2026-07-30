@@ -126,6 +126,7 @@
         <p v-else class="text-center text-[13px] text-secondary">
           {{ $t("mediaDetail.loginToTrackSeries") }}
         </p>
+        <RatingStars :model-value="rating" @update:model-value="setRating" />
       </div>
 
       <p class="text-sm leading-relaxed text-primary">
@@ -290,6 +291,12 @@ const allSeasonsWatched = computed(
   () =>
     series.value?.seasons.every((s) => isSeasonWatched(s.seasonNumber)) ??
     false,
+);
+
+const { rating, setRating } = useRatingAction(
+  props.id,
+  "series",
+  series.value?.user?.rating ?? null,
 );
 
 async function markAllSeasonsWatched() {
