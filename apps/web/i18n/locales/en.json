@@ -293,5 +293,10 @@
     "notFound": "We couldn't find what you're looking for.",
     "unauthorized": "Please log in to continue.",
     "validation": "Please check the highlighted fields."
+  },
+  "about": {
+    "title": "About",
+    "text": "This application uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
+    "dataSource": { "title": "Data source" }
   }
 }

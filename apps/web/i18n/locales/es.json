@@ -293,5 +293,10 @@
     "notFound": "No hemos podido encontrar lo que buscas.",
     "unauthorized": "Inicia sesión para continuar.",
     "validation": "Revisa los campos marcados."
+  },
+  "about": {
+    "title": "Acerca de",
+    "text": "Esta aplicación utiliza TMDB y las API de TMDB, pero no está respaldada, certificada ni aprobada de ninguna otra manera por TMDB.",
+    "dataSource": { "title": "Fuente de datos" }
   }
 }
