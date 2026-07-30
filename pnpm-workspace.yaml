@@ -11,3 +11,4 @@ allowBuilds:
 overrides:
   vue-router: ^5.2.0
   typescript: ^6.0.3
+  tar: 7.5.21
