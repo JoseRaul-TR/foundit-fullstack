@@ -160,7 +160,8 @@
     "showTrailer": "Reproducir tráiler de {title}",
     "providerSubscribed": "{name}, suscrito",
     "providerNotSubscribed": "{name}, no suscrito",
-    "rateThis": "Valorar"
+    "rateThis": "Valorar",
+    "justWatchAttribution": "Datos de streaming proporcionados por"
   },
   "footer": {
     "about": "Acerca de",

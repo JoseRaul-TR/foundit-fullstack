@@ -160,7 +160,8 @@
     "showTrailer": "Play trailer for {title}",
     "providerSubscribed": "{name}, subscribed",
     "providerNotSubscribed": "{name}, not subscribed",
-    "rateThis": "Rate this"
+    "rateThis": "Rate this",
+    "justWatchAttribution": "Streaming data provided by"
   },
   "footer": {
     "about": "About us",

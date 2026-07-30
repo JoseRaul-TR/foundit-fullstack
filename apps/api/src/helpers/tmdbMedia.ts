@@ -133,6 +133,7 @@ export function buildProviders(
       free: (byType.free ?? []).map((p) =>
         toProvider(p, "free", countryCode, subscribedSet),
       ),
+      link: byType.link || null,
     };
   }
   return providers;
