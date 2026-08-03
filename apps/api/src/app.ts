@@ -48,10 +48,17 @@ export const API_V1 = "/api/v1";
 
 export const app = express();
 
-// Render runs the API behind a reverse proxy. Without this, req.ip is the
-// proxy's IP and ALL users would share one rate-limit bucket. Trust exactly
-// one proxy hop.
-app.set("trust proxy", 1);
+// Render runs the API behind THREE hops: its own internal proxy, Cloudflare,
+// and the socket itself. Measured in production via a temporary diagnostic
+// endpoint (#<número>), X-Forwarded-For arrives as:
+//   <real client>, <cloudflare>, <render internal>
+// With a lower value req.ip resolves to Render's internal address and every
+// express-rate-limit bucket becomes global — including authLimiter's 10
+// requests / 15 min, which would let ten login attempts anywhere lock out
+// authentication for everyone. A higher value would let clients spoof
+// X-Forwarded-For and bypass rate limiting entirely, so this number must be
+// re-measured if the hosting platform ever changes.
+app.set("trust proxy", 3);
 
 // ——— Security Middleware ———
 app.use(helmet());
