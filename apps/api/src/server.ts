@@ -33,9 +33,9 @@ async function onServerReady(protocol: "http" | "https") {
 // USE_HTTPS is meant for LOCAL DEVELOPMENT ONLY, to test things that behave
 // differently over a real TLS connection (Secure cookies, Google OAuth
 // callback restrictions) before deploying. In production this must stay
-// false: Railway (see "trust proxy" above) terminates TLS at its own edge
+// false: Render (see "trust proxy" above) terminates TLS at its own edge
 // and forwards plain HTTP to the container, so the Node process binding
-// raw HTTPS itself would be redundant, not more secure — Railway already
+// raw HTTPS itself would be redundant, not more secure — Render already
 // provides the encryption between the browser and its edge.
 let server: http.Server | https.Server;
 

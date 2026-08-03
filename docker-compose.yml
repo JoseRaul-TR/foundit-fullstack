@@ -1,7 +1,7 @@
 # docker-compose.yml
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: foundit-postgres
     restart: unless-stopped
     environment:
@@ -11,7 +11,11 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Postgres 18+ images store data in a version-specific subdirectory
+      # (/var/lib/postgresql/18/docker) and expect the mount one level above.
+      # Mounting at /var/lib/postgresql/data (the pre-18 convention) leaves the
+      # volume unused and the container refuses to start.
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U foundit -d foundit_db"]
       interval: 10s
