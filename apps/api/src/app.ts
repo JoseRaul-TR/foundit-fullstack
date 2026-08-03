@@ -69,6 +69,19 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   }),
 );
+
+// Registered BEFORE globalLimiter on purpose: Render probes this endpoint
+// continuously for its health checks, and those probes would otherwise eat
+// into the public 100-requests-per-15-min allowance. Still covered by helmet
+// and cors above. Unversioned — see the API_V1 comment below.
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: env.NODE_ENV,
+  });
+});
+
 app.use(globalLimiter);
 
 // Strict limit on auth BEFORE the Better Auth handler
@@ -104,28 +117,6 @@ app.get(`${API_V1}/protected`, requireAuth, (req: Request, res: Response) => {
     success: true,
     message: "You are authenticated!",
     user: req.session?.user,
-  });
-});
-
-// TEMPORARY (#148): diagnostic for the trust proxy hop count.
-// Remove once the correct value is determined — it echoes request headers,
-// which shouldn't stay exposed in production.
-app.get("/debug/ip", (req: Request, res: Response) => {
-  res.json({
-    ip: req.ip,
-    ips: req.ips,
-    xForwardedFor: req.headers["x-forwarded-for"] ?? null,
-    cfConnectingIp: req.headers["cf-connecting-ip"] ?? null,
-    trustProxySetting: app.get("trust proxy"),
-  });
-});
-
-// Health Endpoint (unversioned — see API_V1 comment above)
-app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV,
   });
 });
 
