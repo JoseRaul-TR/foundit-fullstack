@@ -4,15 +4,20 @@ import { Pool } from "pg";
 import { env } from "@/config/env";
 import { PrismaClient } from "@prisma/client";
 
-// Break down the connection URL
+// Let pg parse the connection string itself instead of decomposing it by
+// hand: manual decomposition silently dropped every query parameter
+// (notably `sslmode=require`, which managed providers like Neon enforce),
+// and produced NaN for the port on URLs that omit it.
 const databaseUrl = new URL(env.DATABASE_URL);
+const requiresTls = databaseUrl.searchParams.get("sslmode") !== null;
 
 export const pool = new Pool({
-  user: databaseUrl.username,
-  password: databaseUrl.password,
-  host: databaseUrl.hostname,
-  port: parseInt(databaseUrl.port, 10),
-  database: databaseUrl.pathname.slice(1),
+  connectionString: env.DATABASE_URL,
+  // Local Postgres (docker-compose) serves plain TCP with no certificate, so
+  // TLS is enabled only when the URL explicitly asks for it. Certificates are
+  // verified against the system CA bundle — the Dockerfile installs
+  // ca-certificates for exactly this.
+  ssl: requiresTls ? { rejectUnauthorized: true } : false,
 });
 
 const adapter = new PrismaPg(pool);
