@@ -100,6 +100,19 @@ app.get(`${API_V1}/protected`, requireAuth, (req: Request, res: Response) => {
   });
 });
 
+// TEMPORARY (#148): diagnostic for the trust proxy hop count.
+// Remove once the correct value is determined — it echoes request headers,
+// which shouldn't stay exposed in production.
+app.get("/debug/ip", (req: Request, res: Response) => {
+  res.json({
+    ip: req.ip,
+    ips: req.ips,
+    xForwardedFor: req.headers["x-forwarded-for"] ?? null,
+    cfConnectingIp: req.headers["cf-connecting-ip"] ?? null,
+    trustProxySetting: app.get("trust proxy"),
+  });
+});
+
 // Health Endpoint (unversioned — see API_V1 comment above)
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
