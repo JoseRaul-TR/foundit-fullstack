@@ -38,7 +38,7 @@ export const auth = betterAuth({
   },
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
-  // Must match the path index.ts mounts the Better Auth handler at
+  // Must match the path app.ts mounts the Better Auth handler at
   // (`${API_V1}/auth`). If these ever drift apart, Better Auth's internal
   // link/redirect generation (and the frontend's authClient baseURL) will
   // silently point at the wrong path.

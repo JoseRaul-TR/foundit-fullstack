@@ -48,7 +48,7 @@ export const API_V1 = "/api/v1";
 
 export const app = express();
 
-// Railway runs the API behind a reverse proxy. Without this, req.ip is the
+// Render runs the API behind a reverse proxy. Without this, req.ip is the
 // proxy's IP and ALL users would share one rate-limit bucket. Trust exactly
 // one proxy hop.
 app.set("trust proxy", 1);
