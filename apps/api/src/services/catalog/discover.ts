@@ -104,6 +104,41 @@ export interface SeriesDiscoverParams extends DiscoverParams {
 const PAGE_SIZE = 20;
 const DEFAULT_VOTE_COUNT_MIN = 20; // assumption — no explicit floor was given; tune freely, it's a one-line change here.
 
+/**
+ * TMDB's `adult` flag does not catch soft-core or erotic titles. Verified
+ * against live data (2026-08-04): tv/233643, an explicit hentai series,
+ * arrives with `adult: false` and ranks SECOND on page 1 for watch_region=SE,
+ * ahead of Grey's Anatomy. Its TMDB keywords, however, are unambiguous.
+ *
+ * Only the two unambiguous keywords are excluded. Adding "erotic" (256466)
+ * was measured and deliberately rejected: it raised exclusions from 9 to 39
+ * series, but among them was Mushoku Tensei: Jobless Reincarnation — a
+ * mainstream isekai anime rated 8.5 with 1600+ votes. Silently hiding
+ * legitimate catalogue from a discovery app is worse than the problem being
+ * solved; users wanting a stricter cut have the age-rating filter.
+ *
+ * Measured impact: 9 of 12,380 series (0.07%) and the movie equivalent.
+ */
+const EXCLUDED_KEYWORDS = [
+  198385, // hentai
+  155477, // softcore
+].join("|");
+
+/**
+ * Sent on every Discover query, movies and series alike.
+ */
+const CONTENT_SAFETY_PARAMS = {
+  // TMDB defaults this to false on /discover, but relying on an undocumented
+  // default for a content-safety setting is fragile — state it.
+  include_adult: false,
+  // Inert today: TMDB returns a `softcore` boolean on every result but hasn't
+  // populated it (verified — sending this changes no result count). Sent
+  // anyway so the filter starts working the day they fill that field in.
+  // Do NOT remove as "unused".
+  include_softcore: false,
+  without_keywords: EXCLUDED_KEYWORDS,
+} as const;
+
 // ─── Legacy single-region path (#36/#37) — unchanged behavior ───────────
 
 const SORT_TO_TMDB_MOVIE: Record<DiscoverSort, string> = {
@@ -134,6 +169,7 @@ function buildLegacyBaseParams(
   sortMap: Record<DiscoverSort, string>,
 ): TmdbDiscoverParams {
   return {
+    ...CONTENT_SAFETY_PARAMS,
     with_genres: params.genres?.join("|"),
     "vote_average.gte": params.minRating,
     with_watch_providers: params.provider,
@@ -256,6 +292,7 @@ async function fetchMovieRegionPage(
   return fetchTmdb<TmdbPaginatedResponse<TmdbSearchResultItem>>(
     "/discover/movie",
     {
+      ...CONTENT_SAFETY_PARAMS,
       with_genres: params.genres?.join("|"),
       "primary_release_date.gte": params.yearFrom
         ? `${params.yearFrom}-01-01`
@@ -292,6 +329,7 @@ async function fetchSeriesRegionPage(
   return fetchTmdb<TmdbPaginatedResponse<TmdbSearchResultItem>>(
     "/discover/tv",
     {
+      ...CONTENT_SAFETY_PARAMS,
       with_genres: params.genres?.join("|"),
       "first_air_date.gte": params.yearFrom
         ? `${params.yearFrom}-01-01`
