@@ -150,7 +150,7 @@ app.use(API_V1, globalLimiter);
 // frontend calls on EVERY page load — ten page views within fifteen minutes
 // left a user unable to sign in at all. Everything under /auth is still
 // covered by globalLimiter above.
-app.use(`${API_V1}/auth/sign-in`, authLimiter);
+app.use(`${API_V1}/auth/sign-in/email`, authLimiter);
 app.use(`${API_V1}/auth/sign-up`, authLimiter);
 app.use(`${API_V1}/auth/forget-password`, authLimiter);
 app.use(`${API_V1}/auth/reset-password`, authLimiter);
