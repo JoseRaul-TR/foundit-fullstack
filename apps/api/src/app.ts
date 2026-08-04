@@ -145,8 +145,15 @@ app.get("/health", (req: Request, res: Response) => {
 // browser rejected as a MIME mismatch — the page rendered but never hydrated.
 app.use(API_V1, globalLimiter);
 
-// Strict limit on auth BEFORE the Better Auth handler
-app.use(`${API_V1}/auth`, authLimiter);
+// Strict limit on credential endpoints only, BEFORE the Better Auth handler.
+// Mounting it on the whole /auth surface also caught get-session, which the
+// frontend calls on EVERY page load — ten page views within fifteen minutes
+// left a user unable to sign in at all. Everything under /auth is still
+// covered by globalLimiter above.
+app.use(`${API_V1}/auth/sign-in`, authLimiter);
+app.use(`${API_V1}/auth/sign-up`, authLimiter);
+app.use(`${API_V1}/auth/forget-password`, authLimiter);
+app.use(`${API_V1}/auth/reset-password`, authLimiter);
 // IMPORTANT: Better Auth's handler must be mounted BEFORE express.json().
 // It needs the raw, unparsed request body — if express.json() runs first,
 // sign-up/sign-in requests will fail silently or with a body-parsing error.
