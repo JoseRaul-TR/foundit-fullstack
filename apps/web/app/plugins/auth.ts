@@ -14,13 +14,13 @@ interface GetSessionResponse {
 
 export default defineNuxtPlugin(async () => {
   const authStore = useAuthStore();
-  const { public: publicConfig } = useRuntimeConfig();
+  const apiBase = useApiBase();
 
   try {
     const response = await $fetch<GetSessionResponse | null>(
       "/api/v1/auth/get-session",
       {
-        baseURL: publicConfig.apiBase,
+        baseURL: apiBase,
         credentials: "include",
         // On the server, $fetch has no visibility into the browser's
         // cookies unless forwarded explicitly from the incoming
