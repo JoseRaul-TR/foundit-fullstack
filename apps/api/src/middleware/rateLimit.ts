@@ -31,6 +31,15 @@ const sharedOptions = {
   standardHeaders: true, // RateLimit-* headers (includes retry info)
   legacyHeaders: false, // disable deprecated X-RateLimit-*
   handler: limitHandler,
+  // Requests this process makes to itself — Nuxt's SSR calling the API over
+  // loopback, see useApiBase in apps/web — arrive with no proxy headers, so
+  // req.ip is 127.0.0.1 for every single one. Without this they all share one
+  // bucket and exhaust it after a handful of page loads, locking real users
+  // out of sign-in entirely. Safe to skip: external traffic always reaches us
+  // through Render's proxy chain, which sets X-Forwarded-For, so it can never
+  // present itself as loopback.
+  skip: (req: Request) =>
+    req.ip === "127.0.0.1" || req.ip === "::1" || req.ip === "..ffff:127.0.0.1",
 } as const;
 
 /**
