@@ -7,10 +7,10 @@
 //   expect SupportedLocale and map to a TMDB language code internally
 //   (see apps/api/src/services/search.ts); sending "en-US" here would
 //   fail validation on every request.
-// - Sends credentials so Better Auth's session cookie travels on every
-//   cross-origin request (web:3000 -> api:3001) — required because
-//   apps/api's CORS is configured with credentials:true and a fixed
-//   FRONTEND_URL origin, not a wildcard.
+// - Sends credentials so Better Auth's session cookie travels on the
+//   cross-origin requests of local development (web:3000 -> api:3001).
+//   In production both are served from a single origin, where this is
+//   simply the default behaviour anyway.
 // - On 401, redirects to /login preserving the current path as
 //   ?redirect=, matching the Login page's existing "Sign in to
 //   continue" RedirectBanner.
@@ -21,7 +21,7 @@
 type ApiFetchOptions = Parameters<typeof $fetch>[1];
 
 export function useApi() {
-  const { public: publicConfig } = useRuntimeConfig();
+  const apiBase = useApiBase();
   const { locale } = useLocale();
   const route = useRoute();
 
@@ -31,7 +31,7 @@ export function useApi() {
   ): Promise<T> {
     try {
       return await $fetch<T>(path, {
-        baseURL: publicConfig.apiBase,
+        baseURL: apiBase,
         credentials: "include",
         ...options,
         query: {

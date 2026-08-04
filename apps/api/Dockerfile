@@ -24,12 +24,17 @@ RUN npm install -g pnpm@11.18.0
 WORKDIR /app
 COPY . .
 
-# `foundit-api...` (trailing dots) = the api package AND its workspace
-# dependencies (packages/types). This deliberately excludes apps/web, whose
-# postinstall (nuxt prepare) is irrelevant here and would slow the build.
-# apps/api's own postinstall runs `prisma generate` — schema.prisma is
-# already present because we copied the repo first.
-RUN pnpm install --frozen-lockfile --filter foundit-api...
+# Full workspace install now: this image serves the Nuxt frontend too, so
+# apps/web and its postinstall (nuxt prepare) are required. apps/api's own
+# postinstall runs `prisma generate` — schema.prisma is already present
+# because we copied the repo first.
+RUN pnpm install --frozen-lockfile
+
+# NITRO_PRESET=node makes Nuxt emit an entry that EXPORTS a (req, res)
+# handler instead of starting its own HTTP server, so Express can mount it
+# as middleware. Set here rather than in nuxt.config.ts so local `nuxt dev`
+# and `nuxt build` keep their normal standalone behaviour.
+RUN NITRO_PRESET=node pnpm --filter foundit-web build
 
 # esbuild bundles @foundit/types into dist/server.js; real npm dependencies
 # stay external and are resolved from node_modules at runtime.
@@ -65,6 +70,10 @@ COPY --from=builder /app/apps/api/prisma.config.ts apps/api/
 RUN pnpm install --prod --frozen-lockfile --filter foundit-api...
 
 COPY --from=builder /app/apps/api/dist apps/api/dist
+
+# Nitro's output is self-contained (it bundles its own server dependencies),
+# so no extra install is needed for the frontend.
+COPY --from=builder /app/apps/web/.output apps/web/.output
 
 WORKDIR /app/apps/api
 

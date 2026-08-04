@@ -47,6 +47,26 @@ export const auth = betterAuth({
   advanced: {
     // HTTP-only + Secure cookies in production, relaxed locally over http
     useSecureCookies: env.NODE_ENV === "production",
+    ipAddress: {
+      // Better Auth has its OWN rate limiter, independent of Express's
+      // `trust proxy` setting, and it can't see the socket address because
+      // its handler only receives a web Request. Without this it falls back
+      // to one shared bucket for every client — the same class of bug fixed
+      // for express-rate-limit in #148, and more damaging here since this is
+      // what protects sign-in against brute force.
+      //
+      // cf-connecting-ip is used rather than trustedProxies (which expects
+      // fixed IPs/CIDRs) because Render's and Cloudflare's addresses rotate
+      // between requests — measured in #148. Cloudflare always overwrites
+      // this header with the real client address, so it can't be spoofed as
+      // long as traffic reaches us through Cloudflare. If the hosting
+      // platform ever changes, this must be re-verified alongside the
+      // `trust proxy` value in app.ts.
+      //
+      // Absent in local development, where the warning it silences is
+      // harmless: there's no proxy and no real traffic to rate limit.
+      ipAddressHeaders: ["cf-connecting-ip"],
+    },
   },
 });
 
