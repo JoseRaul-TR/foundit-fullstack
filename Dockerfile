@@ -1,10 +1,10 @@
-# Multi-stage build for apps/api inside the pnpm monorepo.
+# Multi-stage build for the whole monorepo: one image that serves both the
+# Express API and the Nuxt frontend from a single origin (see #26 — that's
+# what keeps Better Auth's session cookie first-party).
 #
-# IMPORTANT: the build context is the REPO ROOT, not apps/api — the api
-# package depends on packages/types via a pnpm workspace symlink, and pnpm
-# needs the root manifests (pnpm-lock.yaml, pnpm-workspace.yaml) to resolve
-# it. On Render: leave "Root Directory" blank and set the Dockerfile path
-# to ./apps/api/Dockerfile.
+# Lives at the repo root because the build context is the root: apps/api
+# depends on packages/types through a pnpm workspace symlink, and Nuxt is
+# built here too.
 
 # ── Stage 1: build ────────────────────────────────────────────────────────
 FROM node:22-bookworm-slim AS builder

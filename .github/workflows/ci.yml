@@ -1,0 +1,81 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Checks
+    runs-on: ubuntu-latest
+
+    services:
+      # apps/api's suite runs `prisma migrate deploy` against a real database
+      # before vitest. Credentials and database name must match what
+      # apps/api/.env.test expects, since tests/setup.ts loads that file with
+      # override:true and it therefore wins over anything set here.
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: foundit
+          POSTGRES_PASSWORD: foundit_dev
+          POSTGRES_DB: foundit_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U foundit -d foundit_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to the same version as the Dockerfile and the local devEngines
+      # field: a lockfile written by a different pnpm can break
+      # --frozen-lockfile in ways that are tedious to diagnose.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      # Node 22 matches the Dockerfile's base image, so CI runs on the same
+      # runtime as production rather than on whatever is newest.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # postinstall runs `prisma generate` and `nuxt prepare`, both of which
+      # the typecheck and test steps below depend on.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm format:check
+
+      # apps/api/.env.test is gitignored, but tests/setup.ts loads it with
+      # override:true — anything set in this workflow's env would lose to it.
+      # The committed template is the single source of truth for those values;
+      # they're all dummies, since TMDB and Google are mocked in every suite.
+      - name: Provide test environment
+        run: cp apps/api/.env.test.example apps/api/.env.test
+
+      - run: pnpm test
+
+  deploy:
+    name: Deploy to Render
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Render's Auto-Deploy is turned OFF so that deploys go through this
+      # gate instead: `needs: ci` means a push to main with failing checks
+      # never reaches production. -f makes curl fail the step on a non-2xx
+      # response, so a broken hook surfaces instead of passing silently.
+      - name: Trigger Render deploy hook
+        run: curl -fsS -X POST "$DEPLOY_HOOK_URL"
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
