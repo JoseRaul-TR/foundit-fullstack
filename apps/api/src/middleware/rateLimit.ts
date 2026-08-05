@@ -83,7 +83,7 @@ export const apiLimiter = isTest
   : rateLimit({
       ...sharedOptions,
       windowMs: 15 * 60 * 1000,
-      limit: isDev ? 6000 : 100,
+      limit: isDev ? 6000 : 600,
     });
 
 /**
