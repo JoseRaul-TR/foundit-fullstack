@@ -36,21 +36,29 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      # Pinned to the same version as the Dockerfile and the local devEngines
-      # field: a lockfile written by a different pnpm can break
-      # --frozen-lockfile in ways that are tedious to diagnose.
-      - uses: pnpm/action-setup@v4
+      # pnpm/setup replaces both pnpm/action-setup and actions/setup-node:
+      # it installs pnpm as a standalone native binary and the JS runtime in
+      # one step. pnpm's own README directs pnpm 11+ users here; the old
+      # action stays on the deprecated Node 20 runtime and remains only for
+      # pnpm 10 and older.
+      #
+      # `version` is deliberately omitted: the action reads
+      # devEngines.packageManager from the root package.json, so the pinned
+      # pnpm version lives in exactly one place.
+      #
+      # node@22 matches the Dockerfile's base image, so CI exercises the same
+      # runtime as production rather than whatever is newest.
+      #
+      # install:false because we run the install ourselves below — the action
+      # would otherwise do it implicitly, and the explicit --frozen-lockfile
+      # is worth keeping visible.
+      - uses: pnpm/setup@v1
         with:
-          version: 11.18.0
-
-      # Node 22 matches the Dockerfile's base image, so CI runs on the same
-      # runtime as production rather than on whatever is newest.
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+          runtime: node@22
+          cache: true
+          install: false
 
       # postinstall runs `prisma generate` and `nuxt prepare`, both of which
       # the typecheck and test steps below depend on.
