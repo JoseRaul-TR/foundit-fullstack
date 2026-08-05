@@ -8,7 +8,7 @@ import { LOCALE_TO_TMDB_LANG, isLocale } from "@foundit/types";
 export function useLocale() {
   const { locale } = useI18n();
 
-const tmdbLanguage = computed(() => {
+  const tmdbLanguage = computed(() => {
     const current = locale.value;
     return isLocale(current)
       ? LOCALE_TO_TMDB_LANG[current]

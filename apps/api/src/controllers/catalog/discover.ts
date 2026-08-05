@@ -18,10 +18,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { isLocale, type SupportedLocale } from "@foundit/types";
 import { extractSession } from "@/lib/auth";
-import {
-  discoverMovies,
-  discoverSeries,
-} from "@/services/catalog/discover";
+import { discoverMovies, discoverSeries } from "@/services/catalog/discover";
 
 const regionGroupSchema = z.object({
   countryCode: z.string().length(2).toUpperCase(),

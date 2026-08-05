@@ -1,10 +1,16 @@
 <!-- apps/web/app/components/media-detail/PersonDetailContent.vue -->
 <template>
-  <div v-if="pending" class="flex min-h-[320px] items-center justify-center p-8">
+  <div
+    v-if="pending"
+    class="flex min-h-[320px] items-center justify-center p-8"
+  >
     <p class="text-sm text-secondary">{{ $t("common.loading") }}</p>
   </div>
 
-  <div v-else-if="error || !person" class="flex min-h-[320px] items-center justify-center p-8">
+  <div
+    v-else-if="error || !person"
+    class="flex min-h-[320px] items-center justify-center p-8"
+  >
     <p class="text-sm text-secondary">{{ $t("mediaDetail.loadError") }}</p>
   </div>
 
@@ -70,12 +76,19 @@
           class="w-fit text-[13px] font-bold text-secondary transition hover:text-primary"
           @click="bioExpanded = !bioExpanded"
         >
-          {{ bioExpanded ? $t("mediaDetail.readLess") : $t("mediaDetail.readMore") }}
+          {{
+            bioExpanded
+              ? $t("mediaDetail.readLess")
+              : $t("mediaDetail.readMore")
+          }}
         </button>
       </template>
     </section>
 
-    <CollapsableSection v-if="person.photos.length" :title="$t('mediaDetail.photos')">
+    <CollapsableSection
+      v-if="person.photos.length"
+      :title="$t('mediaDetail.photos')"
+    >
       <div class="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
         <img
           v-for="(photo, index) in person.photos"
@@ -88,7 +101,10 @@
       </div>
     </CollapsableSection>
 
-    <CollapsableSection v-if="credits.primary.length" :title="$t('mediaDetail.filmographyAs', { role: departmentLabel })">
+    <CollapsableSection
+      v-if="credits.primary.length"
+      :title="$t('mediaDetail.filmographyAs', { role: departmentLabel })"
+    >
       <div class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
         <div
           v-for="item in credits.primary"
@@ -110,7 +126,10 @@
       </div>
     </CollapsableSection>
 
-    <CollapsableSection v-if="credits.other.length" :title="$t('mediaDetail.filmographyOther')">
+    <CollapsableSection
+      v-if="credits.other.length"
+      :title="$t('mediaDetail.filmographyOther')"
+    >
       <div class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
         <div
           v-for="item in credits.other"
@@ -255,7 +274,9 @@ const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_PROFILE_BASE = "https://image.tmdb.org/t/p/w185";
 
 const profileUrl = computed(() =>
-  person.value?.profilePath ? `${TMDB_IMAGE_BASE}${person.value.profilePath}` : null,
+  person.value?.profilePath
+    ? `${TMDB_IMAGE_BASE}${person.value.profilePath}`
+    : null,
 );
 
 const departmentLabel = computed(() => {
@@ -267,7 +288,9 @@ const departmentLabel = computed(() => {
 
 const BIO_TRUNCATE_LENGTH = 300;
 const bioExpanded = ref(false);
-const isBioLong = computed(() => (person.value?.biography?.length ?? 0) > BIO_TRUNCATE_LENGTH);
+const isBioLong = computed(
+  () => (person.value?.biography?.length ?? 0) > BIO_TRUNCATE_LENGTH,
+);
 const displayedBio = computed(() => {
   const bio = person.value?.biography;
   if (!bio) return "";

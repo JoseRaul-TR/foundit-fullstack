@@ -5,7 +5,10 @@
   extrapolación mía sin confirmación visual -- avísame si no encajan.
 -->
 <template>
-  <span class="whitespace-nowrap rounded-full px-3 py-[5px] text-xs font-medium" :class="classesByStatus[status]">
+  <span
+    class="whitespace-nowrap rounded-full px-3 py-[5px] text-xs font-medium"
+    :class="classesByStatus[status]"
+  >
     {{ $t(`mediaDetail.seriesStatus.${status}`) }}
   </span>
 </template>

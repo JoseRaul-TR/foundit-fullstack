@@ -6,15 +6,25 @@
       class="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-page/80 px-4 py-8 backdrop-blur-sm sm:py-12"
       @click.self="close"
     >
-      <div class="relative w-full max-w-3xl rounded-2xl border border-border bg-surface shadow-2xl">
-        <div class="sticky top-4 z-20 flex items-center justify-between px-4 sm:px-6">
+      <div
+        class="relative w-full max-w-3xl rounded-2xl border border-border bg-surface shadow-2xl"
+      >
+        <div
+          class="sticky top-4 z-20 flex items-center justify-between px-4 sm:px-6"
+        >
           <button
             v-if="canGoBack"
             type="button"
             class="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-page/80 text-primary shadow-md backdrop-blur-md transition hover:border-border hover:bg-page"
             @click="back"
           >
-            <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              class="h-[18px] w-[18px]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
@@ -25,7 +35,13 @@
             class="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-page/80 text-primary shadow-md backdrop-blur-md transition hover:border-border hover:bg-page"
             @click="close"
           >
-            <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              class="h-[18px] w-[18px]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
