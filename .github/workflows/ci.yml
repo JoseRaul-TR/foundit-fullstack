@@ -6,6 +6,11 @@ on:
   push:
     branches: [main]
 
+# Least privilege: neither job writes to the repository. Declaring it here
+# keeps the token read-only regardless of the repository-level default.
+permissions:
+  contents: read
+
 jobs:
   ci:
     name: Checks
