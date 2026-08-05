@@ -46,7 +46,7 @@
         class="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-page/70 text-brand backdrop-blur-sm transition hover:brightness-110 disabled:opacity-50"
         :disabled="removing"
         :aria-label="$t('watchlist.remove')"
-        @click.stop="$emit('remove')"
+        @click.stop="emit('remove')"
       >
         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
           <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />

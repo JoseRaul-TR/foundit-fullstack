@@ -77,7 +77,9 @@ describe("profile integration (#122)", () => {
     it("sets ageRatingCountry to a valid country code", async () => {
       const testUser = await createTestUser();
 
-      const res = await (await authed(testUser))
+      const res = await (
+        await authed(testUser)
+      )
         .put(PROFILE_BASE)
         .send({ ageRatingCountry: "SE" });
 
@@ -135,7 +137,9 @@ describe("profile integration (#122)", () => {
     it("returns 400 for an invalid country code", async () => {
       const testUser = await createTestUser();
 
-      const res = await (await authed(testUser))
+      const res = await (
+        await authed(testUser)
+      )
         .put(PROFILE_BASE)
         .send({ ageRatingCountry: "ZZ" });
 

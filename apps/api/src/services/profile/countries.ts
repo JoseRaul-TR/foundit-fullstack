@@ -12,7 +12,9 @@ export async function listUserCountries(
   return buildCountries(userId);
 }
 
-export async function assertValidCountryCode(countryCode: string): Promise<void> {
+export async function assertValidCountryCode(
+  countryCode: string,
+): Promise<void> {
   const countries = await getCountries();
   const isValid = countries.some((country) => country.code === countryCode);
   if (!isValid) {

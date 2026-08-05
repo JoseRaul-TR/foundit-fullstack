@@ -16,5 +16,5 @@ const __dirname = path.dirname(__filename);
 dotenv.config({
   path: path.resolve(__dirname, "../.env.test"),
   override: true,
-  quiet: true
+  quiet: true,
 });

@@ -7,7 +7,7 @@ export type SearchType = "multi" | "movie" | "series" | "person";
 export const useSearchStore = defineStore("search", {
   state: () => ({
     query: "",
-    type: "multi" as SearchType,
+    type: "multi",
     results: [] as NormalizedSearchResult[],
     page: 1,
     totalPages: 1,

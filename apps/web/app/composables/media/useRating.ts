@@ -33,7 +33,7 @@ export function useRatingAction(
       toast.error(t("errors.generic"));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+      return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
     },
   });
 

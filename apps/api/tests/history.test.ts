@@ -61,7 +61,9 @@ describe("history integration (#49 + #50)", () => {
       const testUser = await createTestUser();
       mockedFetchTmdb.mockResolvedValue(movieFixture());
 
-      const res = await (await authed(testUser))
+      const res = await (
+        await authed(testUser)
+      )
         .post(`${HISTORY_BASE}/movie`)
         .send({ tmdbId: 550 });
 
@@ -97,7 +99,9 @@ describe("history integration (#49 + #50)", () => {
         },
       });
 
-      const res = await (await authed(testUser))
+      const res = await (
+        await authed(testUser)
+      )
         .post(`${HISTORY_BASE}/movie`)
         .send({ tmdbId: 550 });
       expect(res.status).toBe(200);
@@ -158,7 +162,9 @@ describe("history integration (#49 + #50)", () => {
       const testUser = await createTestUser();
       mockedFetchTmdb.mockResolvedValue(seriesFixture());
 
-      const res = await (await authed(testUser))
+      const res = await (
+        await authed(testUser)
+      )
         .post(`${HISTORY_BASE}/season`)
         .send({
           tmdbShowId: 1396,

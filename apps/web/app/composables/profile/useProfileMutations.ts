@@ -43,7 +43,7 @@ export function useAddCountryMutation() {
       ).then((res) => res.data),
     onSuccess: (countries) => {
       profileStore.setCountries(countries);
-      queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+      return queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
     },
   });
 }
@@ -65,7 +65,7 @@ export function useRemoveCountryMutation() {
       // (see services/profile/countries.ts's transaction) — invalidate
       // the whole profile query so services refetch too, since this
       // response only carries the updated countries list.
-      queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+      return queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
     },
   });
 }
@@ -110,8 +110,8 @@ export function useUpdateAgeRatingCountryMutation() {
         body: { ageRatingCountry },
       }).then((res) => res.data),
     onSuccess: (profile) => {
-      (queryClient.setQueryData(PROFILE_QUERY_KEY, profile),
-        profileStore.setCountries(profile.countries));
+      queryClient.setQueryData(PROFILE_QUERY_KEY, profile);
+      profileStore.setCountries(profile.countries);
       profileStore.setServices(profile.services);
       profileStore.setAgeRatingCountry(profile.ageRatingCountry);
     },

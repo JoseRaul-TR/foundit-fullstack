@@ -7,9 +7,9 @@ export function useCountriesQuery() {
   return useQuery({
     queryKey: ["countries"],
     queryFn: () =>
-      apiFetch<{ success: boolean; data: CountryItem[] }>("/api/v1/countries").then(
-        (res) => res.data,
-      ),
+      apiFetch<{ success: boolean; data: CountryItem[] }>(
+        "/api/v1/countries",
+      ).then((res) => res.data),
     staleTime: Infinity, // country catalog barely changes
   });
 }

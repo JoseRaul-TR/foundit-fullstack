@@ -7,6 +7,15 @@
  * Expand them in each endpoint ticket if you need more TMDB fields.
  */
 
+/**
+ * TMDB's known values for a field, without closing the door on values they
+ * may add later. The `string & {}` intersection is a TypeScript idiom: it's
+ * assignable from any string, so the type stays open, but it doesn't collapse
+ * the literals the way a bare `string` does — so the editor still autocompletes
+ * them.
+ */
+type KnownOr<T extends string> = T | (string & {});
+
 export interface TmdbGenre {
   id: number;
   name: string;
@@ -50,8 +59,8 @@ export interface TmdbVideo {
   id: string;
   key: string;
   name: string;
-  site: "YouTube" | string;
-  type: "Trailer" | "Teaser" | "Clip" | "Featurette" | string;
+  site: KnownOr<"YouTube">;
+  type: KnownOr<"Trailer" | "Teaser" | "Clip" | "Featurette">;
   official: boolean;
 }
 
@@ -141,7 +150,7 @@ export interface TmdbSeries extends TmdbBaseMedia {
   first_air_date: string;
   number_of_seasons: number;
   number_of_episodes: number;
-  status: "Returning Series" | "Ended" | "Canceled" | string;
+  status: KnownOr<"Returning Series" | "Ended" | "Canceled">;
   seasons: TmdbSeason[];
   content_ratings?: TmdbContentRatingsResponse;
 }
