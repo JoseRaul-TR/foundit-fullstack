@@ -20,11 +20,7 @@ import { env } from "@/config/env";
 import { toNodeHandler } from "better-auth/node";
 import { auth, requireAuth } from "@/lib/auth";
 import { errorHandler, notFoundHandler } from "@/middleware/errorHandler";
-import {
-  authLimiter,
-  globalLimiter,
-  tmdbLimiter,
-} from "@/middleware/rateLimit";
+import { apiLimiter, authLimiter } from "@/middleware/rateLimit";
 
 // Catalog domain (public TMDB-backed read endpoints)
 import moviesRouter from "@/routes/catalog/movies";
@@ -143,7 +139,7 @@ app.get("/health", (req: Request, res: Response) => {
 // chunks from /_nuxt/, which exhausted the 100-requests-per-15-min budget on
 // the very first visit. The assets then came back as 429 JSON, which the
 // browser rejected as a MIME mismatch — the page rendered but never hydrated.
-app.use(API_V1, globalLimiter);
+app.use(API_V1, apiLimiter);
 
 // Strict limit on credential endpoints only, BEFORE the Better Auth handler.
 // Mounting it on the whole /auth surface also caught get-session, which the
@@ -163,21 +159,21 @@ app.all(`${API_V1}/auth/*splat`, toNodeHandler(auth));
 // JSON body parser for everything else, mounted after the auth handler
 app.use(express.json());
 
-app.use(`${API_V1}/movies`, tmdbLimiter, moviesRouter);
-app.use(`${API_V1}/series`, tmdbLimiter, seriesRouter);
-app.use(`${API_V1}/search`, tmdbLimiter, searchRouter);
-app.use(`${API_V1}/discover`, tmdbLimiter, discoverRouter);
-app.use(`${API_V1}/people`, tmdbLimiter, peopleRouter);
-app.use(`${API_V1}/genres`, tmdbLimiter, genresRouter);
-app.use(`${API_V1}/providers`, tmdbLimiter, providersRouter);
-app.use(`${API_V1}/certifications`, tmdbLimiter, certificationsRouter);
-app.use(`${API_V1}/countries`, tmdbLimiter, countriesRouter);
-app.use(`${API_V1}/profile`, profileRouter); // No tmdbLimiter, only calls to own db via Prisma
+app.use(`${API_V1}/movies`, moviesRouter);
+app.use(`${API_V1}/series`, seriesRouter);
+app.use(`${API_V1}/search`, searchRouter);
+app.use(`${API_V1}/discover`, discoverRouter);
+app.use(`${API_V1}/people`, peopleRouter);
+app.use(`${API_V1}/genres`, genresRouter);
+app.use(`${API_V1}/providers`, providersRouter);
+app.use(`${API_V1}/certifications`, certificationsRouter);
+app.use(`${API_V1}/countries`, countriesRouter);
+app.use(`${API_V1}/profile`, profileRouter);
 app.use(`${API_V1}/profile/countries`, profileCountriesRouter);
 app.use(`${API_V1}/profile/services`, profileServicesRouter);
-app.use(`${API_V1}/watchlist`, tmdbLimiter, watchlistRouter);
-app.use(`${API_V1}/history`, tmdbLimiter, historyRouter);
-app.use(`${API_V1}/ratings`, tmdbLimiter, ratingsRouter);
+app.use(`${API_V1}/watchlist`, watchlistRouter);
+app.use(`${API_V1}/history`, historyRouter);
+app.use(`${API_V1}/ratings`, ratingsRouter);
 
 // Protected Route Example
 app.get(`${API_V1}/protected`, requireAuth, (req: Request, res: Response) => {

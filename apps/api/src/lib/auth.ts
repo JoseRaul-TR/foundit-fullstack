@@ -44,27 +44,29 @@ export const auth = betterAuth({
   // silently point at the wrong path.
   basePath: "/api/v1/auth",
   trustedOrigins: [env.FRONTEND_URL],
+  // Disabled in favour of the Express-side limiters (see middleware/rateLimit.ts).
+  // Better Auth's limiter only receives a web Request and can't see the socket
+  // address, so it fell back to one shared bucket for every client — the same
+  // failure fixed in #148, and worse here since this guards sign-in. The
+  // Express layer resolves the real client IP and is verified from two
+  // networks, so there's one layer instead of two overlapping ones.
+  rateLimit: { enabled: false },
   advanced: {
     // HTTP-only + Secure cookies in production, relaxed locally over http
     useSecureCookies: env.NODE_ENV === "production",
     ipAddress: {
-      // Better Auth has its OWN rate limiter, independent of Express's
-      // `trust proxy` setting, and it can't see the socket address because
-      // its handler only receives a web Request. Without this it falls back
-      // to one shared bucket for every client — the same class of bug fixed
-      // for express-rate-limit in #148, and more damaging here since this is
-      // what protects sign-in against brute force.
+      // Kept even though rate limiting is now off: this is also what decides
+      // the address stored in session.ipAddress (see schema.prisma). Without
+      // it every session would record Render's internal proxy address instead
+      // of the client's.
       //
-      // cf-connecting-ip is used rather than trustedProxies (which expects
-      // fixed IPs/CIDRs) because Render's and Cloudflare's addresses rotate
-      // between requests — measured in #148. Cloudflare always overwrites
-      // this header with the real client address, so it can't be spoofed as
-      // long as traffic reaches us through Cloudflare. If the hosting
-      // platform ever changes, this must be re-verified alongside the
-      // `trust proxy` value in app.ts.
-      //
-      // Absent in local development, where the warning it silences is
-      // harmless: there's no proxy and no real traffic to rate limit.
+      // cf-connecting-ip rather than trustedProxies (which expects fixed
+      // IPs/CIDRs) because Render's and Cloudflare's addresses rotate between
+      // requests — measured in #148. Cloudflare always overwrites this header
+      // with the real client address, so it can't be spoofed as long as
+      // traffic reaches us through Cloudflare. Re-verify if the hosting
+      // platform ever changes.
+
       ipAddressHeaders: ["cf-connecting-ip"],
     },
   },
