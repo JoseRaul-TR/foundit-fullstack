@@ -70,8 +70,8 @@ export function useSearch() {
     await fetchPage(store.page + 1);
   }
 
-  function clear() {
-    navigateTo(localePath("/"), { replace: true });
+  async function clear() {
+    await navigateTo(localePath("/"), { replace: true });
   }
 
   return {

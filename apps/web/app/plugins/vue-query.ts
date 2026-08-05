@@ -5,7 +5,6 @@ import {
   dehydrate,
   QueryClient,
   VueQueryPlugin,
-  type DehydratedState,
 } from "@tanstack/vue-query";
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -32,6 +31,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     });
   }
   if (import.meta.client) {
-    hydrate(queryClient, nuxtApp.payload.vueQueryState as DehydratedState);
+    hydrate(queryClient, nuxtApp.payload.vueQueryState);
   }
 });

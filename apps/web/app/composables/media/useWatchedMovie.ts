@@ -27,7 +27,7 @@ export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
       toast.error(t("errors.generic"));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+      return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
     },
   });
 

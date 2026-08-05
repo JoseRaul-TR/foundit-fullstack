@@ -89,7 +89,7 @@ export function errorHandler(
   err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) {
   // 1. Zod validation errors → 400 with field-level details
   if (err instanceof ZodError) {

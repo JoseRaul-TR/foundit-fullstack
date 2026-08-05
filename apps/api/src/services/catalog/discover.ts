@@ -416,7 +416,7 @@ export async function discoverMoviesMultiRegion(
     ? await loadWatchedMovieIds(params.userId!)
     : new Set<number>();
 
-  let survivors: NormalizedSearchResult[] = [];
+  let survivors: NormalizedSearchResult[];
   let target = params.page * PAGE_SIZE;
 
   // Loop: fill, filter, check if enough survived; if not (and there's
@@ -537,7 +537,7 @@ export async function discoverSeriesMultiRegion(
     return survivors;
   }
 
-  let survivors: NormalizedSearchResult[] = [];
+  let survivors: NormalizedSearchResult[];
   let target = params.page * PAGE_SIZE;
 
   for (;;) {

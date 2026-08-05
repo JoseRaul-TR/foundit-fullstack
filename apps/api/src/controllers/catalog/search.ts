@@ -6,7 +6,7 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { isLocale, type SupportedLocale } from "@foundit/types";
-import { searchTmdb, type SearchType } from "@/services/catalog/search";
+import { searchTmdb } from "@/services/catalog/search";
 
 const querySchema = z.object({
   q: z.string().min(3, "q must be at least 3 characters"),
@@ -21,7 +21,7 @@ export async function searchController(req: Request, res: Response) {
   const { q, type, lang, page } = querySchema.parse(req.query);
   const locale: SupportedLocale = lang && isLocale(lang) ? lang : "en";
 
-  const data = await searchTmdb(q, type as SearchType, locale, page);
+  const data = await searchTmdb(q, type, locale, page);
 
   res.json({ success: true, data });
 }

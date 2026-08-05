@@ -83,7 +83,11 @@ async function toggle(providerId: number) {
 
   pendingIds.add(providerId);
   const optimistic = new Set(localSubscribed.value);
-  wasSubscribed ? optimistic.delete(providerId) : optimistic.add(providerId);
+  if (wasSubscribed) {
+    optimistic.delete(providerId);
+  } else {
+    optimistic.add(providerId);
+  }
   localSubscribed.value = optimistic;
 
   try {
@@ -94,7 +98,11 @@ async function toggle(providerId: number) {
     }
   } catch {
     const rollback = new Set(localSubscribed.value);
-    wasSubscribed ? rollback.add(providerId) : rollback.delete(providerId);
+    if (wasSubscribed) {
+      rollback.add(providerId);
+    } else {
+      rollback.delete(providerId);
+    }
     localSubscribed.value = rollback;
     useToast().error(useI18n().t("errors.generic"));
   } finally {

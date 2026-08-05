@@ -29,7 +29,7 @@ export function useSeasonWatchedAction(
             method: "DELETE",
           }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+      return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
     },
   });
 
@@ -46,14 +46,22 @@ export function useSeasonWatchedAction(
 
     pendingSeasons.value = new Set(pendingSeasons.value).add(seasonNumber);
     const optimistic = new Set(watchedSeasons.value);
-    wasWatched ? optimistic.delete(seasonNumber) : optimistic.add(seasonNumber);
+    if (wasWatched) {
+      optimistic.delete(seasonNumber);
+    } else {
+      optimistic.add(seasonNumber);
+    }
     watchedSeasons.value = optimistic;
 
     try {
       await mutation.mutateAsync({ seasonNumber, nextValue: !wasWatched });
     } catch {
       const rollback = new Set(watchedSeasons.value);
-      wasWatched ? rollback.add(seasonNumber) : rollback.delete(seasonNumber);
+      if (wasWatched) {
+        rollback.add(seasonNumber);
+      } else {
+        rollback.delete(seasonNumber);
+      }
       watchedSeasons.value = rollback;
       toast.error(t("errors.generic"));
     } finally {

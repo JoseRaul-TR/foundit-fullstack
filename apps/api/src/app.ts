@@ -15,7 +15,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cors from "cors";
-import helmet, { contentSecurityPolicy } from "helmet";
+import helmet from "helmet";
 import { env } from "@/config/env";
 import { toNodeHandler } from "better-auth/node";
 import { auth, requireAuth } from "@/lib/auth";

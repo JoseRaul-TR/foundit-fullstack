@@ -21,9 +21,6 @@ import { extractSession } from "@/lib/auth";
 import {
   discoverMovies,
   discoverSeries,
-  type DiscoverSort,
-  type RegionGroup,
-  type SeriesStatusFilter,
 } from "@/services/catalog/discover";
 
 const regionGroupSchema = z.object({
@@ -37,13 +34,13 @@ const regionsQuerySchema = z
   .transform((raw, ctx) => {
     if (!raw) return undefined;
     try {
-      const parsed = JSON.parse(raw);
+      const parsed: unknown = JSON.parse(raw);
       const result = z.array(regionGroupSchema).safeParse(parsed);
       if (!result.success) {
         ctx.addIssue({ code: "custom", message: "Invalid regions shape" });
         return z.NEVER;
       }
-      return result.data as RegionGroup[];
+      return result.data;
     } catch {
       ctx.addIssue({ code: "custom", message: "regions must be valid JSON" });
       return z.NEVER;
@@ -105,7 +102,7 @@ export async function discoverMoviesController(req: Request, res: Response) {
     provider: query.provider,
     region: query.region,
     regions: query.regions,
-    sort: query.sort as DiscoverSort,
+    sort: query.sort,
     locale: resolveLocale(query.lang),
     page: query.page,
     userId: user?.id ?? null,
@@ -130,8 +127,8 @@ export async function discoverSeriesController(req: Request, res: Response) {
     provider: query.provider,
     region: query.region,
     regions: query.regions,
-    sort: query.sort as DiscoverSort,
-    status: query.status as SeriesStatusFilter | undefined,
+    sort: query.sort,
+    status: query.status,
     locale: resolveLocale(query.lang),
     page: query.page,
     userId: user?.id ?? null,
