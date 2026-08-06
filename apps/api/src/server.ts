@@ -14,17 +14,38 @@ import { env } from "@/config/env";
 import prisma, { pool } from "@/lib/prisma";
 import { app } from "@/app";
 
-async function testDatabaseConnection() {
+/**
+ * Runs BEFORE listen(), so an unreachable database fails once — here — rather
+ * than on every request that arrives afterwards.
+ */
+async function assertDatabaseReachable() {
   try {
-    await prisma.$connect();
+    // A real query, not $connect(). With a driver adapter (PrismaPg over a
+    // pg.Pool, see lib/prisma.ts) $connect() never reaches the network: the
+    // pool opens no connection when constructed and connects lazily on first
+    // use. It resolved happily with no database running at all.
+    await prisma.$queryRaw`SELECT 1`;
     console.log("✅ Database connection successful");
   } catch (error) {
     console.error("❌ Database connection error:", error);
+
+    if (env.NODE_ENV === "production") {
+      // Refuse to serve traffic against a database we cannot reach. Render
+      // then reports a failed deploy, instead of a service that looks healthy
+      // while erroring on every request.
+      process.exit(1);
+    }
+
+    // Development stays lenient — working on the frontend with the database
+    // stopped is a normal thing to do — but it has to say so out loud instead
+    // of reporting success.
+    console.warn(
+      "⚠️  Starting without a database (development). Any request that touches it will fail.",
+    );
   }
 }
 
-async function onServerReady(protocol: "http" | "https") {
-  await testDatabaseConnection();
+function onServerReady(protocol: "http" | "https") {
   console.log(`API server running on ${protocol}://localhost:${env.PORT}`);
   console.log(`Environment: ${env.NODE_ENV}`);
   console.log(`Frontend URL: ${env.FRONTEND_URL}`);
@@ -40,22 +61,31 @@ async function onServerReady(protocol: "http" | "https") {
 // redundant, not more secure — Render already provides the encryption
 // between the browser and its edge.
 //
-// `void` on onServerReady: listen()'s callback is typed as returning void,
-// and onServerReady is async. Marking it explicitly says "start this and
-// don't wait", which is the intent — nothing can act on its completion here.
-let server: http.Server | https.Server;
+// `server` is undefined until start() resolves, because the port is only
+// opened after the database check passes. shutdown() below accounts for a
+// signal arriving during that window.
+let server: http.Server | https.Server | undefined;
 
-if (env.USE_HTTPS && env.HTTPS_KEY_PATH && env.HTTPS_CERT_PATH) {
-  const httpsOptions = {
-    key: fs.readFileSync(env.HTTPS_KEY_PATH),
-    cert: fs.readFileSync(env.HTTPS_CERT_PATH),
-  };
-  server = https
-    .createServer(httpsOptions, app)
-    .listen(env.PORT, () => void onServerReady("https"));
-} else {
-  server = app.listen(env.PORT, () => void onServerReady("http"));
+async function start() {
+  await assertDatabaseReachable();
+
+  if (env.USE_HTTPS && env.HTTPS_KEY_PATH && env.HTTPS_CERT_PATH) {
+    const httpsOptions = {
+      key: fs.readFileSync(env.HTTPS_KEY_PATH),
+      cert: fs.readFileSync(env.HTTPS_CERT_PATH),
+    };
+    server = https
+      .createServer(httpsOptions, app)
+      .listen(env.PORT, () => onServerReady("https"));
+  } else {
+    server = app.listen(env.PORT, () => onServerReady("http"));
+  }
 }
+
+start().catch((error) => {
+  console.error("❌ Failed to start server:", error);
+  process.exit(1);
+});
 
 // Graceful Server Shutdown
 let shuttingDown = false;
@@ -97,6 +127,14 @@ function shutdown(signal: string) {
     process.exit(1);
   }, 10_000);
   forceExit.unref();
+
+  // Signalled before the port was opened (during the database check, or while
+  // it was failing in development): there is no server to close, only the
+  // pool.
+  if (!server) {
+    void closeDatabaseConnections();
+    return;
+  }
 
   server.close((err) => void closeDatabaseConnections(err));
 }
