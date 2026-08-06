@@ -47,7 +47,7 @@
           </button>
           <span class="text-xs text-secondary">{{ profile?.email }}</span>
           <span class="text-xs text-secondary/70">
-            {{ $t("profile.syncedFromGoogle") }}
+            {{ $t("profile.identity.syncedFromGoogle") }}
           </span>
         </div>
       </div>
