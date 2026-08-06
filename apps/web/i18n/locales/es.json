@@ -206,7 +206,7 @@
   "profile": {
     "title": "Perfil",
     "identity": {
-      "syncedFromGoogle": "Sincronizado con Google · solo lectura"
+      "syncedFromGoogle": "Sincronizado con Google · sólo lectura"
     },
     "manualAccount": {
       "title": "Cuenta manual (identidad editable)",

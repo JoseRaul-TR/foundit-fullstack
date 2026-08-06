@@ -3,5 +3,18 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+  <!--
+    Both of these teleport to <body> and are global singletons, so they live
+    here rather than inside a layout.
+
+    Their order matters: NuxtLayout is loaded asynchronously, so anything
+    teleporting from inside it lands in <body> at a different point on the
+    client than on the server. ToastContainer used to sit in the layouts and
+    that's exactly what happened — the server emitted [toast][modal] and the
+    client hydrated [modal][toast], producing mismatches in both components.
+    As synchronous siblings here, their relative order is identical on both
+    sides.
+  -->
   <MediaDetailsModal />
+  <ToastContainer />
 </template>

@@ -19,7 +19,6 @@
         <slot />
       </div>
     </div>
-    <ToastContainer />
   </div>
 </template>
 
