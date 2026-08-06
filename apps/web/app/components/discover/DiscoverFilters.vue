@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { useDiscoverStore } from "~/stores/discover";
+import { useDiscoverStore, type DiscoverFiltersState } from "~/stores/discover";
 
 const store = useDiscoverStore();
 const profileStore = useProfileStore();
@@ -183,11 +183,16 @@ const { movieGenres } = useGenres();
 const localePath = useLocalePath();
 
 const currentYear = new Date().getFullYear();
-const localFilters = reactive(structuredClone(toRaw(store.filters)));
+
+function snapshotFilters(): DiscoverFiltersState {
+  return structuredClone(toRaw(store.filters));
+}
+
+const localFilters = reactive(snapshotFilters());
 
 watch(
   () => store.filters,
-  (filters) => Object.assign(localFilters, filters),
+  () => Object.assign(localFilters, snapshotFilters()),
   { deep: true },
 );
 
@@ -248,13 +253,13 @@ function toggleGenre(id: number) {
 }
 
 function apply() {
-  store.filters = { ...localFilters };
+  store.setFilters(localFilters);
   discover.applyFilters();
 }
 
 function clearAll() {
   store.resetFilters();
-  Object.assign(localFilters, store.filters);
+  Object.assign(localFilters, snapshotFilters());
   discover.applyFilters();
 }
 </script>
