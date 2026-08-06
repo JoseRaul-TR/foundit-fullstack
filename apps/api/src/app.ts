@@ -1,4 +1,4 @@
-// apps/api/src/server.ts// apps/api/src/app.ts
+// apps/api/src/app.ts
 
 /**
  * Express app construction ONLY — no listen(), no process-lifecycle code.
@@ -19,6 +19,7 @@ import helmet from "helmet";
 import { env } from "@/config/env";
 import { toNodeHandler } from "better-auth/node";
 import { auth, requireAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { errorHandler, notFoundHandler } from "@/middleware/errorHandler";
 import { apiLimiter, authLimiter } from "@/middleware/rateLimit";
 
@@ -56,7 +57,7 @@ export const app = express();
 /**
  * Render runs the API behind THREE hops: its own internal proxy, Cloudflare,
  * and the socket itself. Measured in production via a temporary diagnostic
- * endpoint (#<número>), X-Forwarded-For arrives as:
+ * endpoint (#<148>), X-Forwarded-For arrives as:
  * <real client>, <cloudflare>, <render internal>
  * With a lower value req.ip resolves to Render's internal address and every
  * express-rate-limit bucket becomes global — including authLimiter's 10
@@ -121,10 +122,24 @@ app.use(
 );
 
 /**
- *  Registered BEFORE globalLimiter on purpose: Render probes this endpoint
- * continuously for its health checks, and those probes would otherwise eat
- * into the public 100-requests-per-15-min allowance. Still covered by helmet
- * and cors above. Unversioned — see the API_V1 comment below.
+ * Liveness: does this process exist and answer? Deliberately touches nothing
+ * else — no database, no TMDB.
+ *
+ * This is the endpoint configured as Render's Health Check Path, and Render
+ * calls it continuously. Querying the database here would keep Neon's compute
+ * from ever autosuspending, which on the free plan is what makes the included
+ * hours last the month: we would be paying for a permanently-awake database in
+ * order to watch a service almost nobody visits. It would also turn a Neon
+ * cold start into a failed deploy, since Render reads a failing health check
+ * as a broken application.
+ *
+ * Real reachability is enforced at startup instead — see
+ * assertDatabaseReachable in server.ts, where production refuses to open the
+ * port at all if the database cannot be reached.
+ *
+ * Rate limiting: apiLimiter is scoped to API_V1, and this route is
+ * unversioned, so nothing throttles it in any case. Still covered by helmet
+ * and cors above.
  */
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
@@ -132,6 +147,31 @@ app.get("/health", (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
   });
+});
+
+/**
+ * Readiness: can this process reach the database right now?
+ *
+ * For manual use — after a deploy, or when diagnosing. NOT for periodic
+ * polling, for the reason given above: anything hitting this on a schedule
+ * keeps Neon awake. Rate-limited because it is public and does hit the
+ * database; that only raises the cost of abuse, it doesn't prevent it.
+ */
+app.get("/health/ready", apiLimiter, async (req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({
+      status: "ok",
+      database: "reachable",
+      timestamp: new Date().toISOString(),
+    });
+  } catch {
+    res.status(503).json({
+      status: "error",
+      database: "unreachable",
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // Scoped to the API surface instead of applied globally: this same process
@@ -192,12 +232,12 @@ app.get(`${API_V1}/protected`, requireAuth, (req: Request, res: Response) => {
  * for exactly this. It must come BEFORE notFoundHandler, which would
  * otherwise answer every page with a 404.
  *
- * Production only. In decelopment the two apps run separetely (nmuxt dev on
+ * Production only. In development the two apps run separately (nuxt dev on
  * :3000, this on :3001) and the build output below doesn't exist – the same
  * reason the integration tests, which import this file under NODE_ENV=test,
- * skipt it too.
+ * skip it too.
  *
- * The specifier is held in a variable on purpose: exbuild would otherwise
+ * The specifier is held in a variable on purpose: esbuild would otherwise
  * statically resolve it and try to inline Nitro's entire output into our
  * bundle. As a runtime dynamic import it stays external, and Node resolves it
  * relative to dist/server.js – i.e. apps/web/.output/server/index.mjs.
