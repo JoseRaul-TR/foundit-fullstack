@@ -1,5 +1,6 @@
 // apps/web/app/stores/discover.ts
 import { defineStore } from "pinia";
+import { toRaw } from "vue";
 import type { NormalizedSearchResult } from "@foundit/types";
 
 export type DiscoverSort = "popularity" | "rating" | "release_date" | "title";
@@ -64,6 +65,20 @@ export const useDiscoverStore = defineStore("discover", {
     },
     resetFilters() {
       this.filters = emptyFilters();
+    },
+    // The only supported way to write filters from outside.
+    //
+    // Assigning a spread of a reactive object here -- `store.filters =
+    // { ...localFilters }` -- looks harmless but isn't: spreading reads every
+    // property through the proxy, and Vue hands back nested values already
+    // wrapped in their own proxies. The result is plain at the top level with
+    // Proxy instances inside `genres` and `selectedProviderIds`, which makes a
+    // later structuredClone throw "Proxy object could not be cloned".
+    //
+    // Cloning the raw object keeps this state plain, and incidentally stops
+    // the caller from sharing nested references with the store.
+    setFilters(filters: DiscoverFiltersState) {
+      this.filters = structuredClone(toRaw(filters));
     },
   },
 });
