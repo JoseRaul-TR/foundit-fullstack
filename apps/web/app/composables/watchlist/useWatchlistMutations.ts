@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import type { MediaType, WatchlistItemResponse } from "@foundit/types";
 import { WATCHLIST_QUERY_KEY } from "./useWatchlistQuery";
+import { isUnauthorized } from "../api/useApi";
 
 interface RemoveVariables {
   tmdbId: number;
@@ -39,10 +40,11 @@ export function useRemoveFromWatchlistMutation() {
       );
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(WATCHLIST_QUERY_KEY, context.previous);
       }
+      if (isUnauthorized(err)) return;
       toast.error(t("errors.generic"));
     },
   });

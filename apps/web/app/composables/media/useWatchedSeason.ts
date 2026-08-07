@@ -1,6 +1,7 @@
 // apps/web/app/composables/media/useWatchedSeason.ts
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { HISTORY_QUERY_KEY } from "../history/useHistoryQuery";
+import { isUnauthorized } from "../api/useApi";
 
 interface ToggleSeasonInput {
   seasonNumber: number;
@@ -55,7 +56,7 @@ export function useSeasonWatchedAction(
 
     try {
       await mutation.mutateAsync({ seasonNumber, nextValue: !wasWatched });
-    } catch {
+    } catch (err) {
       const rollback = new Set(watchedSeasons.value);
       if (wasWatched) {
         rollback.add(seasonNumber);
@@ -63,6 +64,8 @@ export function useSeasonWatchedAction(
         rollback.delete(seasonNumber);
       }
       watchedSeasons.value = rollback;
+      if (isUnauthorized(err)) return;
+
       toast.error(t("errors.generic"));
     } finally {
       const donePending = new Set(pendingSeasons.value);

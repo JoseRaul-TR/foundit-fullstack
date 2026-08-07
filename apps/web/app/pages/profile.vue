@@ -142,6 +142,7 @@ import AgeRatingSelect from "~/components/profile/AgeRatingSelect.vue";
 import DeleteAccountModal from "~/components/profile/DeleteAccountModal.vue";
 import CollapsableSection from "~/components/media-detail/CollapsableSection.vue";
 import { useToast } from "~/composables/useToast";
+import { isUnauthorized } from "~/composables/api/useApi";
 
 definePageMeta({ middleware: "authenticated" });
 
@@ -194,17 +195,18 @@ const countryMutationPending = computed(
   () => addingCountry.value || removingCountry.value,
 );
 
+const toast = useToast();
+
 async function handleCountriesChange(newCodes: string[]) {
   const current = selectedCountryCodes.value;
   const added = newCodes.filter((c) => !current.includes(c));
   const removed = current.filter((c) => !newCodes.includes(c));
 
-  const toast = useToast();
-
   try {
     for (const code of added) await addCountry(code);
     for (const code of removed) await removeCountry(code);
-  } catch {
+  } catch (error) {
+    if (isUnauthorized(error)) return;
     toast.error(t("errors.generic"));
   }
 }

@@ -1,6 +1,7 @@
 // apps/web/app/composables/media/useWatchedMovie.ts
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { HISTORY_QUERY_KEY } from "~/composables/history/useHistoryQuery";
+import { isUnauthorized } from "../api/useApi";
 
 export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
   const { apiFetch } = useApi();
@@ -22,8 +23,9 @@ export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
       watched.value = nextValue;
       return { previous };
     },
-    onError: (_err, _nextValue, context) => {
+    onError: (err, _nextValue, context) => {
       if (context) watched.value = context.previous;
+      if (isUnauthorized(err)) return;
       toast.error(t("errors.generic"));
     },
     onSuccess: () => {
