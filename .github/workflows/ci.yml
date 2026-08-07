@@ -5,6 +5,14 @@ on:
   pull_request:
   push:
     branches: [main]
+    # The deploy job below fires Render's deploy hook, and a hook bypasses
+    # Render's own Build Filters entirely -- they only apply to its auto-deploy,
+    # which is off. So the filtering has to happen here.
+    paths-ignore:
+      - "*.md"
+      - "**/*.md"
+      - ".gitignore"
+      - "LICENSE"
 
 # Least privilege: neither job writes to the repository. Declaring it here
 # keeps the token read-only regardless of the repository-level default.
