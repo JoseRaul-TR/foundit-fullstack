@@ -1,5 +1,6 @@
 // apps/web/app/composables/media/useWatchlist.ts
 import { useMutation } from "@tanstack/vue-query";
+import { isUnauthorized } from "../api/useApi";
 
 export function useWatchlistAction(
   tmdbId: number,
@@ -26,8 +27,12 @@ export function useWatchlistAction(
       inWatchlist.value = nextValue;
       return { previous };
     },
-    onError: (_err, _nextValue, context) => {
+    // The rollback happens whatever the cause; the toast doesn't. On a 401
+    // apiFetch has already signed the user out and moved them to the login
+    // page, so a generic error message would contradict what they're seeing.
+    onError: (err, _nextValue, context) => {
       if (context) inWatchlist.value = context.previous;
+      if (isUnauthorized(err)) return;
       toast.error(t("errors.generic"));
     },
   });

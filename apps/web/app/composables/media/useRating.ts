@@ -1,6 +1,7 @@
 // apps/web/app/composables/media/useRating.ts
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { HISTORY_QUERY_KEY } from "~/composables/history/useHistoryQuery";
+import { isUnauthorized } from "../api/useApi";
 
 export function useRatingAction(
   tmdbId: number,
@@ -28,8 +29,9 @@ export function useRatingAction(
       rating.value = value; // optimistic
       return { previous };
     },
-    onError: (_err, _value, context) => {
+    onError: (err, _value, context) => {
       if (context) rating.value = context.previous;
+      if (isUnauthorized(err)) return;
       toast.error(t("errors.generic"));
     },
     onSuccess: () => {

@@ -73,6 +73,22 @@
 
 <script setup lang="ts">
 const { isOpen, current, canGoBack, back, close } = useMediaModal();
+const route = useRoute();
+
+// The modal's state lives in a store, not in the URL, so nothing dismisses it
+// when the route changes and it stays open on top of whatever page comes next.
+// The 401 redirect is just where this became visible; it happens on any
+// navigation.
+//
+// If the modal is ever made URL-addressable, this relationship inverts -- the
+// route would drive the modal instead of merely dismissing it -- and this
+// watcher has to go.
+watch(
+  () => route.fullPath,
+  () => {
+    if (isOpen.value) close();
+  },
+);
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === "Escape" && isOpen.value) close();
