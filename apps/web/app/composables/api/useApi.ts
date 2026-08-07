@@ -24,6 +24,7 @@ export function useApi() {
   const apiBase = useApiBase();
   const { locale } = useLocale();
   const route = useRoute();
+  const localePath = useLocalePath();
 
   async function apiFetch<T>(
     path: string,
@@ -45,7 +46,7 @@ export function useApi() {
 
       if (status === 401) {
         await navigateTo({
-          path: "/login",
+          path: localePath("/login"),
           query: { redirect: route.fullPath },
         });
       }

@@ -22,7 +22,7 @@
     <div class="my-1 h-px bg-border" />
 
     <NuxtLink
-      to="/profile"
+      :to="localePath('/profile')"
       class="block rounded-lg px-3 py-2.5 text-sm font-medium text-primary hover:bg-page"
       @click="$emit('close')"
     >
@@ -64,6 +64,7 @@
 <script setup lang="ts">
 const authStore = useAuthStore();
 const { locale } = useLocale();
+const localePath = useLocalePath();
 const { signOut } = useAuth();
 
 const emit = defineEmits<{ close: [] }>();

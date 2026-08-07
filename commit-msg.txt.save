@@ -1,8 +1,0 @@
-chore: fix the .gitignore rule for commit-msg.txt
-
-The rule read `nano commit-msg.txt` -- the editor command leaked into the
-pattern, so Git was looking for a file with a space in its name and
-commit-msg.txt was never actually ignored. It only went unnoticed because the
-file happened not to be staged.
-
-Also adds the missing trailing newline.
