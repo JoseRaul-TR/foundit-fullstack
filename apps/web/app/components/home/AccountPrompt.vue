@@ -5,10 +5,13 @@
   >
     <p class="text-sm text-secondary">{{ $t("home.accountPrompt.title") }}</p>
     <NuxtLink
-      to="/register"
+      :to="localePath('/register')"
       class="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-page transition hover:brightness-110"
     >
       {{ $t("home.accountPrompt.cta") }}
     </NuxtLink>
   </div>
 </template>
+<script setup lang="ts">
+const localePath = useLocalePath();
+</script>

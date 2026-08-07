@@ -23,7 +23,7 @@
     </div>
     <div class="mt-6 flex justify-center">
       <NuxtLink
-        to="/register"
+        :to="localePath('/register')"
         class="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-page transition hover:brightness-110"
       >
         {{ $t("home.perks.cta") }}
@@ -39,4 +39,5 @@ const perkKeys = [
   "history",
   "filterPlatform",
 ] as const;
+const localePath = useLocalePath();
 </script>
