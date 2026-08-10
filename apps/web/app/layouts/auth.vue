@@ -1,7 +1,7 @@
 <!-- apps/web/app/layouts/auth.vue -->
 <template>
   <div
-    class="flex min-h-screen items-center justify-center bg-page px-4 py-12 text-primary"
+    class="flex min-h-screen items-center justify-center bg-page px-4 pb-28 pt-12 text-primary"
   >
     <div class="w-full max-w-sm">
       <div class="mb-8 flex justify-center">

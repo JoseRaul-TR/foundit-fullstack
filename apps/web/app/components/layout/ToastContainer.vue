@@ -1,8 +1,29 @@
 <!-- apps/web/app/components/layout/ToastContainer.vue -->
 <template>
   <Teleport to="body">
+    <!--
+      z-index: must sit above MediaDetailsModal (z-[100]). Both teleport to
+      <body> as siblings, so they share a stacking context and the number
+      decides. Toasts raised from inside the modal -- watchlist, watched,
+      rating -- rendered behind it and were simply invisible.
+
+      A toast is the topmost surface by design: it reports on what the user just
+      did, wherever they did it, so nothing should ever cover it.
+
+      Live region: this container is always in the DOM and only its children
+      come and go. That ordering is what makes the announcement work -- a screen
+      reader only announces changes inside a region it was already observing, so
+      a region created at the same moment as its content stays silent.
+
+      polite rather than assertive: these messages report a failed action, not
+      an emergency. Assertive interrupts whatever is being read, which is
+      warranted for something like a session timing out, not for "that didn't
+      save".
+    -->
     <div
-      class="pointer-events-none fixed bottom-4 left-1/2 z-50 flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4"
+      role="status"
+      aria-live="polite"
+      class="pointer-events-none fixed bottom-4 left-1/2 z-[200] flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4"
     >
       <TransitionGroup name="toast">
         <div
@@ -30,9 +51,9 @@
 const toastStore = useToastStore();
 
 const variantClasses: Record<string, string> = {
-  success: "border-success/40 bg-success/[0.12] text-success",
-  error: "border-red-500/40 bg-red-500/[0.12] text-red-500",
-  info: "border-border bg-surface text-primary",
+  success: "border-success/40 bg-surface-elevated text-success",
+  error: "border-error bg-surface-elevated text-error",
+  info: "border-border bg-surface-elevated text-primary",
 };
 </script>
 

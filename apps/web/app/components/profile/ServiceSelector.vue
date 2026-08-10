@@ -51,6 +51,9 @@ const props = defineProps<{
 }>();
 
 const TMDB_LOGO_BASE = "https://image.tmdb.org/t/p/w92";
+const toast = useToast();
+const { t } = useI18n();
+
 function logoUrl(provider: ProviderItem): string | null {
   return provider.logoPath ? `${TMDB_LOGO_BASE}${provider.logoPath}` : null;
 }
@@ -104,7 +107,7 @@ async function toggle(providerId: number) {
       rollback.delete(providerId);
     }
     localSubscribed.value = rollback;
-    useToast().error(useI18n().t("errors.generic"));
+    toast.error(t("errors.generic"));
   } finally {
     pendingIds.delete(providerId);
   }
