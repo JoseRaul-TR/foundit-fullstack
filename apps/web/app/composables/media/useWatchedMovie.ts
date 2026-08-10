@@ -23,10 +23,16 @@ export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
       watched.value = nextValue;
       return { previous };
     },
-    onError: (err, _nextValue, context) => {
+    onError: (err, nextValue, context) => {
       if (context) watched.value = context.previous;
       if (isUnauthorized(err)) return;
-      toast.error(t("errors.generic"));
+      toast.error(
+        t(
+          nextValue
+            ? "feedback.watched.markError"
+            : "feedback.watched.unmarkError",
+        ),
+      );
     },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });

@@ -21,7 +21,7 @@
           "description": "Recomendaciones adaptadas a lo que ves."
         },
         "watchlist": {
-          "title": "Lista de seguimiento",
+          "title": "Mi lista",
           "description": "Guarda títulos para ver más tarde."
         },
         "history": {
@@ -157,7 +157,7 @@
       "Visual Effects": "Efectos visuales",
       "Crew": "Equipo técnico"
     },
-    "trailer": "Trailer",
+    "trailer": "Tráiler",
     "showTrailer": "Reproducir tráiler de {title}",
     "providerSubscribed": "{name}, suscrito",
     "providerNotSubscribed": "{name}, no suscrito",
@@ -170,8 +170,8 @@
     "copyright": "© {year} FoundIt. Todos los derechos reservados."
   },
   "watchlist": {
-    "title": "Lista de seguimiento",
-    "empty": "Tu lista de seguimiento está vacía.",
+    "title": "Mi lista",
+    "empty": "Tu lista está vacía.",
     "remove": "Quitar",
     "newSeasonsAvailable": "Nueva temporada disponible",
     "availableOn": "Disponible en",
@@ -186,7 +186,7 @@
       "title": "Título",
       "year": "Año"
     },
-    "loadError": "Ha ocurrido un error al cargar tu lista de seguimiento.",
+    "loadError": "Ha ocurrido un error al cargar tu lista.",
     "emptyCta": "Buscar películas y series",
     "emptyDescription": "Guarda las películas y series que quieras ver más tarde; aparecerán aquí."
   },
@@ -206,7 +206,7 @@
   "profile": {
     "title": "Perfil",
     "identity": {
-      "syncedFromGoogle": "Sincronizado con Google · sólo lectura"
+      "syncedFromGoogle": "Sincronizado con Google · solo lectura"
     },
     "manualAccount": {
       "title": "Cuenta manual (identidad editable)",
@@ -225,18 +225,18 @@
       "selectCountryFirst": "Selecciona un país arriba para ver aquí los servicios de streaming disponibles."
     },
     "ageRating": {
-      "title": "Región para clasificación por edad",
+      "title": "Región de clasificación por edad",
       "description": "Se usa para determinar las clasificaciones y calificaciones por edad del contenido (un único país).",
       "selectPlaceholder": "Selecciona un país"
     },
     "dangerZone": {
       "title": "Zona de peligro",
-      "description": "Eliminar tu cuenta borra permanentemente todos tus datos, incluidos tu lista de seguimiento y tu historial. Esta acción no se puede deshacer.",
+      "description": "Eliminar tu cuenta borra permanentemente todos tus datos, incluidos tu lista y tu historial. Esta acción no se puede deshacer.",
       "deleteAccount": "Eliminar cuenta"
     },
     "deleteConfirm": {
       "title": "¿Eliminar tu cuenta?",
-      "description": "Esto eliminará permanentemente tu cuenta, incluidos tu lista de seguimiento, tu historial y tus valoraciones personales. Esta acción no se puede deshacer.",
+      "description": "Esto eliminará permanentemente tu cuenta, incluidos tu lista, tu historial y tus valoraciones personales. Esta acción no se puede deshacer.",
       "cancel": "Cancelar",
       "confirm": "Eliminar cuenta"
     },
@@ -300,5 +300,46 @@
     "title": "Acerca de",
     "text": "Esta aplicación utiliza TMDB y las API de TMDB, pero no está respaldada, certificada ni aprobada de ninguna otra manera por TMDB.",
     "dataSource": { "title": "Fuente de datos" }
+  },
+  "feedback": {
+    "watchlist": {
+      "addError": "No se pudo añadir a tu lista. Inténtalo de nuevo.",
+      "removeError": "No se pudo quitar de tu lista. Inténtalo de nuevo."
+    },
+    "watched": {
+      "markError": "No se pudo marcar como vista. Inténtalo de nuevo.",
+      "unmarkError": "No se pudo desmarcar como vista. Inténtalo de nuevo."
+    },
+    "season": {
+      "markError": "No se pudo marcar la temporada {season}. Inténtalo de nuevo.",
+      "unmarkError": "No se pudo desmarcar la temporada {season}. Inténtalo de nuevo.",
+      "allError": "No se pudieron marcar todas las temporadas. Inténtalo de nuevo."
+    },
+    "rating": {
+      "saveError": "No se pudo guardar tu valoración. Inténtalo de nuevo.",
+      "removeError": "No se pudo quitar tu valoración. Inténtalo de nuevo."
+    },
+    "provider": {
+      "addError": "No se pudo añadir la plataforma. Inténtalo de nuevo.",
+      "removeError": "No se pudo quitar la plataforma. Inténtalo de nuevo."
+    },
+    "country": {
+      "addSuccess": "País añadido",
+      "removeSuccess": "País eliminado",
+      "addError": "No se pudo añadir el país. Inténtalo de nuevo.",
+      "removeError": "No se pudo quitar el país. Inténtalo de nuevo."
+    },
+    "profileName": {
+      "success": "Nombre actualizado",
+      "error": "No se pudo guardar tu nombre. Inténtalo de nuevo."
+    },
+    "ageRating": {
+      "success": "Región de clasificación por edad actualizada",
+      "error": "No se pudo cambiar la región de clasificación por edad. Inténtalo de nuevo."
+    },
+    "account": {
+      "deleteSuccess": "Tu cuenta ha sido eliminada",
+      "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+    }
   }
 }

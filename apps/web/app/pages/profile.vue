@@ -176,8 +176,15 @@ function startEditName() {
 }
 async function saveName() {
   if (!nameInput.value.trim()) return;
-  await updateName(nameInput.value.trim());
+  try {
+    await updateName(nameInput.value.trim());
+  } catch (error) {
+    if (isUnauthorized(error)) return;
+    toast.error(t("feedback.profileName.error"));
+    return;
+  }
   editingName.value = false;
+  toast.success(t("feedback.profileName.success"));
 }
 
 const selectedCountryCodes = computed(() =>
@@ -204,18 +211,35 @@ async function handleCountriesChange(newCodes: string[]) {
 
   try {
     for (const code of added) await addCountry(code);
+  } catch (error) {
+    if (isUnauthorized(error)) return;
+    toast.error(t("feedback.country.addError"));
+    return;
+  }
+  if (added.length > 0) toast.success(t("feedback.country.addSuccess"));
+
+  try {
     for (const code of removed) await removeCountry(code);
   } catch (error) {
     if (isUnauthorized(error)) return;
-    toast.error(t("errors.generic"));
+    toast.error(t("feedback.country.removeError"));
+    return;
   }
+  if (removed.length > 0) toast.success(t("feedback.country.removeSuccess"));
 }
 
 const { mutateAsync: updateAgeRatingCountry, isPending: updatingAgeRating } =
   useUpdateAgeRatingCountryMutation();
 
 async function handleAgeRatingChange(code: string) {
-  await updateAgeRatingCountry(code);
+  try {
+    await updateAgeRatingCountry(code);
+  } catch (error) {
+    if (isUnauthorized(error)) return;
+    toast.error(t("feedback.ageRating.error"));
+    return;
+  }
+  toast.success(t("feedback.ageRating.success"));
 }
 
 const showDeleteModal = ref(false);
@@ -223,8 +247,15 @@ const { mutateAsync: deleteAccount, isPending: deletingAccount } =
   useDeleteAccountMutation();
 
 async function handleDeleteAccount() {
-  await deleteAccount();
+  try {
+    await deleteAccount();
+  } catch (error) {
+    if (isUnauthorized(error)) return;
+    toast.error(t("feedback.account.deleteError"));
+    return;
+  }
   showDeleteModal.value = false;
+  toast.success(t("feedback.account.deleteSuccess"));
   await signOut();
 }
 </script>

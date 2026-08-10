@@ -300,5 +300,46 @@
     "title": "About",
     "text": "This application uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
     "dataSource": { "title": "Data source" }
+  },
+  "feedback": {
+    "watchlist": {
+      "addError": "Couldn't add to your watchlist. Please try again.",
+      "removeError": "Couldn't remove from your watchlist. Please try again."
+    },
+    "watched": {
+      "markError": "Couldn't mark as watched. Please try again.",
+      "unmarkError": "Couldn't unmark as watched. Please try again."
+    },
+    "season": {
+      "markError": "Couldn't mark season {season} as watched. Please try again.",
+      "unmarkError": "Couldn't unmark season {season}. Please try again.",
+      "allError": "Couldn't mark every season as watched. Please try again."
+    },
+    "rating": {
+      "saveError": "Couldn't save your rating. Please try again.",
+      "removeError": "Couldn't remove your rating. Please try again."
+    },
+    "provider": {
+      "addError": "Couldn't add that service. Please try again.",
+      "removeError": "Couldn't remove that service. Please try again."
+    },
+    "country": {
+      "addSuccess": "Country added",
+      "removeSuccess": "Country removed",
+      "addError": "Couldn't add that country. Please try again.",
+      "removeError": "Couldn't remove that country. Please try again."
+    },
+    "profileName": {
+      "success": "Name updated",
+      "error": "Couldn't save your name. Please try again."
+    },
+    "ageRating": {
+      "success": "Age rating region updated",
+      "error": "Couldn't change the age rating region. Please try again."
+    },
+    "account": {
+      "deleteSuccess": "Your account has been deleted",
+      "deleteError": "Couldn't delete your account. Please try again."
+    }
   }
 }
