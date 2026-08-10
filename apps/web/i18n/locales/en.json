@@ -278,9 +278,9 @@
       "privacyLink": "Privacy Policy",
       "passwordStrength": "Password strength: {level}",
       "validation": {
-        "nameRequired": "Name is required.",
+        "nameLength": "Name must be between 2 and 50 characters.",
         "invalidEmail": "Enter a valid email address.",
-        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordLength": "Password must be between 8 and 128 characters.",
         "passwordMismatch": "Passwords do not match."
       }
     },

@@ -250,7 +250,6 @@
       "subtitle": "Välkommen tillbaka till FoundIt.",
       "emailLabel": "E-post",
       "passwordLabel": "Lösenord",
-      "strength": { "weak": "Svag", "medium": "Medel", "strong": "Stark" },
       "submit": "Logga in",
       "or": "eller",
       "googleButton": "Fortsätt med Google",
@@ -267,6 +266,7 @@
       "nameLabel": "Namn",
       "emailLabel": "E-post",
       "passwordLabel": "Lösenord",
+      "strength": { "weak": "Svag", "medium": "Medel", "strong": "Stark" },
       "confirmPasswordLabel": "Bekräfta lösenord",
       "submit": "Skapa konto",
       "or": "eller",
@@ -278,9 +278,9 @@
       "privacyLink": "Integritetspolicyn",
       "passwordStrength": "Lösenordsstyrka: {level}",
       "validation": {
-        "nameRequired": "Namn krävs.",
+        "nameLength": "Namnet måste vara mellan 2 och 50 tecken.",
         "invalidEmail": "Ange en giltig e-postadress.",
-        "passwordTooShort": "Lösenordet måste vara minst 8 tecken långt.",
+        "passwordLength": "Lösenordet måste vara mellan 8 och 128 tecken.",
         "passwordMismatch": "Lösenorden matchar inte."
       }
     },

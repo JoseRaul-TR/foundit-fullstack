@@ -119,7 +119,11 @@ const formError = ref("");
 
 const loginSchema = z.object({
   email: z.email(),
-  password: z.string().min(8),
+  // Not min(8): this password already exists, and the client has no idea what
+  // policy was in force when the account was created. Enforcing a length here
+  // locks out anyone whose password predates the rule, without validating
+  // anything the server won't check anyway.
+  password: z.string().min(1),
 });
 
 function fieldFails(field: "email" | "password"): boolean {

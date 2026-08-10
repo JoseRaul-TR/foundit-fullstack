@@ -250,7 +250,6 @@
       "subtitle": "Bienvenido de nuevo a FoundIt.",
       "emailLabel": "Correo electrónico",
       "passwordLabel": "Contraseña",
-      "strength": { "weak": "Débil", "medium": "Media", "strong": "Fuerte" },
       "submit": "Iniciar sesión",
       "or": "o",
       "googleButton": "Continuar con Google",
@@ -267,6 +266,7 @@
       "nameLabel": "Nombre",
       "emailLabel": "Correo electrónico",
       "passwordLabel": "Contraseña",
+      "strength": { "weak": "Débil", "medium": "Media", "strong": "Fuerte" },
       "confirmPasswordLabel": "Confirmar contraseña",
       "submit": "Crear cuenta",
       "or": "o",
@@ -278,9 +278,9 @@
       "privacyLink": "Política de Privacidad",
       "passwordStrength": "Seguridad de la contraseña: {level}",
       "validation": {
-        "nameRequired": "El nombre es obligatorio.",
+        "nameLength": "El nombre debe tener entre 2 y 50 caracteres.",
         "invalidEmail": "Introduce una dirección de correo electrónico válida.",
-        "passwordTooShort": "La contraseña debe tener al menos 8 caracteres.",
+        "passwordLength": "La contraseña debe tener entre 8 y 128 caracteres.",
         "passwordMismatch": "Las contraseñas no coinciden."
       }
     },
