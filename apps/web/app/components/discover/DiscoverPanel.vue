@@ -6,7 +6,7 @@
     <aside class="lg:w-72 lg:shrink-0">
       <DiscoverFilters />
     </aside>
-    <div class="flex flex-1 flex-col gap-8">
+    <div class="flex min-w-0 flex-1 flex-col gap-8">
       <DiscoverSection
         :title="$t('discover.typeTabs.movie')"
         media-type="movie"

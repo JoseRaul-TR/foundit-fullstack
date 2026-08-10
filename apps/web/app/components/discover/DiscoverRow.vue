@@ -23,7 +23,7 @@
     </button>
     <div
       ref="scrollerRef"
-      class="-mx-5 flex gap-4 overflow-x-auto scroll-smooth px-5 pb-1 sm:-mx-8 sm:px-8"
+      class="-mx-5 flex gap-4 overflow-x-auto scroll-smooth px-5 pb-1 sm:-mx-8 sm:px-8 lg:mx-0 lg:px-0"
       @scroll="updateScrollState"
     >
       <slot />
