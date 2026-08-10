@@ -99,7 +99,11 @@ async function toggle(providerId: number) {
     } else {
       await addService({ providerId, countryCode: props.countryCode });
     }
-  } catch {
+  } catch (error) {
+    // The rollback runs whatever the cause -- including a 401, where the switch
+    // would otherwise stay showing a subscription the server never recorded.
+    // Only the toast is suppressed there, because apiFetch has already sent the
+    // user to the login page.
     const rollback = new Set(localSubscribed.value);
     if (wasSubscribed) {
       rollback.add(providerId);
@@ -107,7 +111,16 @@ async function toggle(providerId: number) {
       rollback.delete(providerId);
     }
     localSubscribed.value = rollback;
-    toast.error(t("errors.generic"));
+
+    if (isUnauthorized(error)) return;
+
+    toast.error(
+      t(
+        wasSubscribed
+          ? "feedback.provider.removeError"
+          : "feedback.provider.addError",
+      ),
+    );
   } finally {
     pendingIds.delete(providerId);
   }

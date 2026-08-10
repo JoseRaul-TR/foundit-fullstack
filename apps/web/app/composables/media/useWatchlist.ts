@@ -30,10 +30,19 @@ export function useWatchlistAction(
     // The rollback happens whatever the cause; the toast doesn't. On a 401
     // apiFetch has already signed the user out and moved them to the login
     // page, so a generic error message would contradict what they're seeing.
-    onError: (err, _nextValue, context) => {
+    //
+    // nextValue tells us which direction the user was going, so the message
+    // can name the action they just watched come undone.
+    onError: (err, nextValue, context) => {
       if (context) inWatchlist.value = context.previous;
       if (isUnauthorized(err)) return;
-      toast.error(t("errors.generic"));
+      toast.error(
+        t(
+          nextValue
+            ? "feedback.watchlist.addError"
+            : "feedback.watchlist.removeError",
+        ),
+      );
     },
   });
 

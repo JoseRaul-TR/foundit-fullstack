@@ -45,7 +45,7 @@ export function useRemoveFromWatchlistMutation() {
         queryClient.setQueryData(WATCHLIST_QUERY_KEY, context.previous);
       }
       if (isUnauthorized(err)) return;
-      toast.error(t("errors.generic"));
+      toast.error(t("feedback.watchlist.removeError"));
     },
   });
 }

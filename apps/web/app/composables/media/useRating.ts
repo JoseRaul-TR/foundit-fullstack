@@ -29,10 +29,17 @@ export function useRatingAction(
       rating.value = value; // optimistic
       return { previous };
     },
-    onError: (err, _value, context) => {
+    // value === null is the "remove my rating" path; anything else is a save.
+    onError: (err, value, context) => {
       if (context) rating.value = context.previous;
       if (isUnauthorized(err)) return;
-      toast.error(t("errors.generic"));
+      toast.error(
+        t(
+          value === null
+            ? "feedback.rating.removeError"
+            : "feedback.rating.saveError",
+        ),
+      );
     },
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });

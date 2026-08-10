@@ -51,7 +51,7 @@
 const toastStore = useToastStore();
 
 const variantClasses: Record<string, string> = {
-  success: "border-success/40 bg-surface-elevated text-success",
+  success: "border-success bg-surface-elevated text-success",
   error: "border-error bg-surface-elevated text-error",
   info: "border-border bg-surface-elevated text-primary",
 };

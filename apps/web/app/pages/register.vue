@@ -148,7 +148,7 @@ const registerSchema = z
   .object({
     name: z.string().min(2).max(50),
     email: z.email(),
-    password: z.string().min(8),
+    password: z.string().min(8).max(128),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -171,7 +171,7 @@ function fieldFails(
 
 const nameError = computed(() =>
   touched.name && fieldFails("name")
-    ? t("auth.register.validation.nameRequired")
+    ? t("auth.register.validation.nameLength")
     : "",
 );
 const emailError = computed(() =>
@@ -181,7 +181,7 @@ const emailError = computed(() =>
 );
 const passwordError = computed(() =>
   touched.password && fieldFails("password")
-    ? t("auth.register.validation.passwordTooShort")
+    ? t("auth.register.validation.passwordLength")
     : "",
 );
 const confirmPasswordError = computed(() =>

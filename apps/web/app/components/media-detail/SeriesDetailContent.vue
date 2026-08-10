@@ -284,6 +284,7 @@ const {
   isWatched: isSeasonWatched,
   isPending: isSeasonPending,
   toggle: toggleSeasonWatched,
+  markAllWatched,
 } = useSeasonWatchedAction(props.id, initialWatchedSeasons);
 
 const markingAllWatched = ref(false);
@@ -303,12 +304,7 @@ async function markAllSeasonsWatched() {
   if (!series.value) return;
   markingAllWatched.value = true;
   try {
-    const unwatched = series.value.seasons.filter(
-      (s) => !isSeasonWatched(s.seasonNumber),
-    );
-    await Promise.all(
-      unwatched.map((s) => toggleSeasonWatched(s.seasonNumber)),
-    );
+    await markAllWatched(series.value.seasons.map((s) => s.seasonNumber));
   } finally {
     markingAllWatched.value = false;
   }
