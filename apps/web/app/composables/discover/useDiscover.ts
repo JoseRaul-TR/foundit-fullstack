@@ -13,6 +13,18 @@ export function useDiscover() {
   const { public: publicConfig } = useRuntimeConfig();
   const { locale } = useLocale();
   const profileStore = useProfileStore();
+  const route = useRoute();
+
+  // The active tab lives in the URL so the view is shareable and the back
+  // button behaves. Search and Discover share `/` and both use `?type=`, with
+  // `q` as the arbiter: with a query the page is in search mode and `type`
+  // filters the results, without one it's Discover and `type` is the tab.
+  //
+  // Singular in the URL to match the vocabulary search already uses there;
+  // plural internally because that's what the store calls its sections.
+  const activeMediaType = computed<DiscoverMediaType>(() =>
+    route.query.type === "series" ? "series" : "movies",
+  );
 
   // Country first, provider as a refinement within the selected countries.
   //
@@ -109,10 +121,26 @@ export function useDiscover() {
     }
   }
 
-  async function loadInitial() {
+  // Applying filters invalidates both sections but only fetches the active one.
+  // Emptying the inactive section costs nothing and is what keeps it honest:
+  // otherwise switching tabs would show results computed with the previous
+  // filters while the panel claimed otherwise.
+  async function applyFilters() {
     store.resetSection("movies");
     store.resetSection("series");
-    await Promise.all([fetchPage("movies", 1), fetchPage("series", 1)]);
+    await fetchPage(activeMediaType.value, 1);
+  }
+
+  // Switching tabs fetches only what isn't there yet. The store keeps both
+  // sections with their accumulated pages, so returning to a tab restores it as
+  // it was rather than paying for a full multi-region merge again — one TMDB
+  // call per configured country, plus another round whenever the watched filter
+  // trims too much, plus one /tv/{id} per partially-watched series.
+  async function ensureActiveLoaded() {
+    const mediaType = activeMediaType.value;
+    if (store[mediaType].results.length > 0) return;
+    store.resetSection(mediaType);
+    await fetchPage(mediaType, 1);
   }
 
   async function fetchNextPage(mediaType: DiscoverMediaType) {
@@ -132,12 +160,13 @@ export function useDiscover() {
     moviesHasMore: computed(() => store.moviesHasMore),
     seriesHasMore: computed(() => store.seriesHasMore),
     hasActiveFilters: computed(() => store.hasActiveFilters),
-    loadInitial,
+    ensureActiveLoaded,
+    applyFilters,
     fetchNextPage,
-    applyFilters: loadInitial,
     resetFilters: () => {
       store.resetFilters();
-      return loadInitial();
+      return applyFilters();
     },
+    activeMediaType,
   };
 }
