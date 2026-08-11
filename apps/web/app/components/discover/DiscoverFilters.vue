@@ -1,34 +1,26 @@
+<!-- apps/web/app/components/discover/DiscoverFilters.vue -->
+<!-- Fields only. The heading, "Clear all filters" and "Apply filters" belong
+     to the drawer chrome (DiscoverFilterDrawer), which calls the exposed
+     apply()/clearAll() so the footer can stay pinned outside the scroll area. -->
 <template>
-  <div
-    class="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-4 sm:p-5"
-  >
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <h3 class="text-sm font-bold text-primary">{{ $t("discover.title") }}</h3>
-      <button
-        v-if="hasActiveFilters"
-        type="button"
-        class="text-xs font-medium text-secondary hover:text-primary"
-        @click="clearAll"
+  <div class="flex flex-col gap-5 pb-2">
+    <div class="flex flex-col gap-2">
+      <span
+        class="text-xs font-semibold uppercase tracking-wide text-secondary"
+        >{{ $t("discover.filters.genre") }}</span
       >
-        {{ $t("discover.filters.clear") }}
-      </button>
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <span class="text-xs font-semibold text-secondary">{{
-        $t("discover.filters.genre")
-      }}</span>
       <div class="flex flex-wrap gap-2">
         <button
           v-for="genre in genres"
           :key="genre.id"
           type="button"
-          class="rounded-full px-3 py-1.5 text-xs font-medium transition"
+          class="rounded-full px-3.5 py-1.5 text-[13px] font-medium transition"
           :class="
             localFilters.genres.includes(genre.id)
-              ? 'bg-brand text-page'
+              ? 'bg-brand font-bold text-page'
               : 'border border-border text-secondary hover:text-primary'
           "
+          :aria-pressed="localFilters.genres.includes(genre.id)"
           @click="toggleGenre(genre.id)"
         >
           {{ genre.name }}
@@ -37,27 +29,33 @@
     </div>
 
     <div class="grid grid-cols-2 gap-3">
-      <label class="flex flex-col gap-1 text-xs font-semibold text-secondary">
+      <label
+        class="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-secondary"
+      >
         {{ $t("discover.filters.year") }} (min)
         <input
           v-model.number="localFilters.yearFrom"
           type="number"
-          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
+          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
           placeholder="1900"
         />
       </label>
-      <label class="flex flex-col gap-1 text-xs font-semibold text-secondary">
+      <label
+        class="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-secondary"
+      >
         {{ $t("discover.filters.year") }} (max)
         <input
           v-model.number="localFilters.yearTo"
           type="number"
-          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
+          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
           :placeholder="String(currentYear)"
         />
       </label>
     </div>
 
-    <label class="flex flex-col gap-1.5 text-xs font-semibold text-secondary">
+    <label
+      class="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-secondary"
+    >
       {{ $t("discover.filters.minRating")
       }}{{
         localFilters.minRating ? `: ${localFilters.minRating.toFixed(1)}` : ""
@@ -72,11 +70,12 @@
       />
     </label>
 
-    <div v-if="availableCountries.length" class="flex flex-col gap-1.5">
+    <div v-if="availableCountries.length" class="flex flex-col gap-2">
       <div class="flex items-center justify-between gap-2">
-        <span class="text-xs font-semibold text-secondary">{{
-          $t("discover.filters.country")
-        }}</span>
+        <span
+          class="text-xs font-semibold uppercase tracking-wide text-secondary"
+          >{{ $t("discover.filters.country") }}</span
+        >
         <button
           type="button"
           class="text-xs font-medium text-accent hover:underline"
@@ -94,12 +93,13 @@
           v-for="country in availableCountries"
           :key="country.code"
           type="button"
-          class="rounded-full px-3 py-1.5 text-xs font-medium transition"
+          class="rounded-full px-3.5 py-1.5 text-[13px] font-medium transition"
           :class="
             isCountrySelected(country.code)
-              ? 'bg-brand text-page'
+              ? 'bg-brand font-bold text-page'
               : 'border border-border text-secondary hover:text-primary'
           "
+          :aria-pressed="isCountrySelected(country.code)"
           @click="toggleCountry(country.code)"
         >
           {{ countryName(country.code, country.name) }}
@@ -107,11 +107,12 @@
       </div>
     </div>
 
-    <div class="flex flex-col gap-1.5">
+    <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between gap-2">
-        <span class="text-xs font-semibold text-secondary">{{
-          $t("discover.filters.platform")
-        }}</span>
+        <span
+          class="text-xs font-semibold uppercase tracking-wide text-secondary"
+          >{{ $t("discover.filters.platform") }}</span
+        >
         <button
           v-if="allSubscribedProviders.length"
           type="button"
@@ -131,12 +132,13 @@
           v-for="provider in allSubscribedProviders"
           :key="provider.providerId"
           type="button"
-          class="rounded-full px-3 py-1.5 text-xs font-medium transition"
+          class="rounded-full px-3.5 py-1.5 text-[13px] font-medium transition"
           :class="
             isProviderSelected(provider.providerId)
-              ? 'bg-brand text-page'
+              ? 'bg-brand font-bold text-page'
               : 'border border-border text-secondary hover:text-primary'
           "
+          :aria-pressed="isProviderSelected(provider.providerId)"
           @click="toggleProvider(provider.providerId)"
         >
           {{ provider.name }}
@@ -156,12 +158,12 @@
 
     <label
       v-if="profileStore.ageRatingCountry"
-      class="flex flex-col gap-1.5 text-xs font-semibold text-secondary"
+      class="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-secondary"
     >
       {{ $t("discover.filters.ageRating") }}
       <select
         v-model="ageRatingMax"
-        class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
+        class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
       >
         <option :value="null">—</option>
         <option
@@ -181,11 +183,13 @@
       >
     </p>
 
-    <label class="flex flex-col gap-1.5 text-xs font-semibold text-secondary">
+    <label
+      class="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-secondary"
+    >
       {{ $t("discover.filters.sortBy") }}
       <select
         v-model="localFilters.sort"
-        class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
+        class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
       >
         <option value="popularity">
           {{ $t("discover.filters.sort.popularity") }}
@@ -206,14 +210,6 @@
       />
       {{ $t("discover.filters.excludeWatched") }}
     </label>
-
-    <button
-      type="button"
-      class="rounded-full bg-brand px-4 py-2 text-sm font-bold text-page transition hover:brightness-110"
-      @click="apply"
-    >
-      {{ $t("discover.filters.apply") }}
-    </button>
   </div>
 </template>
 
@@ -363,8 +359,6 @@ function toggleAllProviders() {
   localFilters.selectedProviderIds = allProvidersSelected.value ? [] : null;
 }
 
-const hasActiveFilters = computed(() => discover.hasActiveFilters.value);
-
 function toggleGenre(id: number) {
   const idx = localFilters.genres.indexOf(id);
   localFilters.genres =
@@ -383,4 +377,6 @@ function clearAll() {
   Object.assign(localFilters, snapshotFilters());
   discover.applyFilters();
 }
+
+defineExpose({ apply, clearAll });
 </script>

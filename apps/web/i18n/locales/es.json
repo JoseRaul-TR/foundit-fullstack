@@ -62,6 +62,9 @@
     "title": "Descubrir",
     "noResults": "No se encontraron resultados.",
     "filters": {
+      "title": "Filtros",
+      "toggle": "Filtros",
+      "activeCount": "{count} filtros activos",
       "genre": "Género",
       "year": "Año",
       "minRating": "Puntuación mínima",

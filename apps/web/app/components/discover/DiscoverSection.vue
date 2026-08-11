@@ -1,8 +1,9 @@
 <!-- apps/web/app/components/discover/DiscoverSection.vue -->
 <template>
   <section class="flex flex-col gap-3">
-    <h2 class="text-lg font-bold text-primary">{{ title }}</h2>
-
+    <!-- The type pills above name the section visually; this keeps the
+         document outline intact for screen readers without repeating it. -->
+    <h3 class="sr-only">{{ title }}</h3>
     <div
       v-if="loading && items.length === 0"
       class="flex gap-4 overflow-hidden"

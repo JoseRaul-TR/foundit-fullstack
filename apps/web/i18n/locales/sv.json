@@ -62,6 +62,9 @@
     "title": "Upptäck",
     "noResults": "Inga resultat hittades.",
     "filters": {
+      "title": "Filter",
+      "toggle": "Filter",
+      "activeCount": "{count} aktiva filter",
       "genre": "Genre",
       "year": "År",
       "minRating": "Lägsta betyg",

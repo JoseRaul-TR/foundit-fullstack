@@ -1,13 +1,18 @@
 <!-- apps/web/app/components/discover/DiscoverPanel.vue -->
 <template>
-  <div
-    class="mt-10 flex w-full max-w-6xl flex-col gap-8 px-4 lg:flex-row lg:items-start"
-  >
-    <aside class="lg:w-72 lg:shrink-0">
-      <DiscoverFilters />
-    </aside>
+  <div class="mt-10 flex w-full min-w-0 max-w-6xl flex-col gap-6 px-4">
+    <!-- SectionHeadingRow (wireframe 46:169): title with the filter gear beside
+         it. The type pills sit at the far end, mirroring SearchTypeFilter on
+         the search results row. Wraps on narrow screens so the pills drop to
+         their own line instead of squeezing the title. -->
+    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <div class="flex items-center gap-1">
+        <h2 class="text-lg font-bold text-primary">
+          {{ $t("discover.title") }}
+        </h2>
+        <DiscoverFilterButton />
+      </div>
 
-    <div class="flex min-w-0 flex-1 flex-col gap-8">
       <div class="flex items-center gap-2">
         <button
           v-for="tab in tabs"
@@ -19,21 +24,26 @@
               ? 'bg-brand font-bold text-page'
               : 'border border-border text-secondary hover:text-primary'
           "
+          :aria-current="
+            discover.activeMediaType.value === tab.type ? 'true' : undefined
+          "
           @click="selectTab(tab.urlValue)"
         >
           {{ $t(tab.labelKey) }}
         </button>
       </div>
-
-      <DiscoverSection
-        :title="$t(activeTitleKey)"
-        :media-type="activeSectionMediaType"
-        :items="activeItems"
-        :loading="activeLoading"
-        :has-more="activeHasMore"
-        @load-more="discover.fetchNextPage(discover.activeMediaType.value)"
-      />
     </div>
+
+    <DiscoverSection
+      :title="$t(activeTitleKey)"
+      :media-type="activeSectionMediaType"
+      :items="activeItems"
+      :loading="activeLoading"
+      :has-more="activeHasMore"
+      @load-more="discover.fetchNextPage(discover.activeMediaType.value)"
+    />
+
+    <DiscoverFilterDrawer />
   </div>
 </template>
 
@@ -99,4 +109,8 @@ onMounted(() => {
     { immediate: true },
   );
 });
+
+// The drawer is a route-independent overlay; leaving it open across a
+// navigation would reopen it on the next visit for no reason.
+onUnmounted(() => store.closeFilters());
 </script>

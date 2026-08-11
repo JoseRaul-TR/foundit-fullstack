@@ -62,6 +62,9 @@
     "title": "Discover",
     "noResults": "No results found.",
     "filters": {
+      "title": "Filters",
+      "toggle": "Filters",
+      "activeCount": "{count} active filters",
       "genre": "Genre",
       "year": "Year",
       "minRating": "Minimum rating",

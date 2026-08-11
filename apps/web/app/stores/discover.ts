@@ -50,24 +50,53 @@ function emptyFilters(): DiscoverFiltersState {
 export const useDiscoverStore = defineStore("discover", {
   state: () => ({
     filters: emptyFilters(),
+    filtersOpen: false,
     movies: emptySection(),
     series: emptySection(),
   }),
   getters: {
     moviesHasMore: (state) => state.movies.page < state.movies.totalPages,
     seriesHasMore: (state) => state.series.page < state.series.totalPages,
-    hasActiveFilters: (state) =>
-      state.filters.genres.length > 0 ||
-      state.filters.yearFrom !== null ||
-      state.filters.yearTo !== null ||
-      state.filters.minRating !== null ||
-      state.filters.movieAgeRatingMax !== null ||
-      state.filters.seriesAgeRatingMax !== null ||
-      state.filters.selectedCountryCodes !== null ||
-      state.filters.selectedProviderIds !== null ||
-      state.filters.excludeWatched !== DEFAULT_EXCLUDE_WATCHED,
+    // Drives the badge on the filter button. A control that changes the
+    // results while hidden behind a button needs to say so, and a number is
+    // more useful than a dot.
+    //
+    // Grouped deliberately: from/to year is one decision to the user, not two,
+    // and the two age rating fields are one control (only the active media
+    // type's is ever shown). Country and platform count as active whenever
+    // they hold an explicit array -- null means "everything", which is the
+    // default. Toggling all of them off and on again leaves an array that is
+    // behaviorally identical to null and still counts; clearing resets it.
+    activeFilterCount: (state): number => {
+      let count = 0;
+      if (state.filters.genres.length > 0) count += 1;
+      if (state.filters.yearFrom !== null || state.filters.yearTo !== null)
+        count += 1;
+      if (state.filters.minRating !== null) count += 1;
+      if (
+        state.filters.movieAgeRatingMax !== null ||
+        state.filters.seriesAgeRatingMax !== null
+      )
+        count += 1;
+      if (state.filters.selectedCountryCodes !== null) count += 1;
+      if (state.filters.selectedProviderIds !== null) count += 1;
+      if (state.filters.excludeWatched !== DEFAULT_EXCLUDE_WATCHED) count += 1;
+      return count;
+    },
+    hasActiveFilters(): boolean {
+      return this.activeFilterCount > 0;
+    },
   },
   actions: {
+    openFilters() {
+      this.filtersOpen = true;
+    },
+    closeFilters() {
+      this.filtersOpen = false;
+    },
+    toggleFilters() {
+      this.filtersOpen = !this.filtersOpen;
+    },
     resetSection(section: "movies" | "series") {
       this[section] = emptySection();
     },
