@@ -28,14 +28,32 @@
 </template>
 
 <script setup lang="ts">
-import DiscoverFilters from "./DiscoverFilters.vue";
-import DiscoverSection from "./DiscoverSection.vue";
-
 const discover = useDiscover();
-useDiscoverProfile();
+const { data: profile } = useDiscoverProfile();
 
-await useAsyncData("discover-initial", async () => {
-  await discover.loadInitial();
-  return null;
+// Client-only on purpose. Discover is personalised — it filters by the user's
+// platforms and can exclude what they've watched — and server-rendering it
+// produced neither. The SSR request carries no session cookie, so the API
+// answers as an anonymous caller and `userId` is null; and profileStore is
+// still empty at that point, so buildRegionsParam() returns undefined and the
+// backend falls back to its unfiltered path. The result was an unfiltered
+// first page that nothing ever replaced, because useAsyncData caches the
+// payload and the profile arriving later triggered no refetch.
+//
+// Nothing is lost by not rendering it on the server: the panel only exists for
+// authenticated users, so no crawler ever reaches it.
+//
+// Waiting on the query's data rather than on isPending: measured, isPending
+// drops one tick before useProfileQuery's own watcher has written the result
+// into profileStore, so a fetch triggered by it still finds an empty store and
+// sends no regions at all. `data` is the signal that actually matters.
+onMounted(() => {
+  watch(
+    profile,
+    (value) => {
+      if (value) void discover.loadInitial();
+    },
+    { immediate: true },
+  );
 });
 </script>
