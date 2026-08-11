@@ -90,7 +90,19 @@ onMounted(() => {
         emit("load-more");
       }
     },
-    { root: scrollerRef.value, rootMargin: "300px" },
+    {
+      root: scrollerRef.value,
+      // Only the right edge matters: the sentinel sits at the end of the row
+      // and we want it to announce itself before the user reaches it.
+      //
+      // 300px was under two cards' width, which was invisible until the
+      // carousel started clipping properly. Before that the scroller had no
+      // overflow, so the sentinel intersected permanently and every page
+      // loaded at once -- eager loading wearing lazy loading's clothes. Now
+      // the observer works as intended and the margin has to cover the round
+      // trip to TMDB at swiping speed.
+      rootMargin: "0px 1200px 0px 0px",
+    },
   );
 
   watch(
