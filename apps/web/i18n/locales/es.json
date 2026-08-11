@@ -69,7 +69,13 @@
       "ageRating": "Clasificación por edad",
       "sortBy": "Ordenar por",
       "apply": "Aplicar filtros",
-      "clear": "Borrar filtros"
+      "clear": "Borrar filtros",
+      "sort": {
+        "popularity": "Popularidad",
+        "rating": "Puntuación",
+        "releaseDate": "Fecha de estreno",
+        "title": "Título"
+      }
     },
     "typeTabs": {
       "movie": "Películas",

@@ -69,7 +69,13 @@
       "ageRating": "Åldersgräns",
       "sortBy": "Sortera efter",
       "apply": "Använd filter",
-      "clear": "Rensa filter"
+      "clear": "Rensa filter",
+      "sort": {
+        "popularity": "Popularitet",
+        "rating": "Betyg",
+        "releaseDate": "Premiärdatum",
+        "title": "Titel"
+      }
     },
     "typeTabs": {
       "movie": "Filmer",

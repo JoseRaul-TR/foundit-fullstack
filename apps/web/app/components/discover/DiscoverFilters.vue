@@ -155,11 +155,13 @@
         class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
       >
         <option value="popularity">
-          {{ $t("search.sortBy.label") }}: Popularity
+          {{ $t("discover.filters.sort.popularity") }}
         </option>
-        <option value="rating">Rating</option>
-        <option value="release_date">{{ $t("watchlist.sortBy.year") }}</option>
-        <option value="title">{{ $t("watchlist.sortBy.title") }}</option>
+        <option value="rating">{{ $t("discover.filters.sort.rating") }}</option>
+        <option value="release_date">
+          {{ $t("discover.filters.sort.releaseDate") }}
+        </option>
+        <option value="title">{{ $t("discover.filters.sort.title") }}</option>
       </select>
     </label>
 

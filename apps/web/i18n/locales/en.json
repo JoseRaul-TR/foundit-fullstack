@@ -69,7 +69,13 @@
       "ageRating": "Age rating",
       "sortBy": "Sort by",
       "apply": "Apply filters",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "sort": {
+        "popularity": "Popularity",
+        "rating": "Rating",
+        "releaseDate": "Release date",
+        "title": "Title"
+      }
     },
     "typeTabs": {
       "movie": "Movies",
