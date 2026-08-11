@@ -14,25 +14,41 @@ export function useDiscover() {
   const { locale } = useLocale();
   const profileStore = useProfileStore();
 
-  // Groups the user's own subscriptions by country -> one /discover call
-  // per country server-side, providers OR'd within each (see discover.ts's
-  // multi-region merge). undefined (not "[]") when the user has no
-  // subscriptions configured yet, so the backend falls back to its
-  // unfiltered legacy behavior instead of returning zero regions = zero
-  // results.
+  // Country first, provider as a refinement within the selected countries.
+  //
+  // Three ways out with no `regions` at all, and they mean the same thing to
+  // the backend: no configured subscriptions, no country selected, or no
+  // provider selected. TMDB's watch_region only means something alongside
+  // with_watch_providers, so the two always travel together — dropping either
+  // drops both, and the answer becomes global.
+  //
+  // undefined rather than "[]": an empty array would reach the backend as zero
+  // regions, which its merge reads as zero results rather than "no filter".
   function buildRegionsParam(): string | undefined {
     const entries = Object.entries(profileStore.subscribedServices);
     if (entries.length === 0) return undefined;
-    const selected = store.filters.selectedProviderIds;
-    if (selected !== null && selected.length === 0) return undefined;
+
+    const selectedCountries = store.filters.selectedCountryCodes;
+    if (selectedCountries !== null && selectedCountries.length === 0) {
+      return undefined;
+    }
+
+    const selectedProviders = store.filters.selectedProviderIds;
+    if (selectedProviders !== null && selectedProviders.length === 0) {
+      return undefined;
+    }
 
     const regions = entries
+      .filter(
+        ([countryCode]) =>
+          selectedCountries === null || selectedCountries.includes(countryCode),
+      )
       .map(([countryCode, services]) => ({
         countryCode,
-        providerIds: selected
+        providerIds: selectedProviders
           ? services
               .map((s) => s.providerId)
-              .filter((id) => selected.includes(id))
+              .filter((id) => selectedProviders.includes(id))
           : services.map((s) => s.providerId),
       }))
       .filter((region) => region.providerIds.length > 0);

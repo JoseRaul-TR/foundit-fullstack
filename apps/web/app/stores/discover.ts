@@ -13,6 +13,7 @@ export interface DiscoverFiltersState {
   sort: DiscoverSort;
   movieAgeRatingMax: string | null;
   seriesAgeRatingMax: string | null;
+  selectedCountryCodes: string[] | null;
   selectedProviderIds: number[] | null;
   excludeWatched: boolean;
 }
@@ -40,6 +41,7 @@ function emptyFilters(): DiscoverFiltersState {
     sort: "popularity",
     movieAgeRatingMax: null,
     seriesAgeRatingMax: null,
+    selectedCountryCodes: null,
     selectedProviderIds: null,
     excludeWatched: DEFAULT_EXCLUDE_WATCHED,
   };
@@ -61,6 +63,7 @@ export const useDiscoverStore = defineStore("discover", {
       state.filters.minRating !== null ||
       state.filters.movieAgeRatingMax !== null ||
       state.filters.seriesAgeRatingMax !== null ||
+      state.filters.selectedCountryCodes !== null ||
       state.filters.selectedProviderIds !== null ||
       state.filters.excludeWatched !== DEFAULT_EXCLUDE_WATCHED,
   },
@@ -77,8 +80,8 @@ export const useDiscoverStore = defineStore("discover", {
     // { ...localFilters }` -- looks harmless but isn't: spreading reads every
     // property through the proxy, and Vue hands back nested values already
     // wrapped in their own proxies. The result is plain at the top level with
-    // Proxy instances inside `genres` and `selectedProviderIds`, which makes a
-    // later structuredClone throw "Proxy object could not be cloned".
+    // Proxy instances in every nested array, which makes a later
+    // structuredClone throw "Proxy object could not be cloned".
     //
     // Cloning the raw object keeps this state plain, and incidentally stops
     // the caller from sharing nested references with the store.

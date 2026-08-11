@@ -72,11 +72,60 @@
         class="accent-brand"
       />
     </label>
+    <div v-if="availableCountries.length" class="flex flex-col gap-1.5">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-semibold text-secondary">{{
+          $t("discover.filters.country")
+        }}</span>
+        <button
+          type="button"
+          class="text-xs font-medium text-accent hover:underline"
+          @click="toggleAllCountries"
+        >
+          {{
+            allCountriesSelected
+              ? $t("discover.filters.deselectAll")
+              : $t("discover.filters.selectAll")
+          }}
+        </button>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="country in availableCountries"
+          :key="country.code"
+          type="button"
+          class="rounded-full px-3 py-1.5 text-xs font-medium transition"
+          :class="
+            isCountrySelected(country.code)
+              ? 'bg-brand text-page'
+              : 'border border-border text-secondary hover:text-primary'
+          "
+          @click="toggleCountry(country.code)"
+        >
+          {{ country.name }}
+        </button>
+      </div>
+    </div>
 
     <div class="flex flex-col gap-1.5">
-      <span class="text-xs font-semibold text-secondary">{{
-        $t("discover.filters.platform")
-      }}</span>
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-semibold text-secondary">{{
+          $t("discover.filters.platform")
+        }}</span>
+        <button
+          v-if="allSubscribedProviders.length"
+          type="button"
+          class="text-xs font-medium text-accent hover:underline"
+          @click="toggleAllProviders"
+        >
+          {{
+            allProvidersSelected
+              ? $t("discover.filters.deselectAll")
+              : $t("discover.filters.selectAll")
+          }}
+        </button>
+      </div>
+
       <div v-if="allSubscribedProviders.length" class="flex flex-wrap gap-2">
         <button
           v-for="provider in allSubscribedProviders"
@@ -93,6 +142,9 @@
           {{ provider.name }}
         </button>
       </div>
+      <p v-else-if="availableCountries.length" class="text-xs text-secondary">
+        {{ $t("discover.filters.selectCountryForPlatforms") }}
+      </p>
       <NuxtLink
         v-else
         :to="localePath('/profile')"
@@ -217,12 +269,45 @@ const { certifications: seriesCertifications } = useCertifications(
   ageRatingCountryRef,
 );
 
-// Flat, deduplicated by providerId across every configured country --
-// a compact sidebar panel isn't the place for per-country grouping
-// (that stays in /profile's ServiceSelector).
+const availableCountries = computed(() => {
+  const withServices = new Set(Object.keys(profileStore.subscribedServices));
+  return profileStore.countries.filter((c) => withServices.has(c.code));
+});
+
+const effectiveSelectedCountryCodes = computed(
+  () =>
+    localFilters.selectedCountryCodes ??
+    availableCountries.value.map((c) => c.code),
+);
+
+function isCountrySelected(code: string): boolean {
+  return effectiveSelectedCountryCodes.value.includes(code);
+}
+
+function toggleCountry(code: string) {
+  const next = new Set(effectiveSelectedCountryCodes.value);
+  if (next.has(code)) next.delete(code);
+  else next.add(code);
+  localFilters.selectedCountryCodes = [...next];
+}
+
+const allCountriesSelected = computed(() =>
+  availableCountries.value.every((c) => isCountrySelected(c.code)),
+);
+
+function toggleAllCountries() {
+  localFilters.selectedCountryCodes = allCountriesSelected.value ? [] : null;
+}
+
+// Providers refine the chosen countries, so the list only offers what those
+// countries actually carry. Deselecting a country removes its exclusive
+// platforms from the panel rather than leaving controls that do nothing.
 const allSubscribedProviders = computed(() => {
   const byId = new Map<number, string>();
-  for (const services of Object.values(profileStore.subscribedServices)) {
+  for (const [countryCode, services] of Object.entries(
+    profileStore.subscribedServices,
+  )) {
+    if (!effectiveSelectedCountryCodes.value.includes(countryCode)) continue;
     for (const s of services) {
       if (!byId.has(s.providerId)) byId.set(s.providerId, s.name);
     }
@@ -251,6 +336,14 @@ function toggleProvider(providerId: number) {
   if (next.has(providerId)) next.delete(providerId);
   else next.add(providerId);
   localFilters.selectedProviderIds = [...next];
+}
+
+const allProvidersSelected = computed(() =>
+  allSubscribedProviders.value.every((p) => isProviderSelected(p.providerId)),
+);
+
+function toggleAllProviders() {
+  localFilters.selectedProviderIds = allProvidersSelected.value ? [] : null;
 }
 
 const hasActiveFilters = computed(() => discover.hasActiveFilters.value);
