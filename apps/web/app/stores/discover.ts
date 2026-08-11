@@ -88,5 +88,15 @@ export const useDiscoverStore = defineStore("discover", {
     setFilters(filters: DiscoverFiltersState) {
       this.filters = structuredClone(toRaw(filters));
     },
+    // Genres and age rating belong to one media type. TMDB numbers them
+    // differently -- "Action" is 28 for film while television has "Action &
+    // Adventure" at 10759 -- so carrying a selection across tabs would filter
+    // by identifiers that mean nothing in the other catalogue. Year, rating,
+    // platforms and countries are type-agnostic and survive the switch.
+    clearTypeSpecificFilters() {
+      this.filters.genres = [];
+      this.filters.movieAgeRatingMax = null;
+      this.filters.seriesAgeRatingMax = null;
+    },
   },
 });

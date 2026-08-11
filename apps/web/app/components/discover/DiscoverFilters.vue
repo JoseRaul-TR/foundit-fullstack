@@ -1,4 +1,3 @@
-<!-- apps/web/app/components/discover/DiscoverFilters.vue -->
 <template>
   <div
     class="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-4 sm:p-5"
@@ -21,7 +20,7 @@
       }}</span>
       <div class="flex flex-wrap gap-2">
         <button
-          v-for="genre in movieGenres"
+          v-for="genre in genres"
           :key="genre.id"
           type="button"
           class="rounded-full px-3 py-1.5 text-xs font-medium transition"
@@ -72,6 +71,7 @@
         class="accent-brand"
       />
     </label>
+
     <div v-if="availableCountries.length" class="flex flex-col gap-1.5">
       <div class="flex items-center justify-between gap-2">
         <span class="text-xs font-semibold text-secondary">{{
@@ -154,44 +154,25 @@
       </NuxtLink>
     </div>
 
-    <div v-if="profileStore.ageRatingCountry" class="grid grid-cols-2 gap-3">
-      <label class="flex flex-col gap-1 text-xs font-semibold text-secondary">
-        {{ $t("discover.filters.ageRating") }} ({{
-          $t("common.mediaType.movie")
-        }})
-        <select
-          v-model="localFilters.movieAgeRatingMax"
-          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
+    <label
+      v-if="profileStore.ageRatingCountry"
+      class="flex flex-col gap-1.5 text-xs font-semibold text-secondary"
+    >
+      {{ $t("discover.filters.ageRating") }}
+      <select
+        v-model="ageRatingMax"
+        class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
+      >
+        <option :value="null">—</option>
+        <option
+          v-for="cert in certifications"
+          :key="cert.certification"
+          :value="cert.certification"
         >
-          <option :value="null">—</option>
-          <option
-            v-for="cert in movieCertifications"
-            :key="cert.certification"
-            :value="cert.certification"
-          >
-            {{ cert.certification }}
-          </option>
-        </select>
-      </label>
-      <label class="flex flex-col gap-1 text-xs font-semibold text-secondary">
-        {{ $t("discover.filters.ageRating") }} ({{
-          $t("common.mediaType.series")
-        }})
-        <select
-          v-model="localFilters.seriesAgeRatingMax"
-          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm text-primary"
-        >
-          <option :value="null">—</option>
-          <option
-            v-for="cert in seriesCertifications"
-            :key="cert.certification"
-            :value="cert.certification"
-          >
-            {{ cert.certification }}
-          </option>
-        </select>
-      </label>
-    </div>
+          {{ cert.certification }}
+        </option>
+      </select>
+    </label>
     <p v-else class="text-xs text-secondary">
       <NuxtLink
         :to="localePath('/profile')"
@@ -240,7 +221,6 @@
 const store = useDiscoverStore();
 const profileStore = useProfileStore();
 const discover = useDiscover();
-const { movieGenres } = useGenres();
 const localePath = useLocalePath();
 
 const currentYear = new Date().getFullYear();
@@ -257,6 +237,18 @@ watch(
   { deep: true },
 );
 
+const { movieGenres, seriesGenres } = useGenres();
+
+// The genre catalogue follows the active tab. Until the tabs existed this
+// always used movieGenres and applied them to both sections -- so filtering
+// series by genre sent identifiers that catalogue doesn't have, and quietly
+// returned nothing.
+const genres = computed(() =>
+  discover.activeMediaType.value === "movies"
+    ? movieGenres.value
+    : seriesGenres.value,
+);
+
 const ageRatingCountryRef = computed(() => profileStore.ageRatingCountry);
 const { certifications: movieCertifications } = useCertifications(
   "movie",
@@ -266,6 +258,28 @@ const { certifications: seriesCertifications } = useCertifications(
   "series",
   ageRatingCountryRef,
 );
+
+// One control instead of two. The store keeps a field per media type so a value
+// survives if the user comes back, but only the active one is shown or sent.
+const certifications = computed(() =>
+  discover.activeMediaType.value === "movies"
+    ? movieCertifications.value
+    : seriesCertifications.value,
+);
+
+const ageRatingMax = computed({
+  get: () =>
+    discover.activeMediaType.value === "movies"
+      ? localFilters.movieAgeRatingMax
+      : localFilters.seriesAgeRatingMax,
+  set: (value: string | null) => {
+    if (discover.activeMediaType.value === "movies") {
+      localFilters.movieAgeRatingMax = value;
+    } else {
+      localFilters.seriesAgeRatingMax = value;
+    }
+  },
+});
 
 const { countryName, sortByCountryName } = useCountryName();
 

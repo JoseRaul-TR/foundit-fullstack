@@ -42,6 +42,7 @@ const discover = useDiscover();
 const { data: profile } = useDiscoverProfile();
 const route = useRoute();
 const localePath = useLocalePath();
+const store = useDiscoverStore();
 
 const tabs = [
   { type: "movies", urlValue: "movie", labelKey: "discover.typeTabs.movie" },
@@ -77,11 +78,23 @@ function selectTab(urlValue: string) {
   );
 }
 
+// Tracked by hand rather than read from the watcher's previous value: on the
+// immediate run there isn't one, and relying on watcher creation order to get
+// the clearing to happen before the fetch is the kind of assumption that cost
+// us an afternoon earlier.
+let lastLoadedType: DiscoverMediaType | null = null;
+
 onMounted(() => {
   watch(
     [profile, discover.activeMediaType],
     ([value]) => {
-      if (value) void discover.ensureActiveLoaded();
+      if (!value) return;
+      const type = discover.activeMediaType.value;
+      if (lastLoadedType !== null && lastLoadedType !== type) {
+        store.clearTypeSpecificFilters();
+      }
+      lastLoadedType = type;
+      void discover.ensureActiveLoaded();
     },
     { immediate: true },
   );
