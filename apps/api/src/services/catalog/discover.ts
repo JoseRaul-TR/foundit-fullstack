@@ -385,7 +385,12 @@ async function loadWatchedMovieIds(userId: string): Promise<Set<number>> {
   return new Set(rows.map((r) => r.tmdbId));
 }
 
-/** tmdbId -> count of distinct watched seasons, for the fully-watched series check. */
+/**
+ * tmdbId -> count of distinct watched seasons, for the fully-watched series
+ * check. Season 0 is TMDB's specials bucket and is deliberately skipped:
+ * number_of_seasons doesn't include it, so counting it here inflates the total
+ * and would mark a series as finished while a real season is still unwatched.
+ */
 async function loadWatchedSeriesSeasonCounts(
   userId: string,
 ): Promise<Map<number, number>> {
@@ -395,7 +400,7 @@ async function loadWatchedSeriesSeasonCounts(
   });
   const counts = new Map<number, Set<number>>();
   for (const row of rows) {
-    if (row.seasonNumber === null) continue;
+    if (row.seasonNumber === null || row.seasonNumber === 0) continue;
     const set = counts.get(row.tmdbId) ?? new Set<number>();
     set.add(row.seasonNumber);
     counts.set(row.tmdbId, set);
