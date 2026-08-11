@@ -102,7 +102,7 @@
           "
           @click="toggleCountry(country.code)"
         >
-          {{ country.name }}
+          {{ countryName(country.code, country.name) }}
         </button>
       </div>
     </div>
@@ -237,8 +237,6 @@
 </template>
 
 <script setup lang="ts">
-import { useDiscoverStore, type DiscoverFiltersState } from "~/stores/discover";
-
 const store = useDiscoverStore();
 const profileStore = useProfileStore();
 const discover = useDiscover();
@@ -269,9 +267,14 @@ const { certifications: seriesCertifications } = useCertifications(
   ageRatingCountryRef,
 );
 
+const { countryName, sortByCountryName } = useCountryName();
+
 const availableCountries = computed(() => {
   const withServices = new Set(Object.keys(profileStore.subscribedServices));
-  return profileStore.countries.filter((c) => withServices.has(c.code));
+  return sortByCountryName(
+    profileStore.countries.filter((c) => withServices.has(c.code)),
+    (c) => c.code,
+  );
 });
 
 const effectiveSelectedCountryCodes = computed(

@@ -187,11 +187,22 @@ async function saveName() {
   toast.success(t("feedback.profileName.success"));
 }
 
+const { countryName: displayCountryName, sortByCountryName } = useCountryName();
+
+// Sorted by translated name rather than by when the user added them, so this
+// reads like every other country list in the app -- and reorders itself when
+// the language changes.
 const selectedCountryCodes = computed(() =>
-  profileStore.countries.map((c) => c.code),
+  sortByCountryName(profileStore.countries, (c) => c.code).map((c) => c.code),
 );
+
+// The API's country list comes from TMDB and is English-only, so its name is
+// only a fallback here — for a code Intl doesn't recognise.
 function countryName(code: string): string {
-  return countriesQuery.data.value?.find((c) => c.code === code)?.name ?? code;
+  return displayCountryName(
+    code,
+    countriesQuery.data.value?.find((c) => c.code === code)?.name,
+  );
 }
 
 const { mutateAsync: addCountry, isPending: addingCountry } =

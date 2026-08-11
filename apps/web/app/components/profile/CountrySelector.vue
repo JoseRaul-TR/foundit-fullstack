@@ -6,12 +6,12 @@
       :key="code"
       class="flex items-center gap-1.5 rounded-full bg-surface-elevated px-3 py-1.5 text-xs text-primary"
     >
-      {{ flagEmoji(code) }} {{ countryName(code) }}
+      {{ nameFor(code) }}
       <button
         type="button"
         class="text-secondary hover:text-primary disabled:opacity-50"
         :disabled="disabled"
-        :aria-label="`${$t('common.delete')} ${countryName(code)}`"
+        :aria-label="`${$t('common.delete')} ${nameFor(code)}`"
         @click="remove(code)"
       >
         ✕
@@ -50,7 +50,7 @@
             class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-primary hover:bg-page"
             @click="select(country.code)"
           >
-            {{ flagEmoji(country.code) }} {{ country.name }}
+            {{ nameFor(country.code, country.name) }}
           </button>
         </li>
         <li
@@ -83,26 +83,36 @@ useClickOutside(wrapperRef, () => {
   open.value = false;
 });
 
-function countryName(code: string): string {
-  return props.countries.find((c) => c.code === code)?.name ?? code;
-}
+const { countryName, sortByCountryName } = useCountryName();
 
-// ISO 3166-1 alpha-2 -> regional indicator flag emoji.
-function flagEmoji(code: string): string {
-  return code
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
+function nameFor(code: string, fallback?: string): string {
+  return countryName(
+    code,
+    fallback ?? props.countries.find((c) => c.code === code)?.name,
+  );
 }
 
 const availableCountries = computed(() =>
-  props.countries.filter((c) => !props.modelValue.includes(c.code)),
+  sortByCountryName(
+    props.countries.filter((c) => !props.modelValue.includes(c.code)),
+    (c) => c.code,
+  ),
 );
 
+// Diacritics are stripped on both sides so "Espana" finds España and "Aland"
+// finds Åland — otherwise the search punishes anyone not typing the accents.
+function normalize(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
 const filteredCountries = computed(() => {
-  const query = search.value.trim().toLowerCase();
+  const query = normalize(search.value.trim());
   if (!query) return availableCountries.value;
   return availableCountries.value.filter((c) =>
-    c.name.toLowerCase().includes(query),
+    normalize(nameFor(c.code, c.name)).includes(query),
   );
 });
 
