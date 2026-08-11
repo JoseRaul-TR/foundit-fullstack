@@ -70,6 +70,7 @@
       "sortBy": "Sortera efter",
       "apply": "Använd filter",
       "clear": "Rensa filter",
+      "excludeWatched": "Dölj det jag redan sett",
       "sort": {
         "popularity": "Popularitet",
         "rating": "Betyg",

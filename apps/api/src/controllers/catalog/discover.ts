@@ -71,7 +71,10 @@ const baseQuerySchema = z.object({
   sort: z
     .enum(["popularity", "rating", "release_date", "title"])
     .default("popularity"),
-  excludeWatched: z.coerce.boolean().default(true),
+  excludeWatched: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => value === "true"),
   lang: z.string().optional(),
   page: z.coerce.number().int().min(1).max(500).default(1),
 });

@@ -76,6 +76,7 @@ export function useDiscover() {
           minRating: store.filters.minRating ?? undefined,
           regions: buildRegionsParam(),
           ...buildAgeRatingParams(mediaType),
+          excludeWatched: store.filters.excludeWatched,
         },
       });
 

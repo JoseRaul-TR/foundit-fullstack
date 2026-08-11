@@ -70,6 +70,7 @@
       "sortBy": "Ordenar por",
       "apply": "Aplicar filtros",
       "clear": "Borrar filtros",
+      "excludeWatched": "Ocultar lo que ya he visto",
       "sort": {
         "popularity": "Popularidad",
         "rating": "Puntuación",

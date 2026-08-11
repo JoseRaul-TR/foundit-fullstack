@@ -14,6 +14,7 @@ export interface DiscoverFiltersState {
   movieAgeRatingMax: string | null;
   seriesAgeRatingMax: string | null;
   selectedProviderIds: number[] | null;
+  excludeWatched: boolean;
 }
 
 interface SectionState {
@@ -28,6 +29,8 @@ function emptySection(): SectionState {
   return { results: [], page: 1, totalPages: 1, loading: false, error: null };
 }
 
+const DEFAULT_EXCLUDE_WATCHED = true;
+
 function emptyFilters(): DiscoverFiltersState {
   return {
     genres: [],
@@ -38,6 +41,7 @@ function emptyFilters(): DiscoverFiltersState {
     movieAgeRatingMax: null,
     seriesAgeRatingMax: null,
     selectedProviderIds: null,
+    excludeWatched: DEFAULT_EXCLUDE_WATCHED,
   };
 }
 
@@ -57,7 +61,8 @@ export const useDiscoverStore = defineStore("discover", {
       state.filters.minRating !== null ||
       state.filters.movieAgeRatingMax !== null ||
       state.filters.seriesAgeRatingMax !== null ||
-      state.filters.selectedProviderIds !== null,
+      state.filters.selectedProviderIds !== null ||
+      state.filters.excludeWatched !== DEFAULT_EXCLUDE_WATCHED,
   },
   actions: {
     resetSection(section: "movies" | "series") {

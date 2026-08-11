@@ -165,6 +165,15 @@
       </select>
     </label>
 
+    <label class="flex items-center gap-2 text-xs font-semibold text-secondary">
+      <input
+        v-model="localFilters.excludeWatched"
+        type="checkbox"
+        class="accent-brand"
+      />
+      {{ $t("discover.filters.excludeWatched") }}
+    </label>
+
     <button
       type="button"
       class="rounded-full bg-brand px-4 py-2 text-sm font-bold text-page transition hover:brightness-110"
