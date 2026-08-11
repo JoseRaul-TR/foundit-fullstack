@@ -4,22 +4,12 @@
     <h1 class="text-xl font-bold text-primary">{{ $t("watchlist.title") }}</h1>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex gap-1.5 rounded-full bg-surface-elevated p-1">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition"
-          :class="
-            filterType === tab.value
-              ? 'bg-brand text-page'
-              : 'text-secondary hover:text-primary'
-          "
-          @click="filterType = tab.value"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
+      <SegmentedControl
+        v-model="filterType"
+        :options="tabs"
+        size="sm"
+        :aria-label="$t('common.filterByType')"
+      />
 
       <label class="flex items-center gap-2 text-xs font-medium text-secondary">
         {{ $t("watchlist.sortBy.label") }}
@@ -101,7 +91,6 @@
 </template>
 
 <script setup lang="ts">
-import MediaCard from "~/components/media/MediaCard.vue";
 import type { WatchlistItemResponse } from "@foundit/types";
 
 definePageMeta({ middleware: "authenticated" });

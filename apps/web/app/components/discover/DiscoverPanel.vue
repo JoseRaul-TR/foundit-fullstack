@@ -2,9 +2,9 @@
 <template>
   <div class="mt-10 flex w-full min-w-0 max-w-6xl flex-col gap-6 px-4">
     <!-- SectionHeadingRow (wireframe 46:169): title with the filter gear beside
-         it. The type pills sit at the far end, mirroring SearchTypeFilter on
-         the search results row. Wraps on narrow screens so the pills drop to
-         their own line instead of squeezing the title. -->
+         it. The type selector sits at the far end, mirroring the search
+         results row. Wraps on narrow screens so the selector drops to its own
+         line instead of squeezing the title. -->
     <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div class="flex items-center gap-1">
         <h2 class="text-lg font-bold text-primary">
@@ -13,25 +13,12 @@
         <DiscoverFilterButton />
       </div>
 
-      <div class="flex items-center gap-2">
-        <button
-          v-for="tab in tabs"
-          :key="tab.type"
-          type="button"
-          class="whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-medium transition"
-          :class="
-            discover.activeMediaType.value === tab.type
-              ? 'bg-brand font-bold text-page'
-              : 'border border-border text-secondary hover:text-primary'
-          "
-          :aria-current="
-            discover.activeMediaType.value === tab.type ? 'true' : undefined
-          "
-          @click="selectTab(tab.urlValue)"
-        >
-          {{ $t(tab.labelKey) }}
-        </button>
-      </div>
+      <SegmentedControl
+        :model-value="activeTabValue"
+        :options="tabOptions"
+        :aria-label="$t('common.filterByType')"
+        @update:model-value="selectTab"
+      />
     </div>
 
     <DiscoverSection
@@ -53,11 +40,20 @@ const { data: profile } = useDiscoverProfile();
 const route = useRoute();
 const localePath = useLocalePath();
 const store = useDiscoverStore();
+const { t } = useI18n();
 
-const tabs = [
-  { type: "movies", urlValue: "movie", labelKey: "discover.typeTabs.movie" },
-  { type: "series", urlValue: "series", labelKey: "discover.typeTabs.series" },
-] as const;
+// Singular in the URL to match the vocabulary search already uses there;
+// plural internally because that's what the store calls its sections.
+type DiscoverTabValue = "movie" | "series";
+
+const tabOptions = computed(() => [
+  { value: "movie" as DiscoverTabValue, label: t("discover.typeTabs.movie") },
+  { value: "series" as DiscoverTabValue, label: t("discover.typeTabs.series") },
+]);
+
+const activeTabValue = computed<DiscoverTabValue>(() =>
+  discover.activeMediaType.value === "movies" ? "movie" : "series",
+);
 
 const activeTitleKey = computed(() =>
   discover.activeMediaType.value === "movies"
@@ -82,7 +78,8 @@ const activeHasMore = computed(() =>
     ? discover.moviesHasMore.value
     : discover.seriesHasMore.value,
 );
-function selectTab(urlValue: string) {
+
+function selectTab(urlValue: DiscoverTabValue) {
   return navigateTo(
     localePath({ path: "/", query: { ...route.query, type: urlValue } }),
   );

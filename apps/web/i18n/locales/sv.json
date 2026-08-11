@@ -107,6 +107,7 @@
       "series": "Serie",
       "person": "Person"
     },
+    "filterByType": "Filtrera efter typ",
     "language": "Språk",
     "search": "Sök"
   },

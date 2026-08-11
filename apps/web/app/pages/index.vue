@@ -16,22 +16,13 @@
         <h2 class="text-lg font-bold text-primary">
           {{ $t("search.resultsTitle") }}
         </h2>
-        <div v-if="authStore.isAuthenticated" class="flex items-center gap-2">
-          <button
-            v-for="option in typeOptions"
-            :key="option.value"
-            type="button"
-            class="whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-medium transition"
-            :class="
-              searchType === option.value
-                ? 'bg-brand font-bold text-page'
-                : 'border border-border text-secondary hover:text-primary'
-            "
-            @click="changeType(option.value)"
-          >
-            {{ $t(option.labelKey) }}
-          </button>
-        </div>
+        <SegmentedControl
+          v-if="authStore.isAuthenticated"
+          :model-value="searchType"
+          :options="typeOptions"
+          :aria-label="$t('common.filterByType')"
+          @update:model-value="changeType"
+        />
       </div>
 
       <div
@@ -97,6 +88,15 @@ import type { SearchType } from "~/stores/search";
 const { public: publicConfig } = useRuntimeConfig();
 const appName = publicConfig.appName;
 
+const { t } = useI18n();
+
+const typeOptions = computed(() => [
+  { value: "multi" as SearchType, label: t("search.typeTabs.all") },
+  { value: "movie" as SearchType, label: t("search.typeTabs.movie") },
+  { value: "series" as SearchType, label: t("search.typeTabs.series") },
+  { value: "person" as SearchType, label: t("search.typeTabs.person") },
+]);
+
 const route = useRoute();
 const authStore = useAuthStore();
 
@@ -127,13 +127,6 @@ await useAsyncData(
   () => loadFromQuery(routeQuery.value, routeType.value),
   { watch: [routeQuery, routeType] },
 );
-
-const typeOptions: { value: SearchType; labelKey: string }[] = [
-  { value: "multi", labelKey: "search.typeTabs.all" },
-  { value: "movie", labelKey: "search.typeTabs.movie" },
-  { value: "series", labelKey: "search.typeTabs.series" },
-  { value: "person", labelKey: "search.typeTabs.person" },
-];
 
 function changeType(type: SearchType) {
   if (routeQuery.value.trim().length >= 3) {

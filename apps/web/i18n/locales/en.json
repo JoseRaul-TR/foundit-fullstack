@@ -107,6 +107,7 @@
       "series": "Series",
       "person": "Person"
     },
+    "filterByType": "Filter by type",
     "language": "Language",
     "search": "Search"
   },
