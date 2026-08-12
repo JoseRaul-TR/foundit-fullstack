@@ -110,6 +110,7 @@
     "filterByType": "Filtrera efter typ",
     "language": "Språk",
     "search": "Sök",
+    "clearSearch": "Rensa sökningen",
     "scrollPrevious": "Föregående",
     "scrollNext": "Nästa"
   },

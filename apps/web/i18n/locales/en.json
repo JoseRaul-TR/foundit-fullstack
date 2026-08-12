@@ -110,6 +110,7 @@
     "filterByType": "Filter by type",
     "language": "Language",
     "search": "Search",
+    "clearSearch": "Clear search",
     "scrollPrevious": "Previous",
     "scrollNext": "Next"
   },
