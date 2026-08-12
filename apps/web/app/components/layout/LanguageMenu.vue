@@ -1,7 +1,7 @@
 <!-- apps/web/app/components/layout/LanguageMenu.vue -->
 <template>
   <div
-    class="w-40 rounded-xl border border-border bg-surface-elevated p-1.5 shadow-xl"
+    class="rounded-xl border border-border bg-surface-elevated p-1.5 shadow-xl"
   >
     <button
       v-for="option in options"
