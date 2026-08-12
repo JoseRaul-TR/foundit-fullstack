@@ -8,19 +8,21 @@
     <button
       v-if="canScrollLeft"
       type="button"
-      class="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-accent/55 text-primary backdrop-blur-sm transition hover:bg-accent/70"
+      class="absolute left-1 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-page/80 text-primary shadow-lg ring-1 ring-inset ring-white/10 backdrop-blur-md transition hover:bg-page sm:flex"
+      :aria-label="$t('common.scrollPrevious')"
       @click="scrollBy(-1)"
     >
       <svg
-        class="h-[18px] w-[18px]"
+        class="h-5 w-5"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="2.5"
       >
         <path d="M15 18l-6-6 6-6" />
       </svg>
     </button>
+
     <div
       ref="scrollerRef"
       class="-mx-5 flex gap-4 overflow-x-auto scroll-smooth px-5 pb-1 sm:-mx-8 sm:px-8 lg:mx-0 lg:px-0"
@@ -37,18 +39,20 @@
         }}</span>
       </div>
     </div>
+
     <button
       v-if="canScrollRight"
       type="button"
-      class="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-accent/55 text-primary backdrop-blur-sm transition hover:bg-accent/70"
+      class="absolute right-1 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-page/80 text-primary shadow-lg ring-1 ring-inset ring-white/10 backdrop-blur-md transition hover:bg-page sm:flex"
+      :aria-label="$t('common.scrollNext')"
       @click="scrollBy(1)"
     >
       <svg
-        class="h-[18px] w-[18px]"
+        class="h-5 w-5"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="2.5"
       >
         <path d="M9 6l6 6-6 6" />
       </svg>
@@ -79,10 +83,16 @@ function scrollBy(direction: 1 | -1) {
 }
 
 let observer: IntersectionObserver | null = null;
+let resizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
   updateScrollState();
-  window.addEventListener("resize", updateScrollState);
+
+  // Same reason as in HorizontalScrollRow: the window isn't what changes.
+  // Watching the element itself also catches the card widths changing at a
+  // breakpoint, which a window listener only sees by coincidence.
+  resizeObserver = new ResizeObserver(() => updateScrollState());
+  if (scrollerRef.value) resizeObserver.observe(scrollerRef.value);
 
   observer = new IntersectionObserver(
     (entries) => {
@@ -95,13 +105,15 @@ onMounted(() => {
       // Only the right edge matters: the sentinel sits at the end of the row
       // and we want it to announce itself before the user reaches it.
       //
-      // 300px was under two cards' width, which was invisible until the
-      // carousel started clipping properly. Before that the scroller had no
-      // overflow, so the sentinel intersected permanently and every page
-      // loaded at once -- eager loading wearing lazy loading's clothes. Now
-      // the observer works as intended and the margin has to cover the round
-      // trip to TMDB at swiping speed.
-      rootMargin: "0px 1200px 0px 0px",
+      // Proportional rather than a fixed number, because a card is now a
+      // fraction of the viewport: 1200px was seven cards of 160px, and only
+      // four and a half once a card became a grid column. Two and a half
+      // screens of runway keeps the same feel at any size — the fixed figure
+      // silently got tighter the moment the cards grew.
+      //
+      // Read once, at observer creation: resizing the window afterwards does
+      // not recompute it. Acceptable, since the margin is generous either way.
+      rootMargin: `0px ${Math.round((scrollerRef.value?.clientWidth ?? 0) * 2.5)}px 0px 0px`,
     },
   );
 
@@ -116,7 +128,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", updateScrollState);
   observer?.disconnect();
+  resizeObserver?.disconnect();
 });
 </script>

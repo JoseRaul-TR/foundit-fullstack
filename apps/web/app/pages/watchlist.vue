@@ -82,28 +82,18 @@
         :subscribed="item.highlight.available"
         :provider="item.highlight.services[0]?.name ?? null"
         :new-season="item.newSeasonsAvailable ?? false"
-        removable
-        :removing="isRemoving(item)"
-        @remove="handleRemove(item)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { WatchlistItemResponse } from "@foundit/types";
-
 definePageMeta({ middleware: "authenticated" });
 
 const { t } = useI18n();
 const localePath = useLocalePath();
 
 const query = useWatchlistQuery();
-const {
-  mutate: removeItem,
-  variables: removingVariables,
-  isPending: removePending,
-} = useRemoveFromWatchlistMutation();
 
 const filterType = ref<"all" | "movie" | "series">("all");
 const sortBy = ref<"added" | "title" | "year">("added");
@@ -133,16 +123,4 @@ const filteredSorted = computed(() => {
   }
   return sorted;
 });
-
-function isRemoving(item: WatchlistItemResponse): boolean {
-  return (
-    removePending.value &&
-    removingVariables.value?.tmdbId === item.tmdbId &&
-    removingVariables.value?.mediaType === item.mediaType
-  );
-}
-
-function handleRemove(item: WatchlistItemResponse) {
-  removeItem({ tmdbId: item.tmdbId, mediaType: item.mediaType });
-}
 </script>

@@ -1,3 +1,4 @@
+<!-- apps/web/app/components/media/ProvidersSection.vue -->
 <!--
 Note: Rent/buy are NEVER highlighted as "subscribed" even if the backend
 might mark them -- Figma is explicit: "pay-per-item, not account-based".

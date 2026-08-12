@@ -109,7 +109,9 @@
     },
     "filterByType": "Filtrera efter typ",
     "language": "Språk",
-    "search": "Sök"
+    "search": "Sök",
+    "scrollPrevious": "Föregående",
+    "scrollNext": "Nästa"
   },
   "mediaDetail": {
     "addToWatchlist": "Lägg till i min lista",
@@ -138,7 +140,7 @@
     "seasons": "Säsonger",
     "seasonLabel": "Säsong {number} · {count} avsnitt",
     "markSeasonWatched": "Markera sedd",
-    "newSeason": "NY",
+    "newSeason": "Ny säsong",
     "newSeasonAvailable": "Ny säsong tillgänglig på {services}",
     "firstAired": "Premiär {year}",
     "seasonsCount": "{count} säsonger",

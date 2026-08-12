@@ -105,11 +105,11 @@
       v-if="credits.primary.length"
       :title="$t('mediaDetail.filmographyAs', { role: departmentLabel })"
     >
-      <div class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
+      <HorizontalScrollRow>
         <div
           v-for="item in credits.primary"
           :key="`${item.mediaType}-${item.id}`"
-          class="w-[160px] shrink-0"
+          class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
         >
           <MediaCard
             :id="item.id"
@@ -123,18 +123,18 @@
             {{ item.roleLabels.join(", ") }}
           </p>
         </div>
-      </div>
+      </HorizontalScrollRow>
     </CollapsableSection>
 
     <CollapsableSection
       v-if="credits.other.length"
       :title="$t('mediaDetail.filmographyOther')"
     >
-      <div class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
+      <HorizontalScrollRow>
         <div
           v-for="item in credits.other"
           :key="`${item.mediaType}-${item.id}`"
-          class="w-[160px] shrink-0"
+          class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
         >
           <MediaCard
             :id="item.id"
@@ -148,14 +148,13 @@
             {{ item.roleLabels.join(", ") }}
           </p>
         </div>
-      </div>
+      </HorizontalScrollRow>
     </CollapsableSection>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { PersonDetailResponse } from "@foundit/types";
-import CollapsableSection from "./CollapsableSection.vue";
 
 interface PersonCreditItem {
   id: number;

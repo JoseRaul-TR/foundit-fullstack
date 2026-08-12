@@ -1,3 +1,13 @@
+<!-- apps/web/app/components/media/MediaCard.vue -->
+<!-- Figma 2:196, with one deliberate departure: the wireframe lays the title
+     and meta over the poster behind a blur, and that was tried and rejected —
+     the text was unreadable over bright posters. The metadata sits below the
+     image instead, and only the three markers stay on top of it.
+
+     Overlay positions are fixed by meaning, not by availability: the bookmark
+     top right, the status marker top left, the platform bottom left. All of
+     them are authenticated-only, since nothing they report exists for a
+     visitor. -->
 <template>
   <div
     class="group flex w-full flex-col gap-2 text-left"
@@ -30,81 +40,89 @@
           <path d="M21 15l-5-5L5 21" />
         </svg>
       </div>
+
+      <!-- Top left: one marker at most. A series that is finished cannot have
+           a new season, and one that is up to date has nothing unwatched, so
+           the two can never both apply — no priority rule is needed beyond
+           the order of these branches. -->
+      <NewSeasonBadge v-if="showNewSeason" class="absolute left-2 top-2" />
       <span
-        v-if="subscribed && provider"
-        class="absolute left-2 top-2 rounded-full bg-success/90 px-2 py-1 text-[10px] font-bold text-page shadow"
+        v-else-if="showWatched"
+        class="absolute left-2 top-2 inline-flex h-8 items-center gap-1.5 rounded-full bg-page/35 bg-gradient-to-br from-primary/40 to-primary/10 px-3 text-[11px] font-bold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md"
       >
-        {{ provider }}
+        <svg
+          class="h-3.5 w-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+        {{ $t("mediaDetail.watched") }}
       </span>
-      <NewSeasonBadge
-        v-else-if="newSeason"
-        class="absolute left-2 top-2 shadow"
-      />
+
+      <!-- Top right: the bookmark. keydown is stopped as well as click, or
+           Enter on the button would bubble to the card and open the modal
+           behind the action the user just took. -->
       <button
-        v-if="removable"
+        v-if="showBookmark"
         type="button"
-        class="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-page/70 text-brand backdrop-blur-sm transition hover:brightness-110 disabled:opacity-50"
-        :disabled="removing"
-        :aria-label="$t('watchlist.remove')"
-        @click.stop="emit('remove')"
+        class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-page/35 bg-gradient-to-br from-brand/50 to-brand/15 text-brand shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md transition hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
+        :aria-label="
+          inWatchlist
+            ? $t('mediaDetail.inWatchlist')
+            : $t('mediaDetail.addToWatchlist')
+        "
+        :aria-pressed="inWatchlist"
+        :disabled="toggleWatchlist.isPending.value"
+        @click.stop="onToggleWatchlist"
+        @keydown.stop
       >
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+        <svg
+          class="h-[18px] w-[18px]"
+          viewBox="0 0 24 24"
+          :fill="inWatchlist ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        >
           <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
         </svg>
       </button>
+
+      <!-- Bottom left: where you can already watch it, on your own services. -->
       <span
-        v-else
-        class="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-page/70 text-primary backdrop-blur-sm"
+        v-if="showProvider"
+        class="absolute bottom-2 left-2 inline-flex h-8 max-w-[calc(100%-1rem)] items-center rounded-full bg-page/35 bg-gradient-to-br from-success/50 to-success/15 px-3 text-[11px] font-bold text-success shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md"
       >
-        <svg
-          v-if="mediaType === 'movie'"
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <path
-            d="M3 7l1.5-3h3L6 7M9.5 7l1-3h3l-1 3M15 7l1-3h3l-1.5 3M3 7h18v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7z"
-          />
-        </svg>
-        <svg
-          v-else-if="mediaType === 'series'"
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <rect x="3" y="6" width="18" height="12" rx="2" />
-          <path d="M8 21h8M12 18v3" />
-        </svg>
-        <svg
-          v-else
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <circle cx="12" cy="8" r="3.5" />
-          <path d="M5 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5" />
-        </svg>
+        {{ provider }}
       </span>
     </div>
+
     <div class="flex flex-col gap-0.5 px-0.5">
       <p class="truncate text-sm font-semibold text-primary">{{ title }}</p>
-      <p v-if="metaLine" class="truncate text-xs text-secondary">
-        {{ metaLine }}
+      <p class="truncate text-xs text-secondary">
+        <span v-if="year">{{ year }} · </span>
+        <span>{{ typeLabel }}</span>
+        <template v-if="ratingLabel">
+          <span> · </span>
+          <span class="font-bold text-brand">{{ ratingLabel }}</span>
+        </template>
       </p>
-      <p v-if="ratingLine" class="truncate text-xs text-secondary">
-        {{ ratingLine }}
+      <p v-if="genreLine" class="truncate text-xs text-secondary">
+        {{ genreLine }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { MediaType } from "@foundit/types";
+
 const props = defineProps<{
   id: number;
   mediaType: "movie" | "series" | "person";
@@ -116,34 +134,59 @@ const props = defineProps<{
   provider?: string | null;
   newSeason?: boolean;
   genres?: string[];
-  ageRating?: string | null;
-  removable?: boolean;
-  removing?: boolean;
 }>();
-const emit = defineEmits<{ remove: [] }>();
 
+const { t } = useI18n();
 const mediaModal = useMediaModal();
+const authStore = useAuthStore();
+const mediaState = useMediaState();
+const toggleWatchlist = useToggleWatchlistMutation();
+
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
 const posterUrl = computed(() =>
   props.posterPath ? `${TMDB_IMAGE_BASE}${props.posterPath}` : null,
 );
 
-const metaLine = computed(() => {
-  const parts: string[] = [];
-  if (props.year) parts.push(String(props.year));
-  if (props.genres?.length) parts.push(props.genres.slice(0, 2).join(", "));
-  return parts.join(" · ");
-});
+// People are not tracked: there is no list to add them to and nothing to mark
+// as seen.
+const trackable = computed(() => props.mediaType !== "person");
+const personalised = computed(
+  () => authStore.isAuthenticated && trackable.value,
+);
+
+const inWatchlist = computed(
+  () =>
+    personalised.value && mediaState.isInWatchlist(props.id, props.mediaType),
+);
+const showBookmark = computed(() => personalised.value);
+const showNewSeason = computed(() => personalised.value && !!props.newSeason);
+const showWatched = computed(
+  () => personalised.value && mediaState.isWatched(props.id, props.mediaType),
+);
+const showProvider = computed(
+  () => personalised.value && !!props.subscribed && !!props.provider,
+);
+
+function onToggleWatchlist() {
+  if (toggleWatchlist.isPending.value) return;
+  toggleWatchlist.mutate({
+    tmdbId: props.id,
+    mediaType: props.mediaType as MediaType,
+    add: !inWatchlist.value,
+  });
+}
+
+const typeLabel = computed(() => t(`common.mediaType.${props.mediaType}`));
 
 const hasRating = computed(
   () => props.tmdbRating !== null && props.tmdbRating > 0,
 );
+const ratingLabel = computed(() =>
+  hasRating.value && props.tmdbRating !== null
+    ? `★ ${props.tmdbRating.toFixed(1)}`
+    : "",
+);
 
-const ratingLine = computed(() => {
-  const parts: string[] = [];
-  if (props.ageRating) parts.push(props.ageRating);
-  if (hasRating.value) parts.push(`★ ${props.tmdbRating!.toFixed(1)}`);
-  return parts.join(" · ");
-});
+const genreLine = computed(() => props.genres?.slice(0, 3).join(" · ") ?? "");
 </script>

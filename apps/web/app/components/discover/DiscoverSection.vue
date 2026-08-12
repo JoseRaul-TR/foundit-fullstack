@@ -11,7 +11,7 @@
       <div
         v-for="n in 6"
         :key="n"
-        class="aspect-[255/383] w-[160px] shrink-0 animate-pulse rounded-[20px] bg-surface-elevated"
+        class="aspect-[255/383] w-[calc((100%-1rem)/2)] shrink-0 animate-pulse rounded-[20px] bg-surface-elevated sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
       />
     </div>
 
@@ -25,7 +25,16 @@
       :loading="loading"
       @load-more="$emit('load-more')"
     >
-      <div v-for="item in items" :key="item.id" class="w-[160px] shrink-0">
+      <!-- One column of the surrounding grid, computed the way the grid does
+           it: total width minus the gaps, divided by the column count. The
+           percentage resolves against the scroller's visible width, so the
+           carousel and the grids agree at every breakpoint without either
+           knowing about the other. -->
+      <div
+        v-for="item in items"
+        :key="item.id"
+        class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
+      >
         <MediaCard
           :id="item.id"
           :media-type="mediaType"

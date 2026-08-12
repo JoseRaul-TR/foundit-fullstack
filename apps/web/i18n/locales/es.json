@@ -109,7 +109,9 @@
     },
     "filterByType": "Filtrar por tipo",
     "language": "Idioma",
-    "search": "Buscar"
+    "search": "Buscar",
+    "scrollPrevious": "Anterior",
+    "scrollNext": "Siguiente"
   },
   "mediaDetail": {
     "addToWatchlist": "Añadir a mi lista",
@@ -138,7 +140,7 @@
     "seasons": "Temporadas",
     "seasonLabel": "Temporada {number} · {count} episodios",
     "markSeasonWatched": "Marcar visto",
-    "newSeason": "NUEVO",
+    "newSeason": "Nueva temporada",
     "newSeasonAvailable": "Nueva temporada disponible en {services}",
     "firstAired": "Estreno {year}",
     "seasonsCount": "{count} temporadas",

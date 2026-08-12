@@ -165,13 +165,11 @@
         <h3 class="text-base font-bold text-primary">
           {{ $t("mediaDetail.recommendations") }}
         </h3>
-        <div
-          class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8"
-        >
+        <HorizontalScrollRow>
           <div
             v-for="item in movie.recommendations"
             :key="`${item.mediaType}-${item.id}`"
-            class="w-[160px] shrink-0"
+            class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
           >
             <MediaCard
               :id="item.id"
@@ -187,7 +185,7 @@
               "
             />
           </div>
-        </div>
+        </HorizontalScrollRow>
       </section>
       <p
         v-else-if="!authStore.isAuthenticated"
@@ -200,9 +198,6 @@
 </template>
 
 <script setup lang="ts">
-import CollapsableSection from "./CollapsableSection.vue";
-import HorizontalScrollRow from "./HorizontalScrollRow.vue";
-
 const props = defineProps<{ id: number }>();
 
 const authStore = useAuthStore();
