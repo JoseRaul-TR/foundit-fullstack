@@ -38,12 +38,13 @@
       >
         <span>{{ $t("common.language") }}</span>
         <span class="flex items-center gap-1 text-secondary">
-          <span class="text-xs uppercase">{{ locale }}</span>
+          <span class="text-xs">{{ localeLabel(locale) }}</span>
           <!-- Points down while the panel is an accordion, right once it
                becomes a flyout, so the arrow always says where it will open. -->
           <span
             class="inline-block transition-transform"
             :class="languageMenuOpen ? 'rotate-90 sm:rotate-0' : ''"
+            aria-hidden="true"
             >›</span
           >
         </span>
@@ -73,7 +74,7 @@
 
 <script setup lang="ts">
 const authStore = useAuthStore();
-const { locale } = useLocale();
+const { locale, localeLabel } = useLocale();
 const localePath = useLocalePath();
 const { signOut } = useAuth();
 
