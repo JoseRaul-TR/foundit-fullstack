@@ -29,10 +29,14 @@ export function useSeasonWatchedAction(
         : apiFetch(`/api/v1/history/season/${tmdbShowId}/${seasonNumber}`, {
             method: "DELETE",
           }),
-    onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
-    },
+    // No onSuccess here on purpose. Invalidating per call meant a bulk change
+    // over eleven seasons refetched the entire history eleven times. The
+    // callers below invalidate once, when they're done.
   });
+
+  function invalidateHistory() {
+    return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+  }
 
   function isWatched(seasonNumber: number) {
     return watchedSeasons.value.has(seasonNumber);
@@ -54,8 +58,10 @@ export function useSeasonWatchedAction(
     }
     watchedSeasons.value = optimistic;
 
+    let completed = false;
     try {
       await mutation.mutateAsync({ seasonNumber, nextValue: !wasWatched });
+      completed = true;
     } catch (err) {
       const rollback = new Set(watchedSeasons.value);
       if (wasWatched) {
@@ -78,62 +84,82 @@ export function useSeasonWatchedAction(
       const donePending = new Set(pendingSeasons.value);
       donePending.delete(seasonNumber);
       pendingSeasons.value = donePending;
+      if (completed) await invalidateHistory();
     }
   }
 
   /**
-   * Marking a whole series lives here rather than in the component because the
-   * feedback has to be aggregate: calling toggle() in a loop produced one toast
-   * per season, so an eleven-season series reported a single failed intent
-   * eleven times.
+   * Marking or unmarking a whole series lives here rather than in the
+   * component because the feedback has to be aggregate: calling toggle() in a
+   * loop produced one toast per season, so an eleven-season series reported a
+   * single failed intent eleven times.
    *
-   * allSettled rather than all: Promise.all rejects on the first failure while
-   * the rest keep going, which would leave us rolling back seasons that
-   * actually succeeded. Here only the ones that failed revert.
-   *
-   * The requests still go out in parallel with no way to abort — see #145,
-   * where that's tracked separately. This function is where that would change.
+   * Sequential, and it stops at the first failure. In parallel an eleven-season
+   * series fired eleven requests at once, and an expired session answered all
+   * eleven with a 401 — each one independently clearing the session and asking
+   * for the same navigation. Stopping early also means a failure rolls back
+   * only what didn't happen, and leaves what did.
    */
-  async function markAllWatched(seasonNumbers: number[]) {
-    const target = seasonNumbers.filter((n) => !isWatched(n) && !isPending(n));
+  async function setAllWatched(seasonNumbers: number[], nextValue: boolean) {
+    const target = seasonNumbers.filter(
+      (n) => isWatched(n) !== nextValue && !isPending(n),
+    );
     if (target.length === 0) return;
 
     pendingSeasons.value = new Set([...pendingSeasons.value, ...target]);
     const optimistic = new Set(watchedSeasons.value);
-    for (const n of target) optimistic.add(n);
+    for (const n of target) {
+      if (nextValue) optimistic.add(n);
+      else optimistic.delete(n);
+    }
     watchedSeasons.value = optimistic;
 
+    const completed = new Set<number>();
+
     try {
-      const results = await Promise.allSettled(
-        target.map((seasonNumber) =>
-          mutation.mutateAsync({ seasonNumber, nextValue: true }),
-        ),
-      );
-
-      const failed: number[] = [];
-      let firstError: unknown;
-
-      results.forEach((result, index) => {
-        if (result.status !== "rejected") return;
-        const seasonNumber = target[index];
-        if (seasonNumber !== undefined) failed.push(seasonNumber);
-        firstError ??= result.reason;
-      });
-
-      if (failed.length === 0) return;
-
+      for (const seasonNumber of target) {
+        await mutation.mutateAsync({ seasonNumber, nextValue });
+        completed.add(seasonNumber);
+      }
+    } catch (err) {
       const rollback = new Set(watchedSeasons.value);
-      for (const n of failed) rollback.delete(n);
+      for (const n of target) {
+        if (completed.has(n)) continue;
+        if (nextValue) rollback.delete(n);
+        else rollback.add(n);
+      }
       watchedSeasons.value = rollback;
 
-      if (isUnauthorized(firstError)) return;
-      toast.error(t("feedback.season.allError"));
+      if (!isUnauthorized(err)) {
+        toast.error(
+          t(
+            nextValue
+              ? "feedback.season.allError"
+              : "feedback.season.allUnmarkError",
+          ),
+        );
+      }
     } finally {
       const donePending = new Set(pendingSeasons.value);
       for (const n of target) donePending.delete(n);
       pendingSeasons.value = donePending;
+      if (completed.size > 0) await invalidateHistory();
     }
   }
 
-  return { isWatched, isPending, toggle, markAllWatched };
+  function markAllWatched(seasonNumbers: number[]) {
+    return setAllWatched(seasonNumbers, true);
+  }
+
+  function unmarkAllWatched(seasonNumbers: number[]) {
+    return setAllWatched(seasonNumbers, false);
+  }
+
+  return {
+    isWatched,
+    isPending,
+    toggle,
+    markAllWatched,
+    unmarkAllWatched,
+  };
 }

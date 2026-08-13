@@ -122,6 +122,7 @@
     "yourRating": "Ditt betyg: {rating}/10",
     "loginToTrack": "Logga in för att spara till din lista och markera som sedd",
     "loginToTrackSeries": "Logga in för att spara till din lista och hålla koll på vilka säsonger du har sett",
+    "overview": "Handling",
     "noOverview": "Ingen sammanfattning tillgänglig.",
     "cast": "Skådespelare",
     "crew": "Team",
@@ -133,6 +134,13 @@
       "rent": "Hyra",
       "buy": "Köp"
     },
+    "directedBy": "Regi: {names}",
+    "createdBy": "Skapad av {names}",
+    "availableOn": "Tillgänglig på {services}",
+    "andMore": "+{count} till",
+    "markAllSeasonsWatched": "Markera alla säsonger",
+    "allSeasonsWatched": "Alla säsonger sedda",
+    "dialogLabel": "Titeldetaljer",
     "loginToSeeAvailability": "Logga in och ange dina plattformar för att se vad som är tillgängligt för dig",
     "noProviders": "Ingen streaminginformation tillgänglig för den här titeln än.",
     "recommendations": "Du kanske också gillar",
@@ -331,6 +339,7 @@
     "season": {
       "markError": "Kunde inte markera säsong {season} som sedd. Försök igen.",
       "unmarkError": "Kunde inte avmarkera säsong {season}. Försök igen.",
+      "allUnmarkError": "Kunde inte avmarkera alla säsonger. Försök igen.",
       "allError": "Kunde inte markera alla säsonger som sedda. Försök igen."
     },
     "rating": {

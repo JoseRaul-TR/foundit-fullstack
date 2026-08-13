@@ -14,17 +14,22 @@
     <p class="text-sm text-secondary">{{ $t("mediaDetail.loadError") }}</p>
   </div>
 
-  <div v-else class="flex flex-col gap-6 px-5 py-6 sm:px-8">
-    <div class="flex flex-col gap-4 sm:flex-row sm:gap-6">
+  <!-- pt-[52px] cancels the pull the modal applies so its header can float
+       over the backdrop. There's no backdrop here, so the space has to come
+       back — otherwise the name sits under the back and close buttons — and
+       then the hero keeps the same 16/24px gap the other two have below their
+       image. -->
+  <div v-else class="flex flex-col gap-6 px-5 pb-6 pt-[52px] sm:px-8">
+    <div class="mt-4 flex flex-col gap-4 sm:mt-6 sm:flex-row sm:gap-6">
       <img
         v-if="profileUrl"
         :src="profileUrl"
         :alt="person.name"
-        class="h-[210px] w-[140px] shrink-0 self-center rounded-xl object-cover shadow-lg sm:h-[300px] sm:w-[200px] sm:self-start"
+        class="h-[210px] w-[140px] shrink-0 self-center rounded-xl object-cover shadow-[0_8px_20px_rgba(0,0,0,0.5)] sm:h-[300px] sm:w-[200px] sm:self-start sm:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
       />
       <div
         v-else
-        class="grid h-[210px] w-[140px] shrink-0 place-items-center self-center rounded-xl bg-surface-elevated shadow-lg sm:h-[300px] sm:w-[200px] sm:self-start"
+        class="grid h-[210px] w-[140px] shrink-0 place-items-center self-center rounded-xl bg-surface-elevated shadow-[0_8px_20px_rgba(0,0,0,0.5)] sm:h-[300px] sm:w-[200px] sm:self-start sm:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
       >
         <svg
           class="h-16 w-16 text-border"
@@ -61,49 +66,20 @@
       </div>
     </div>
 
-    <section class="flex flex-col gap-2">
-      <h3 class="text-base font-bold text-primary">
-        {{ $t("mediaDetail.biography") }}
-      </h3>
+    <CollapsableSection
+      :title="$t('mediaDetail.biography')"
+      :collapsible="false"
+    >
       <p v-if="!person.biography" class="text-sm text-secondary">
         {{ $t("mediaDetail.noBiography") }}
       </p>
-      <template v-else>
-        <p class="text-sm leading-relaxed text-primary">{{ displayedBio }}</p>
-        <button
-          v-if="isBioLong"
-          type="button"
-          class="w-fit text-[13px] font-bold text-secondary transition hover:text-primary"
-          @click="bioExpanded = !bioExpanded"
-        >
-          {{
-            bioExpanded
-              ? $t("mediaDetail.readLess")
-              : $t("mediaDetail.readMore")
-          }}
-        </button>
-      </template>
-    </section>
-
-    <CollapsableSection
-      v-if="person.photos.length"
-      :title="$t('mediaDetail.photos')"
-    >
-      <div class="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
-        <img
-          v-for="(photo, index) in person.photos"
-          :key="index"
-          :src="`${TMDB_PROFILE_BASE}${photo.filePath}`"
-          :alt="person.name"
-          class="h-[213px] w-[160px] shrink-0 rounded-xl object-cover"
-          loading="lazy"
-        />
-      </div>
+      <ExpandableText v-else :text="person.biography" :limit="300" />
     </CollapsableSection>
 
     <CollapsableSection
       v-if="credits.primary.length"
       :title="$t('mediaDetail.filmographyAs', { role: departmentLabel })"
+      default-open
     >
       <HorizontalScrollRow>
         <div
@@ -149,6 +125,22 @@
           </p>
         </div>
       </HorizontalScrollRow>
+    </CollapsableSection>
+
+    <CollapsableSection
+      v-if="person.photos.length"
+      :title="$t('mediaDetail.photos')"
+    >
+      <div class="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
+        <img
+          v-for="(photo, index) in person.photos"
+          :key="index"
+          :src="`${TMDB_PROFILE_BASE}${photo.filePath}`"
+          :alt="person.name"
+          class="h-[213px] w-[160px] shrink-0 rounded-xl object-cover"
+          loading="lazy"
+        />
+      </div>
     </CollapsableSection>
   </div>
 </template>
@@ -266,7 +258,7 @@ function buildCredits(person: PersonDetailResponse) {
 
 const props = defineProps<{ id: number }>();
 
-const { t, te } = useI18n();
+const { t, te, locale } = useI18n();
 const { data: person, pending, error } = await usePersonDetail(props.id);
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
@@ -285,20 +277,8 @@ const departmentLabel = computed(() => {
   return te(key) ? t(key) : dep;
 });
 
-const BIO_TRUNCATE_LENGTH = 300;
-const bioExpanded = ref(false);
-const isBioLong = computed(
-  () => (person.value?.biography?.length ?? 0) > BIO_TRUNCATE_LENGTH,
-);
-const displayedBio = computed(() => {
-  const bio = person.value?.biography;
-  if (!bio) return "";
-  if (!isBioLong.value || bioExpanded.value) return bio;
-  return `${bio.slice(0, BIO_TRUNCATE_LENGTH).trimEnd()}…`;
-});
-
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString(undefined, {
+  return new Date(dateString).toLocaleDateString(locale.value, {
     year: "numeric",
     month: "long",
     day: "numeric",

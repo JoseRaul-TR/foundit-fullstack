@@ -157,6 +157,7 @@ export async function getSeriesDetail(
     trailer: extractTrailer(series.videos),
     cast: extractCast(series.credits),
     crew: extractCrew(series.credits),
+    createdBy: (series.created_by ?? []).map((creator) => creator.name),
     providers,
     recommendations: extractRecommendations(series.recommendations, "series"),
     user,

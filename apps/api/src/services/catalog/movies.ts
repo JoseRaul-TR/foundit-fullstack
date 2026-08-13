@@ -16,6 +16,7 @@ import {
   extractTrailer,
   extractMovieAgeRating,
   parseYear,
+  extractDirectors,
 } from "@/helpers/tmdbMedia";
 
 const MOVIE_APPEND_TO_RESPONSE =
@@ -87,6 +88,7 @@ export async function getMovieDetail(
     trailer: extractTrailer(movie.videos),
     cast: extractCast(movie.credits),
     crew: extractCrew(movie.credits),
+    directedBy: extractDirectors(movie.credits),
     providers: buildProviders(movie["watch/providers"]?.results, subscribedSet),
     recommendations: extractRecommendations(movie.recommendations, "movie"),
     user,

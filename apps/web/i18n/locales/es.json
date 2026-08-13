@@ -122,6 +122,7 @@
     "yourRating": "Tu puntuación: {rating}/10",
     "loginToTrack": "Inicia sesión para guardar en tu lista y marcar como visto",
     "loginToTrackSeries": "Inicia sesión para guardar en tu lista y llevar el control de las temporadas que has visto",
+    "overview": "Sinopsis",
     "noOverview": "No hay sinopsis disponible.",
     "cast": "Reparto",
     "crew": "Equipo técnico",
@@ -133,6 +134,13 @@
       "rent": "Alquiler",
       "buy": "Compra"
     },
+    "directedBy": "Dirigida por {names}",
+    "createdBy": "Creada por {names}",
+    "availableOn": "Disponible en {services}",
+    "andMore": "+{count} más",
+    "markAllSeasonsWatched": "Marcar todas las temporadas",
+    "allSeasonsWatched": "Todas las temporadas vistas",
+    "dialogLabel": "Detalles del título",
     "loginToSeeAvailability": "Inicia sesión y configura tus plataformas para ver qué está disponible para ti",
     "noProviders": "Aún no hay información de streaming para este título.",
     "recommendations": "También te puede interesar",
@@ -331,6 +339,7 @@
     "season": {
       "markError": "No se pudo marcar la temporada {season}. Inténtalo de nuevo.",
       "unmarkError": "No se pudo desmarcar la temporada {season}. Inténtalo de nuevo.",
+      "allUnmarkError": "No se pudieron desmarcar todas las temporadas. Inténtalo de nuevo.",
       "allError": "No se pudieron marcar todas las temporadas. Inténtalo de nuevo."
     },
     "rating": {

@@ -39,6 +39,7 @@ export interface SeriesDetailResponse {
   trailer: MediaTrailer | null;
   cast: NormalizedCastMember[];
   crew: NormalizedCrewMember[];
+  createdBy: string[];
   providers: Record<string, ProvidersByType>;
   recommendations: NormalizedSearchResult[];
   user: SeriesDetailUser | null;

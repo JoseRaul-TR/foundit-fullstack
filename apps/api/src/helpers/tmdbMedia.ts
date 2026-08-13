@@ -21,9 +21,9 @@ import type {
 } from "@foundit/types";
 import { fetchTmdb } from "@/lib/tmdb";
 
-export const MAX_CAST = 10;
-export const MAX_CREW = 10;
-export const MAX_RECOMMENDATIONS = 10;
+export const MAX_CAST = 15;
+export const MAX_CREW = 15;
+export const MAX_RECOMMENDATIONS = 20;
 
 export function parseYear(
   dateString: string | undefined | null,
@@ -56,11 +56,39 @@ export function extractCast(
     }));
 }
 
+/**
+ * TMDB returns crew grouped by department and id, with no notion of
+ * importance, so taking the first N dropped the director more often than not.
+ * Ranking by job before the cut means the people a viewer actually looks for
+ * survive it. Array.sort is stable, so everyone sharing a rank keeps TMDB's
+ * own order.
+ */
+const CREW_JOB_PRIORITY: readonly string[] = [
+  "Director",
+  "Screenplay",
+  "Writer",
+  "Story",
+  "Producer",
+  "Executive Producer",
+  "Director of Photography",
+  "Original Music Composer",
+  "Editor",
+  "Production Design",
+  "Costume Design",
+];
+
+function crewRank(job: string): number {
+  const index = CREW_JOB_PRIORITY.indexOf(job);
+  return index === -1 ? CREW_JOB_PRIORITY.length : index;
+}
+
 export function extractCrew(
   credits: TmdbCredits | undefined,
 ): NormalizedCrewMember[] {
   return (credits?.crew ?? [])
     .filter((member) => !member.adult)
+    .slice()
+    .sort((a, b) => crewRank(a.job) - crewRank(b.job))
     .slice(0, MAX_CREW)
     .map((member) => ({
       id: member.id,
@@ -70,10 +98,24 @@ export function extractCrew(
     }));
 }
 
+/**
+ * Read from the full credits list on purpose, not from extractCrew's output.
+ * A line that names the director must not depend on whether the director
+ * happened to survive a cap — that dependency is exactly what made the crew
+ * section unreliable in the first place.
+ */
+export function extractDirectors(credits: TmdbCredits | undefined): string[] {
+  const names = new Set<string>();
+  for (const member of credits?.crew ?? []) {
+    if (member.job === "Director") names.add(member.name);
+  }
+  return [...names];
+}
+
 // NOTE: no longer slices to MAX_RECOMMENDATIONS unconditionally — discover.ts's
 // multi-region buffers need the FULL page (20 items), not a top-10 cut, since
 // it's the one doing its own merge/slice afterward. Recommendations callers
-// (movies.ts/series.ts) still want the top-10 behavior, so slicing moved to
+// (movies.ts/series.ts) still want the capped behavior, so slicing moved to
 // an explicit `limit` param defaulting to MAX_RECOMMENDATIONS.
 export function extractRecommendations(
   recommendations: TmdbPaginatedResponse<TmdbSearchResultItem> | undefined,

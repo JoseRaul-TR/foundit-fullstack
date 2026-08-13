@@ -122,6 +122,7 @@
     "yourRating": "Your rating: {rating}/10",
     "loginToTrack": "Log in to save to your watchlist and mark as watched",
     "loginToTrackSeries": "Log in to save to your watchlist and track which seasons you've watched",
+    "overview": "Overview",
     "noOverview": "No overview available.",
     "cast": "Cast",
     "crew": "Crew",
@@ -133,6 +134,13 @@
       "rent": "Rent",
       "buy": "Buy"
     },
+    "directedBy": "Directed by {names}",
+    "createdBy": "Created by {names}",
+    "availableOn": "Available on {services}",
+    "andMore": "+{count} more",
+    "markAllSeasonsWatched": "Mark all seasons watched",
+    "allSeasonsWatched": "All seasons watched",
+    "dialogLabel": "Title details",
     "loginToSeeAvailability": "Log in and set your platforms to see what's available for you",
     "noProviders": "No streaming information available for this title yet.",
     "recommendations": "You might also like",
@@ -331,6 +339,7 @@
     "season": {
       "markError": "Couldn't mark season {season} as watched. Please try again.",
       "unmarkError": "Couldn't unmark season {season}. Please try again.",
+      "allUnmarkError": "Couldn't unmark every season. Please try again.",
       "allError": "Couldn't mark every season as watched. Please try again."
     },
     "rating": {

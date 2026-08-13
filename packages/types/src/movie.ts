@@ -28,6 +28,7 @@ export interface MovieDetailResponse {
   trailer: MediaTrailer | null;
   cast: NormalizedCastMember[];
   crew: NormalizedCrewMember[];
+  directedBy: string[];
   providers: Record<string, ProvidersByType>;
   recommendations: NormalizedSearchResult[];
   user: MovieDetailUser | null;
