@@ -18,6 +18,7 @@
           :src="profile.avatarUrl"
           :alt="profile.name ?? ''"
           class="h-16 w-16 shrink-0 rounded-full object-cover"
+          loading="lazy"
         />
 
         <div class="flex flex-1 flex-col gap-1">

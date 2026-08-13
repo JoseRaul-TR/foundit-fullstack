@@ -1,10 +1,11 @@
 <!-- apps/web/app/components/media/ProviderBadge.vue -->
+<!-- No longer a link. TMDB exposes one watch URL per country and title, not
+     one per provider, so every badge in a country pointed at the same page —
+     eight pills each promising to take you to a different platform and all
+     eight arriving at the same list. The link moved to the foot of the
+     country panel, where one link that says "view the options" is true. -->
 <template>
-  <component
-    :is="href ? 'a' : 'span'"
-    :href="href ?? undefined"
-    :target="href ? '_blank' : undefined"
-    :rel="href ? 'noopener noreferrer' : undefined"
+  <span
     class="flex h-9 items-center gap-2 rounded-full pl-1.5 pr-3.5 text-[13px]"
     :class="
       subscribed
@@ -18,6 +19,7 @@
       :src="logoUrl"
       :alt="name"
       class="h-[26px] w-[26px] rounded-[5px]"
+      loading="lazy"
       @error="handleImgError"
     />
     <span
@@ -26,7 +28,18 @@
       :class="subscribed ? 'bg-success/25' : 'bg-white/10'"
     />
     {{ name }}
-  </component>
+    <!-- A word, not a coloured dot. A dot only means something next to a
+         legend, and there won't be one; it would also say nothing at all to
+         someone who can't tell the colours apart or who never hovers. The
+         full sentence lives in the aria-label, which is where it has to be. -->
+    <span
+      v-if="withAds"
+      class="text-[10px] font-medium uppercase tracking-wide text-secondary"
+      aria-hidden="true"
+    >
+      {{ $t("mediaDetail.withAds") }}
+    </span>
+  </span>
 </template>
 
 <script setup lang="ts">
@@ -34,8 +47,7 @@ const props = defineProps<{
   name: string;
   logoPath: string;
   subscribed?: boolean;
-  /** TMDB's per-country watch link for this title. Non-clickable when absent. */
-  href?: string | null;
+  withAds?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -53,9 +65,10 @@ function handleImgError() {
   imgFailed.value = true;
 }
 
-const ariaLabel = computed(() =>
-  props.subscribed
+const ariaLabel = computed(() => {
+  const base = props.subscribed
     ? t("mediaDetail.providerSubscribed", { name: props.name })
-    : t("mediaDetail.providerNotSubscribed", { name: props.name }),
-);
+    : t("mediaDetail.providerNotSubscribed", { name: props.name });
+  return props.withAds ? `${base}, ${t("mediaDetail.withAds")}` : base;
+});
 </script>

@@ -130,9 +130,20 @@
     "providerTypes": {
       "flatrate": "Suscripción",
       "free": "Gratis",
-      "ads": "Gratis con anuncios",
       "rent": "Alquiler",
       "buy": "Compra"
+    },
+    "withAds": "con anuncios",
+    "otherCountries": "Otros países",
+    "removeCountry": "Quitar {country}",
+    "countrySubscribed": "{country}, disponible en tus servicios",
+    "rentBuyToggle": "También en alquiler o compra ({count})",
+    "viewOnTmdb": "Ver opciones en TMDB",
+    "availability": {
+      "rentBuyOnly": "No está en streaming en {country}, pero puedes alquilarla o comprarla.",
+      "noneHere": "No hay opciones en {country}.",
+      "streamingIn": "En {countries} sí está en streaming.",
+      "elsewhereCount": "TMDB tiene opciones en {count} países más."
     },
     "directedBy": "Dirigida por {names}",
     "createdBy": "Creada por {names}",

@@ -130,9 +130,20 @@
     "providerTypes": {
       "flatrate": "Streaming",
       "free": "Gratis",
-      "ads": "Gratis med annonser",
       "rent": "Hyra",
       "buy": "Köp"
+    },
+    "withAds": "med annonser",
+    "otherCountries": "Andra länder",
+    "removeCountry": "Ta bort {country}",
+    "countrySubscribed": "{country}, tillgänglig på dina tjänster",
+    "rentBuyToggle": "Finns även att hyra eller köpa ({count})",
+    "viewOnTmdb": "Se alternativ på TMDB",
+    "availability": {
+      "rentBuyOnly": "Den streamas inte i {country}, men du kan hyra eller köpa den.",
+      "noneHere": "Inga alternativ i {country}.",
+      "streamingIn": "Den streamas i {countries}.",
+      "elsewhereCount": "TMDB har alternativ i {count} andra länder."
     },
     "directedBy": "Regi: {names}",
     "createdBy": "Skapad av {names}",

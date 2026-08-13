@@ -13,6 +13,7 @@
           :alt="provider.name"
           class="h-8 w-8 rounded-md object-cover"
           @error="failedLogos.add(provider.providerId)"
+          loading="lazy"
         />
         <span v-else class="h-8 w-8 rounded-md bg-white/10" />
         <span class="text-sm text-primary">{{ provider.name }}</span>

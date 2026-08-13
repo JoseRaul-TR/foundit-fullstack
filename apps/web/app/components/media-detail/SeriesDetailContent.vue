@@ -25,6 +25,8 @@
       <img
         v-if="backdropUrl"
         :src="backdropUrl"
+        :srcset="backdropSrcSet"
+        sizes="(min-width: 768px) 768px, 100vw"
         :alt="series.title"
         class="h-full w-full object-cover"
       />
@@ -271,6 +273,7 @@ const { data: series, pending, error } = await useSeriesDetail(props.id);
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
+const TMDB_BACKDROP_SIZES = [780, 1280] as const;
 const MOBILE_SERVICE_LIMIT = 2;
 
 const posterUrl = computed(() =>
@@ -432,4 +435,16 @@ const {
   () => series.value?.recommendations ?? [],
   () => series.value?.recommendationsHasMore ?? false,
 );
+
+// TMDB already serves the sizes; srcset just lets the browser pick one.
+// The modal is never wider than 768px, so w1280 only earns its bytes on a
+// retina screen — and on a phone it was ten times the pixels of the strip
+// it was being drawn into.
+const backdropSrcSet = computed(() => {
+  const path = series.value?.backdropPath;
+  if (!path) return "";
+  return TMDB_BACKDROP_SIZES.map(
+    (width) => `https://image.tmdb.org/t/p/w${width}${path} ${width}w`,
+  ).join(", ");
+});
 </script>
