@@ -124,7 +124,10 @@ const routeType = computed(
 // via `watch` — the only place that ever triggers a fetch.
 await useAsyncData(
   "search",
-  () => loadFromQuery(routeQuery.value, routeType.value),
+  // Returns null rather than nothing: an undefined handler leaves Nuxt with
+  // no payload to hand to the client, so the fetch runs a second time while
+  // hydrating — the exact duplication the awaited call exists to avoid.
+  () => loadFromQuery(routeQuery.value, routeType.value).then(() => null),
   { watch: [routeQuery, routeType] },
 );
 
