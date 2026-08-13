@@ -168,9 +168,9 @@
         v-if="movie.cast.length"
         :title="$t('mediaDetail.cast')"
       >
-        <HorizontalScrollRow>
+        <HorizontalScrollRow :has-more="castHasMore" @load-more="castLoadMore">
           <PersonCard
-            v-for="member in movie.cast"
+            v-for="member in castVisible"
             :key="`${member.id}-${member.character}`"
             :id="member.id"
             :name="member.name"
@@ -184,9 +184,9 @@
         v-if="movie.crew.length"
         :title="$t('mediaDetail.crew')"
       >
-        <HorizontalScrollRow>
+        <HorizontalScrollRow :has-more="crewHasMore" @load-more="crewLoadMore">
           <PersonCard
-            v-for="member in movie.crew"
+            v-for="member in crewVisible"
             :key="member.id"
             :id="member.id"
             :name="member.name"
@@ -202,9 +202,12 @@
         :title="$t('mediaDetail.recommendations')"
         default-open
       >
-        <HorizontalScrollRow>
+        <HorizontalScrollRow
+          :has-more="recommendationsHasMore"
+          @load-more="recommendationsLoadMore"
+        >
           <div
-            v-for="item in movie.recommendations"
+            v-for="item in recommendationsVisible"
             :key="`${item.mediaType}-${item.id}`"
             class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
           >
@@ -224,6 +227,7 @@
           </div>
         </HorizontalScrollRow>
       </CollapsableSection>
+
       <p
         v-else-if="!authStore.isAuthenticated"
         class="rounded-full bg-surface-elevated px-4 py-3 text-center text-sm text-secondary"
@@ -346,4 +350,22 @@ const { rating, setRating } = useRatingAction(
 const { getGenreNames } = useGenres();
 
 const { crewLabel, crewTitle } = useCrewLabel();
+
+const {
+  visible: castVisible,
+  hasMore: castHasMore,
+  loadMore: castLoadMore,
+} = useProgressiveList(() => movie.value?.cast ?? [], PEOPLE_BATCH);
+
+const {
+  visible: crewVisible,
+  hasMore: crewHasMore,
+  loadMore: crewLoadMore,
+} = useProgressiveList(() => movie.value?.crew ?? [], PEOPLE_BATCH);
+
+const {
+  visible: recommendationsVisible,
+  hasMore: recommendationsHasMore,
+  loadMore: recommendationsLoadMore,
+} = useProgressiveList(() => movie.value?.recommendations ?? [], CARD_BATCH);
 </script>

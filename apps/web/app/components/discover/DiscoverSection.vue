@@ -19,10 +19,13 @@
       {{ $t("discover.noResults") }}
     </p>
 
-    <DiscoverRow
+    <!-- The bleed matches this panel's own px-4, not the modal's px-5/px-8,
+         and stops at lg where the panel is centred with room to spare. -->
+    <HorizontalScrollRow
       v-else
       :has-more="hasMore"
       :loading="loading"
+      scroller-class="-mx-4 px-4 lg:mx-0 lg:px-0"
       @load-more="$emit('load-more')"
     >
       <!-- One column of the surrounding grid, computed the way the grid does
@@ -45,13 +48,12 @@
           :genres="getGenreNames(item.genreIds, mediaType)"
         />
       </div>
-    </DiscoverRow>
+    </HorizontalScrollRow>
   </section>
 </template>
 
 <script setup lang="ts">
 import type { NormalizedSearchResult } from "@foundit/types";
-import DiscoverRow from "./DiscoverRow.vue";
 
 defineProps<{
   title: string;
