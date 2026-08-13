@@ -111,6 +111,7 @@
     "language": "Language",
     "search": "Search",
     "clearSearch": "Clear search",
+    "removeCountry": "Remove {country}",
     "scrollPrevious": "Previous",
     "scrollNext": "Next"
   },
@@ -135,7 +136,6 @@
     },
     "withAds": "with ads",
     "otherCountries": "Other countries",
-    "removeCountry": "Remove {country}",
     "countrySubscribed": "{country}, available on your services",
     "rentBuyToggle": "Also available to rent or buy ({count})",
     "viewOnTmdb": "View options on TMDB",
@@ -242,24 +242,24 @@
   },
   "profile": {
     "title": "Profile",
+    "editName": "Edit name",
+    "logout": "Log out",
     "identity": {
-      "syncedFromGoogle": "Synced from Google · read-only"
-    },
-    "manualAccount": {
-      "title": "Manual account (editable identity)",
-      "description": "Accounts created with email/password can edit their name, email, and password — unlike Google-synced accounts, which stay read-only.",
-      "changePassword": "Change password"
+      "syncedFromGoogle": "Synced from Google"
     },
     "countries": {
       "title": "Countries",
       "description": "Select the countries you want streaming availability for.",
       "add": "Add country",
-      "empty": "No countries selected yet."
+      "empty": "No countries selected yet.",
+      "removeConfirm": {
+        "title": "Remove this country?",
+        "description": "{country} and the services you marked there will be removed. You can add it again later."
+      }
     },
     "streamingServices": {
       "title": "Streaming services",
-      "description": "Mark which services you're subscribed to in each country.",
-      "selectCountryFirst": "Select a country above to see available streaming services here."
+      "description": "Mark which services you're subscribed to in each country."
     },
     "ageRating": {
       "title": "Age rating region",
@@ -274,11 +274,8 @@
     "deleteConfirm": {
       "title": "Delete your account?",
       "description": "This will permanently delete your account, including your watchlist, history, and personal ratings. This action cannot be undone.",
-      "cancel": "Cancel",
       "confirm": "Delete Account"
-    },
-    "save": "Save changes",
-    "logout": "Log out"
+    }
   },
   "auth": {
     "login": {

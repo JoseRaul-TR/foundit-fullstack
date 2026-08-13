@@ -3,11 +3,14 @@
      — kept separate so ServiceSelector itself stays purely prop-driven,
      matching #84's contract. -->
 <template>
-  <div v-if="providersQuery.isPending.value" class="flex flex-col gap-2">
+  <div
+    v-if="providersQuery.isPending.value"
+    class="flex max-h-[312px] flex-col gap-2 overflow-hidden pr-1"
+  >
     <div
-      v-for="n in 3"
+      v-for="n in 5"
       :key="n"
-      class="h-12 animate-pulse rounded-xl bg-surface-elevated"
+      class="h-14 shrink-0 animate-pulse rounded-full bg-surface-elevated"
     />
   </div>
   <ServiceSelector

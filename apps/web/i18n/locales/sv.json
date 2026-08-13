@@ -111,6 +111,7 @@
     "language": "Språk",
     "search": "Sök",
     "clearSearch": "Rensa sökningen",
+    "removeCountry": "Ta bort {country}",
     "scrollPrevious": "Föregående",
     "scrollNext": "Nästa"
   },
@@ -135,7 +136,6 @@
     },
     "withAds": "med annonser",
     "otherCountries": "Andra länder",
-    "removeCountry": "Ta bort {country}",
     "countrySubscribed": "{country}, tillgänglig på dina tjänster",
     "rentBuyToggle": "Finns även att hyra eller köpa ({count})",
     "viewOnTmdb": "Se alternativ på TMDB",
@@ -242,24 +242,24 @@
   },
   "profile": {
     "title": "Profil",
+    "editName": "Redigera namn",
+    "logout": "Logga ut",
     "identity": {
-      "syncedFromGoogle": "Synkroniserad från Google · skrivskyddad"
-    },
-    "manualAccount": {
-      "title": "Manuellt konto (redigerbar identitet)",
-      "description": "Konton som skapats med e-post/lösenord kan redigera sitt namn, sin e-postadress och sitt lösenord — till skillnad från Google-synkroniserade konton, som förblir skrivskyddade.",
-      "changePassword": "Byt lösenord"
+      "syncedFromGoogle": "Synkroniserad från Google"
     },
     "countries": {
       "title": "Länder",
       "description": "Välj de länder du vill se streamingtillgänglighet för.",
       "add": "Lägg till land",
-      "empty": "Inga länder valda än."
+      "empty": "Inga länder valda än.",
+      "removeConfirm": {
+        "title": "Ta bort landet?",
+        "description": "{country} och tjänsterna du markerade där tas bort. Du kan lägga till det igen senare."
+      }
     },
     "streamingServices": {
       "title": "Streamingtjänster",
-      "description": "Markera vilka tjänster du prenumererar på i varje land.",
-      "selectCountryFirst": "Välj ett land ovan för att se tillgängliga streamingtjänster här."
+      "description": "Markera vilka tjänster du prenumererar på i varje land."
     },
     "ageRating": {
       "title": "Region för åldersgränser",
@@ -274,11 +274,8 @@
     "deleteConfirm": {
       "title": "Vill du ta bort ditt konto?",
       "description": "Detta raderar ditt konto permanent, inklusive din lista, din historik och dina personliga betyg. Detta går inte att ångra.",
-      "cancel": "Avbryt",
       "confirm": "Ta bort konto"
-    },
-    "save": "Spara ändringar",
-    "logout": "Logga ut"
+    }
   },
   "auth": {
     "login": {

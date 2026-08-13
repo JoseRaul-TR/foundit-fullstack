@@ -111,6 +111,7 @@
     "language": "Idioma",
     "search": "Buscar",
     "clearSearch": "Borrar búsqueda",
+    "removeCountry": "Quitar {country}",
     "scrollPrevious": "Anterior",
     "scrollNext": "Siguiente"
   },
@@ -135,7 +136,6 @@
     },
     "withAds": "con anuncios",
     "otherCountries": "Otros países",
-    "removeCountry": "Quitar {country}",
     "countrySubscribed": "{country}, disponible en tus servicios",
     "rentBuyToggle": "También en alquiler o compra ({count})",
     "viewOnTmdb": "Ver opciones en TMDB",
@@ -242,24 +242,24 @@
   },
   "profile": {
     "title": "Perfil",
+    "editName": "Editar nombre",
+    "logout": "Cerrar sesión",
     "identity": {
-      "syncedFromGoogle": "Sincronizado con Google · solo lectura"
-    },
-    "manualAccount": {
-      "title": "Cuenta manual (identidad editable)",
-      "description": "Las cuentas creadas con email/contraseña pueden editar su nombre, email y contraseña, a diferencia de las cuentas sincronizadas con Google, que permanecen de solo lectura.",
-      "changePassword": "Cambiar contraseña"
+      "syncedFromGoogle": "Sincronizado con Google"
     },
     "countries": {
       "title": "Países",
       "description": "Selecciona los países para los que quieres ver disponibilidad de streaming.",
       "add": "Añadir país",
-      "empty": "Aún no has seleccionado ningún país."
+      "empty": "Aún no has seleccionado ningún país.",
+      "removeConfirm": {
+        "title": "¿Quitar este país?",
+        "description": "Se quitará {country} y los servicios que marcaste allí. Puedes volver a añadirlo más tarde."
+      }
     },
     "streamingServices": {
       "title": "Servicios de streaming",
-      "description": "Marca a qué servicios estás suscrito en cada país.",
-      "selectCountryFirst": "Selecciona un país arriba para ver aquí los servicios de streaming disponibles."
+      "description": "Marca a qué servicios estás suscrito en cada país."
     },
     "ageRating": {
       "title": "Región de clasificación por edad",
@@ -274,11 +274,8 @@
     "deleteConfirm": {
       "title": "¿Eliminar tu cuenta?",
       "description": "Esto eliminará permanentemente tu cuenta, incluidos tu lista, tu historial y tus valoraciones personales. Esta acción no se puede deshacer.",
-      "cancel": "Cancelar",
       "confirm": "Eliminar cuenta"
-    },
-    "save": "Guardar cambios",
-    "logout": "Cerrar sesión"
+    }
   },
   "auth": {
     "login": {

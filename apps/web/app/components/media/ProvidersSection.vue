@@ -87,7 +87,7 @@ marks them — Figma is explicit: "pay-per-item, not account-based".
             type="button"
             class="grid h-5 w-5 place-items-center rounded-full transition hover:bg-white/10"
             :aria-label="
-              $t('mediaDetail.removeCountry', {
+              $t('common.removeCountry', {
                 country: countryName(extraCode),
               })
             "
