@@ -136,19 +136,29 @@
       />
     </div>
 
-    <div v-else class="flex items-center gap-3 sm:gap-[18px]">
+    <!-- Both are pills with their own opaque fill now. As plain text they sat
+         on whatever the translucent bar let through, so their legibility
+         changed with the poster scrolling underneath — and the call to action
+         asked for `bg-brand/32`, a step Tailwind's opacity scale doesn't have,
+         which produces no rule and no warning, so it had no fill at all.
+
+         The fills also separate the two: they used to read as two equal links,
+         when one is the call to action and the other is a way back in. Same
+         shadow as the nav track, so the header reads as three raised objects
+         on one plane. -->
+    <div v-else class="flex items-center gap-2 sm:gap-3">
       <NuxtLink
         :to="localePath('/login')"
-        class="whitespace-nowrap text-[13px] font-medium text-secondary transition-colors hover:text-primary sm:text-sm"
+        class="whitespace-nowrap rounded-full bg-surface-elevated px-4 py-2 text-[13px] font-semibold text-primary shadow-[0_4px_4px_rgba(0,0,0,0.25)] ring-1 ring-border transition hover:ring-primary/40 sm:text-sm"
       >
         {{ $t("nav.login") }}
       </NuxtLink>
-      <NuxtLink
+      <BrandLink
         :to="localePath('/register')"
-        class="whitespace-nowrap rounded-full bg-brand/32 px-5 py-2.5 text-[13px] font-bold text-brand transition hover:brightness-110"
+        class="px-4 py-2 text-[13px] shadow-[0_4px_4px_rgba(0,0,0,0.25)] sm:text-sm"
       >
         {{ $t("nav.register") }}
-      </NuxtLink>
+      </BrandLink>
     </div>
   </header>
 </template>
