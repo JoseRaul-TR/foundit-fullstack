@@ -306,6 +306,7 @@
       "strength": { "weak": "Weak", "medium": "Medium", "strong": "Strong" },
       "confirmPasswordLabel": "Confirm password",
       "submit": "Create account",
+      "success": "Account created",
       "or": "or",
       "googleButton": "Continue with Google",
       "hasAccount": "Already have an account?",
@@ -318,7 +319,8 @@
         "nameLength": "Name must be between 2 and 50 characters.",
         "invalidEmail": "Enter a valid email address.",
         "passwordLength": "Password must be between 8 and 128 characters.",
-        "passwordMismatch": "Passwords do not match."
+        "passwordMismatch": "Passwords do not match.",
+        "termsRequired": "You need to accept the terms to continue."
       }
     },
     "googleConnecting": "Connecting to Google…",

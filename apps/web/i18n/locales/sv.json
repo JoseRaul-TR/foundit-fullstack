@@ -306,6 +306,7 @@
       "strength": { "weak": "Svag", "medium": "Medel", "strong": "Stark" },
       "confirmPasswordLabel": "Bekräfta lösenord",
       "submit": "Skapa konto",
+      "success": "Kontot har skapats",
       "or": "eller",
       "googleButton": "Fortsätt med Google",
       "hasAccount": "Har du redan ett konto?",
@@ -318,7 +319,8 @@
         "nameLength": "Namnet måste vara mellan 2 och 50 tecken.",
         "invalidEmail": "Ange en giltig e-postadress.",
         "passwordLength": "Lösenordet måste vara mellan 8 och 128 tecken.",
-        "passwordMismatch": "Lösenorden matchar inte."
+        "passwordMismatch": "Lösenorden matchar inte.",
+        "termsRequired": "Du måste godkänna villkoren för att fortsätta."
       }
     },
     "googleConnecting": "Ansluter till Google…",

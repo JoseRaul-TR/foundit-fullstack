@@ -1,6 +1,8 @@
 <!-- apps/web/app/pages/register.vue -->
 <template>
-  <div class="flex flex-col gap-6">
+  <div
+    class="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-6 sm:p-8"
+  >
     <div class="flex flex-col gap-1 text-center">
       <h1 class="text-xl font-bold text-primary">
         {{ $t("auth.register.title") }}
@@ -10,83 +12,116 @@
 
     <p
       v-if="formError"
-      class="rounded-lg bg-error/10 px-4 py-3 text-sm text-error"
+      role="alert"
+      class="rounded-xl bg-error/10 px-4 py-3 text-sm text-error"
     >
       {{ formError }}
     </p>
 
     <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
-      <label class="flex flex-col gap-1.5 text-sm font-medium text-primary">
-        {{ $t("auth.register.nameLabel") }}
-        <input
-          v-model="name"
-          type="text"
-          autocomplete="name"
-          class="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-primary"
-          :class="{ 'border-error': nameError }"
-          @blur="touched.name = true"
-        />
-        <span v-if="nameError" class="text-xs text-error">{{ nameError }}</span>
-      </label>
+      <AuthField
+        id="register-name"
+        v-model="name"
+        type="text"
+        autocomplete="name"
+        :label="$t('auth.register.nameLabel')"
+        :error="nameError"
+        @blur="touched.name = true"
+      />
 
-      <label class="flex flex-col gap-1.5 text-sm font-medium text-primary">
-        {{ $t("auth.register.emailLabel") }}
-        <input
-          v-model="email"
-          type="email"
-          autocomplete="email"
-          class="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-primary"
-          :class="{ 'border-error': emailError }"
-          @blur="touched.email = true"
-        />
-        <span v-if="emailError" class="text-xs text-error">{{
-          emailError
-        }}</span>
-      </label>
+      <AuthField
+        id="register-email"
+        v-model="email"
+        type="email"
+        autocomplete="email"
+        :label="$t('auth.register.emailLabel')"
+        :error="emailError"
+        @blur="touched.email = true"
+      />
 
-      <label class="flex flex-col gap-1.5 text-sm font-medium text-primary">
-        {{ $t("auth.register.passwordLabel") }}
-        <input
-          v-model="password"
-          type="password"
-          autocomplete="new-password"
-          class="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-primary"
-          :class="{ 'border-error': passwordError }"
-          @blur="touched.password = true"
-        />
-        <span v-if="password" class="text-xs" :class="strengthColorClass">
-          {{
-            $t("auth.register.passwordStrength", {
-              level: $t(`auth.register.strength.${strength}`),
-            })
-          }}
+      <AuthField
+        id="register-password"
+        v-model="password"
+        type="password"
+        autocomplete="new-password"
+        :label="$t('auth.register.passwordLabel')"
+        :error="passwordError"
+        @blur="touched.password = true"
+      >
+        <!-- Only once there's something to measure: an empty field isn't weak,
+             it's empty, and colouring it red for that is a scolding. -->
+        <template v-if="password">
+          <PasswordStrengthBar :strength="strength" />
+          <span class="text-xs" :class="strengthColorClass">
+            {{
+              $t("auth.register.passwordStrength", {
+                level: $t(`auth.register.strength.${strength}`),
+              })
+            }}
+          </span>
+        </template>
+      </AuthField>
+
+      <AuthField
+        id="register-confirm-password"
+        v-model="confirmPassword"
+        type="password"
+        autocomplete="new-password"
+        :label="$t('auth.register.confirmPasswordLabel')"
+        :error="confirmPasswordError"
+        @blur="touched.confirmPassword = true"
+      />
+
+      <div class="flex flex-col gap-1">
+        <label class="flex items-start gap-2.5 text-sm text-secondary">
+          <input
+            id="register-terms"
+            v-model="termsAccepted"
+            name="terms"
+            type="checkbox"
+            class="mt-0.5 h-4 w-4 shrink-0 accent-brand focus:ring-2 focus:ring-brand"
+            @change="touched.terms = true"
+          />
+          <!-- i18n-t rather than a concatenated string: the two links sit in
+               different places in each language, and gluing them on either
+               side of the text would only work in one of the three. -->
+          <i18n-t keypath="auth.register.termsLabel" tag="span">
+            <template #terms>
+              <NuxtLink
+                :to="localePath('/terms')"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold text-brand hover:underline"
+              >
+                {{ $t("auth.register.termsLink") }}
+              </NuxtLink>
+            </template>
+            <template #privacy>
+              <NuxtLink
+                :to="localePath('/privacy')"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold text-brand hover:underline"
+              >
+                {{ $t("auth.register.privacyLink") }}
+              </NuxtLink>
+            </template>
+          </i18n-t>
+        </label>
+        <span v-if="termsError" class="text-xs text-error">
+          {{ termsError }}
         </span>
-        <span v-if="passwordError" class="text-xs text-error">{{
-          passwordError
-        }}</span>
-      </label>
-
-      <label class="flex flex-col gap-1.5 text-sm font-medium text-primary">
-        {{ $t("auth.register.confirmPasswordLabel") }}
-        <input
-          v-model="confirmPassword"
-          type="password"
-          autocomplete="new-password"
-          class="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-primary"
-          :class="{ 'border-error': confirmPasswordError }"
-          @blur="touched.confirmPassword = true"
-        />
-        <span v-if="confirmPasswordError" class="text-xs text-error">{{
-          confirmPasswordError
-        }}</span>
-      </label>
+      </div>
 
       <button
         type="submit"
-        class="rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-page transition hover:brightness-110 disabled:opacity-50"
-        :disabled="submitting"
+        class="flex items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-page transition hover:brightness-110 disabled:opacity-50"
+        :disabled="submitting || googlePending"
       >
-        {{ submitting ? $t("common.loading") : $t("auth.register.submit") }}
+        <Spinner v-if="submitting" />
+        {{
+          submitting ? $t("auth.creatingAccount") : $t("auth.register.submit")
+        }}
       </button>
     </form>
 
@@ -96,20 +131,18 @@
       <span class="h-px flex-1 bg-border" />
     </div>
 
-    <button
-      type="button"
-      class="rounded-full border border-border px-4 py-2.5 text-sm font-medium text-primary transition hover:border-primary/40 disabled:opacity-50"
+    <GoogleButton
+      :label="$t('auth.register.googleButton')"
+      :pending="googlePending"
       :disabled="submitting"
       @click="handleGoogleSignIn"
-    >
-      {{ $t("auth.register.googleButton") }}
-    </button>
+    />
 
     <p class="text-center text-sm text-secondary">
       {{ $t("auth.register.hasAccount") }}
       <NuxtLink
         :to="localePath('/login')"
-        class="font-semibold text-accent hover:underline"
+        class="font-semibold text-brand hover:underline"
       >
         {{ $t("auth.register.loginLink") }}
       </NuxtLink>
@@ -126,6 +159,7 @@ const { t } = useI18n();
 const localePath = useLocalePath();
 const authStore = useAuthStore();
 const authClient = useAuthClient();
+const toast = useToast();
 
 if (authStore.isAuthenticated) {
   await navigateTo(localePath("/"));
@@ -135,13 +169,16 @@ const name = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
+const termsAccepted = ref(false);
 const touched = reactive({
   name: false,
   email: false,
   password: false,
   confirmPassword: false,
+  terms: false,
 });
 const submitting = ref(false);
+const googlePending = ref(false);
 const formError = ref("");
 
 const registerSchema = z
@@ -150,20 +187,26 @@ const registerSchema = z
     email: z.email(),
     password: z.string().min(8).max(128),
     confirmPassword: z.string(),
+    terms: z.literal(true),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
   });
 
-function fieldFails(
-  field: "name" | "email" | "password" | "confirmPassword",
-): boolean {
-  const result = registerSchema.safeParse({
+type Field = "name" | "email" | "password" | "confirmPassword" | "terms";
+
+function currentValues() {
+  return {
     name: name.value,
     email: email.value,
     password: password.value,
     confirmPassword: confirmPassword.value,
-  });
+    terms: termsAccepted.value,
+  };
+}
+
+function fieldFails(field: Field): boolean {
+  const result = registerSchema.safeParse(currentValues());
   return (
     !result.success && result.error.issues.some((i) => i.path[0] === field)
   );
@@ -187,6 +230,11 @@ const passwordError = computed(() =>
 const confirmPasswordError = computed(() =>
   touched.confirmPassword && fieldFails("confirmPassword")
     ? t("auth.register.validation.passwordMismatch")
+    : "",
+);
+const termsError = computed(() =>
+  touched.terms && fieldFails("terms")
+    ? t("auth.register.validation.termsRequired")
     : "",
 );
 
@@ -217,14 +265,10 @@ async function handleSubmit() {
   touched.email = true;
   touched.password = true;
   touched.confirmPassword = true;
+  touched.terms = true;
   formError.value = "";
 
-  const result = registerSchema.safeParse({
-    name: name.value,
-    email: email.value,
-    password: password.value,
-    confirmPassword: confirmPassword.value,
-  });
+  const result = registerSchema.safeParse(currentValues());
   if (!result.success) return;
 
   submitting.value = true;
@@ -244,7 +288,11 @@ async function handleSubmit() {
     }
 
     authStore.setUser(toAppUser(data.user));
-    await navigateTo(localePath("/"));
+    toast.success(t("auth.register.success"));
+    // To the profile, not the home page. The app has nothing personal to show
+    // until countries and services are set, so sending a brand-new account to
+    // an empty Discover is sending them to the one screen that can't work yet.
+    await navigateTo(localePath("/profile"));
   } catch {
     formError.value = t("errors.network");
   } finally {
@@ -253,14 +301,14 @@ async function handleSubmit() {
 }
 
 async function handleGoogleSignIn() {
-  submitting.value = true;
+  googlePending.value = true;
   try {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: `${window.location.origin}${localePath("/")}`,
+      callbackURL: `${window.location.origin}${localePath("/profile")}`,
     });
   } finally {
-    submitting.value = false;
+    googlePending.value = false;
   }
 }
 </script>

@@ -306,6 +306,7 @@
       "strength": { "weak": "Débil", "medium": "Media", "strong": "Fuerte" },
       "confirmPasswordLabel": "Confirmar contraseña",
       "submit": "Crear cuenta",
+      "success": "Cuenta creada",
       "or": "o",
       "googleButton": "Continuar con Google",
       "hasAccount": "¿Ya tienes una cuenta?",
@@ -318,7 +319,8 @@
         "nameLength": "El nombre debe tener entre 2 y 50 caracteres.",
         "invalidEmail": "Introduce una dirección de correo electrónico válida.",
         "passwordLength": "La contraseña debe tener entre 8 y 128 caracteres.",
-        "passwordMismatch": "Las contraseñas no coinciden."
+        "passwordMismatch": "Las contraseñas no coinciden.",
+        "termsRequired": "Tienes que aceptar los términos para continuar."
       }
     },
     "googleConnecting": "Conectando con Google…",
