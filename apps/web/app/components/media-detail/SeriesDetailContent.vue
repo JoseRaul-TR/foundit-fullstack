@@ -193,7 +193,7 @@
         <HorizontalScrollRow>
           <PersonCard
             v-for="member in series.cast"
-            :key="member.id"
+            :key="`${member.id}-${member.character}`"
             :id="member.id"
             :name="member.name"
             :profile-path="member.profilePath"
@@ -209,11 +209,12 @@
         <HorizontalScrollRow>
           <PersonCard
             v-for="member in series.crew"
-            :key="`${member.id}-${member.job}`"
+            :key="member.id"
             :id="member.id"
             :name="member.name"
             :profile-path="member.profilePath"
-            :role-label="member.job"
+            :role-label="crewLabel(member.jobs)"
+            :role-title="crewTitle(member.jobs)"
           />
         </HorizontalScrollRow>
       </CollapsableSection>
@@ -400,4 +401,6 @@ const { rating, setRating } = useRatingAction(
 );
 
 const { getGenreNames } = useGenres();
+
+const { crewLabel, crewTitle } = useCrewLabel();
 </script>

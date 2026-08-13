@@ -1,5 +1,4 @@
 <!-- apps/web/app/components/media/PersonCard.vue -->
-<!-- Distinto de MediaCard: foto circular + nombre + rol, para scroll horizontal de Cast/Crew -->
 <template>
   <button
     type="button"
@@ -28,10 +27,25 @@
         <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" />
       </svg>
     </span>
-    <span class="line-clamp-1 text-[13px] font-semibold text-primary">{{
-      name
-    }}</span>
-    <span class="line-clamp-1 text-xs text-secondary">{{ roleLabel }}</span>
+
+    <!-- Two lines each, not one. A single line was enough while a crew member
+         had exactly one job; now they can have several and "Director,
+         Screenplay" doesn't fit in 110px, so the clamp was cutting the role
+         before the first word ended. The photos stay aligned because the card
+         grows downwards, and `title` still carries the untruncated text. -->
+    <span class="flex flex-col gap-0.5">
+      <span
+        class="line-clamp-2 text-[13px] font-semibold leading-snug text-primary"
+      >
+        {{ name }}
+      </span>
+      <span
+        class="line-clamp-2 text-xs leading-snug text-secondary"
+        :title="roleTitle ?? roleLabel"
+      >
+        {{ roleLabel }}
+      </span>
+    </span>
   </button>
 </template>
 
@@ -41,6 +55,7 @@ const props = defineProps<{
   name: string;
   profilePath: string | null;
   roleLabel: string;
+  roleTitle?: string;
 }>();
 
 const mediaModal = useMediaModal();
