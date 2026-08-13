@@ -48,6 +48,11 @@ export const useProfileStore = defineStore("profile", () => {
     ageRatingCountry.value = countryCode;
   }
 
+  function reset() {
+    countries.value = [];
+    services.value = [];
+    ageRatingCountry.value = null;
+  }
   return {
     countries,
     subscribedServices,
@@ -55,5 +60,6 @@ export const useProfileStore = defineStore("profile", () => {
     setCountries,
     setServices,
     setAgeRatingCountry,
+    reset,
   };
 });
