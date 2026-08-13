@@ -31,6 +31,7 @@ export interface MovieDetailResponse {
   directedBy: string[];
   providers: Record<string, ProvidersByType>;
   recommendations: NormalizedSearchResult[];
+  recommendationsHasMore: boolean;
   user: MovieDetailUser | null;
   ageRating: string | null;
 }

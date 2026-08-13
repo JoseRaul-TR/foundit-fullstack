@@ -1,12 +1,15 @@
 // apps/api/src/services/catalog/series.ts
 
-import type {
-  SeriesDetailResponse,
-  SeriesDetailUser,
-  SeriesSeasonDetailResponse,
-  SeriesSeasonSummary,
-  SeriesStatus,
-  SupportedLocale,
+import {
+  LOCALE_TO_TMDB_LANG,
+  type NormalizedSearchResult,
+  type PaginatedResponse,
+  type SeriesDetailResponse,
+  type SeriesDetailUser,
+  type SeriesSeasonDetailResponse,
+  type SeriesSeasonSummary,
+  type SeriesStatus,
+  type SupportedLocale,
 } from "@foundit/types";
 import {
   parseYear,
@@ -19,8 +22,14 @@ import {
   extractSeriesAgeRating,
 } from "@/helpers/tmdbMedia";
 import prisma from "@/lib/prisma";
-import { fetchTmdbWithFallback } from "@/lib/tmdb";
-import type { TmdbSeasonDetail, TmdbSeries } from "@/types/tmdb.types";
+import { fetchTmdb, fetchTmdbWithFallback } from "@/lib/tmdb";
+import { PAGE_SIZE } from "@/config/constants";
+import type {
+  TmdbPaginatedResponse,
+  TmdbSearchResultItem,
+  TmdbSeasonDetail,
+  TmdbSeries,
+} from "@/types/tmdb.types";
 
 const SERIES_APPEND_TO_RESPONSE =
   "credits,videos,recommendations,watch/providers,content_ratings";
@@ -160,6 +169,7 @@ export async function getSeriesDetail(
     createdBy: (series.created_by ?? []).map((creator) => creator.name),
     providers,
     recommendations: extractRecommendations(series.recommendations, "series"),
+    recommendationsHasMore: (series.recommendations?.total_pages ?? 1) > 1,
     user,
     numberOfSeasons: series.number_of_seasons,
     numberOfEpisodes: series.number_of_episodes,
@@ -195,5 +205,24 @@ export async function getSeriesSeasonDetail(
       airDate: episode.air_date,
       runtime: episode.runtime,
     })),
+  };
+}
+
+/** See getMovieRecommendations. */
+export async function getSeriesRecommendations(
+  tmdbId: number,
+  locale: SupportedLocale,
+  page: number,
+): Promise<PaginatedResponse<NormalizedSearchResult>> {
+  const response = await fetchTmdb<TmdbPaginatedResponse<TmdbSearchResultItem>>(
+    `/tv/${tmdbId}/recommendations`,
+    { page, language: LOCALE_TO_TMDB_LANG[locale] },
+  );
+
+  return {
+    results: extractRecommendations(response, "series", PAGE_SIZE),
+    totalResults: response.total_results,
+    totalPages: response.total_pages,
+    page: response.page,
   };
 }

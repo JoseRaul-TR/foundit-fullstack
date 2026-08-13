@@ -15,8 +15,6 @@
 
 /** Cast and crew: cards are 110px wide, so twenty is about two screens. */
 export const PEOPLE_BATCH = 20;
-/** Media cards are a grid column, so eight is already two screens or more. */
-export const CARD_BATCH = 8;
 
 export function useProgressiveList<T>(source: () => T[], step: number) {
   const all = computed(source);

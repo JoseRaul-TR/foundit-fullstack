@@ -7,10 +7,13 @@ import {
   type SupportedLocale,
   type SeriesDetailResponse,
   type SeriesSeasonDetailResponse,
+  type NormalizedSearchResult,
+  type PaginatedResponse,
 } from "@foundit/types";
 import { extractSession } from "@/lib/auth";
 import {
   getSeriesDetail,
+  getSeriesRecommendations,
   getSeriesSeasonDetail,
 } from "@/services/catalog/series";
 
@@ -21,6 +24,9 @@ const paramsSchema = z.object({
     .transform(Number),
 });
 const querySchema = z.object({ lang: z.string().optional() });
+const recommendationsQuerySchema = querySchema.extend({
+  page: z.coerce.number().int().min(1).max(500).default(1),
+});
 const seasonParamsSchema = z.object({
   id: z
     .string()
@@ -43,6 +49,23 @@ export async function getSeriesDetailController(req: Request, res: Response) {
   res.json({ success: true, data: series } satisfies {
     success: true;
     data: SeriesDetailResponse;
+  });
+}
+
+/** See getMovieRecommendationsController. */
+export async function getSeriesRecommendationsController(
+  req: Request,
+  res: Response,
+) {
+  const { id: tmdbId } = paramsSchema.parse(req.params);
+  const { lang, page } = recommendationsQuerySchema.parse(req.query);
+  const locale: SupportedLocale = lang && isLocale(lang) ? lang : "en";
+
+  const data = await getSeriesRecommendations(tmdbId, locale, page);
+
+  res.json({ success: true, data } satisfies {
+    success: true;
+    data: PaginatedResponse<NormalizedSearchResult>;
   });
 }
 

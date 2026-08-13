@@ -204,10 +204,11 @@
       >
         <HorizontalScrollRow
           :has-more="recommendationsHasMore"
+          :loading="recommendationsLoading"
           @load-more="recommendationsLoadMore"
         >
           <div
-            v-for="item in recommendationsVisible"
+            v-for="item in recommendations"
             :key="`${item.mediaType}-${item.id}`"
             class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
           >
@@ -364,8 +365,14 @@ const {
 } = useProgressiveList(() => movie.value?.crew ?? [], PEOPLE_BATCH);
 
 const {
-  visible: recommendationsVisible,
+  items: recommendations,
   hasMore: recommendationsHasMore,
+  loading: recommendationsLoading,
   loadMore: recommendationsLoadMore,
-} = useProgressiveList(() => movie.value?.recommendations ?? [], CARD_BATCH);
+} = useMediaRecommendations(
+  "movie",
+  props.id,
+  () => movie.value?.recommendations ?? [],
+  () => movie.value?.recommendationsHasMore ?? false,
+);
 </script>
