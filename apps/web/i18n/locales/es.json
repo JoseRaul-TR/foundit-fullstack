@@ -321,6 +321,9 @@
         "passwordMismatch": "Las contraseñas no coinciden."
       }
     },
+    "googleConnecting": "Conectando con Google…",
+    "creatingAccount": "Creando cuenta…",
+    "signingIn": "Iniciando sesión…",
     "errors": {
       "invalidCredentials": "Correo electrónico o contraseña incorrectos.",
       "emailInUse": "Este correo electrónico ya está registrado."
@@ -379,5 +382,10 @@
       "deleteSuccess": "Tu cuenta ha sido eliminada",
       "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
     }
+  },
+  "legal": {
+    "terms": "Términos de Servicio",
+    "privacy": "Política de Privacidad",
+    "underConstruction": "Esta página está en construcción. El documento se publicará antes del lanzamiento."
   }
 }

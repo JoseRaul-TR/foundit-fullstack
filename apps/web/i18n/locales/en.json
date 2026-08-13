@@ -321,6 +321,9 @@
         "passwordMismatch": "Passwords do not match."
       }
     },
+    "googleConnecting": "Connecting to Google…",
+    "creatingAccount": "Creating account…",
+    "signingIn": "Signing in…",
     "errors": {
       "invalidCredentials": "Incorrect email or password.",
       "emailInUse": "This email is already registered."
@@ -379,5 +382,10 @@
       "deleteSuccess": "Your account has been deleted",
       "deleteError": "Couldn't delete your account. Please try again."
     }
+  },
+  "legal": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "underConstruction": "This page is under construction. The document will be published before launch."
   }
 }

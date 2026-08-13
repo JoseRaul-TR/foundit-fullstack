@@ -321,6 +321,9 @@
         "passwordMismatch": "Lösenorden matchar inte."
       }
     },
+    "googleConnecting": "Ansluter till Google…",
+    "creatingAccount": "Skapar konto…",
+    "signingIn": "Loggar in…",
     "errors": {
       "invalidCredentials": "Fel e-postadress eller lösenord.",
       "emailInUse": "Den här e-postadressen är redan registrerad."
@@ -379,5 +382,10 @@
       "deleteSuccess": "Ditt konto har raderats",
       "deleteError": "Kunde inte radera ditt konto. Försök igen."
     }
+  },
+  "legal": {
+    "terms": "Användarvillkor",
+    "privacy": "Integritetspolicy",
+    "underConstruction": "Den här sidan är under uppbyggnad. Dokumentet publiceras före lanseringen."
   }
 }
