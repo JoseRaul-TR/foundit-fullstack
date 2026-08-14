@@ -11,6 +11,7 @@
         :src="`${TMDB_IMAGE_BASE}${season.posterPath}`"
         :alt="`Season ${season.seasonNumber}`"
         class="h-10 w-7 shrink-0 rounded object-cover"
+        loading="lazy"
       />
       <div class="flex min-w-0 flex-1 flex-col">
         <span

@@ -7,5 +7,5 @@
 // same data via TanStack Query.
 export function useDiscoverProfile() {
   const query = useProfileQuery();
-  return { pending: query.isPending };
+  return { pending: query.isPending, data: query.data };
 }

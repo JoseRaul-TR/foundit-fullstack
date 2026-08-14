@@ -29,6 +29,7 @@
           src="/tmdb-logo.svg"
           alt="The Movie Database (TMDB)"
           class="h-5 w-auto"
+          loading="lazy"
         />
       </a>
 

@@ -68,8 +68,12 @@ export async function buildServices(
 }
 
 export async function getProfile(userId: string): Promise<ProfileResponse> {
-  const [user, countries, services] = await Promise.all([
+  const [user, accounts, countries, services] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: userId } }),
+    prisma.account.findMany({
+      where: { userId },
+      select: { providerId: true },
+    }),
     buildCountries(userId),
     buildServices(userId),
   ]);
@@ -80,6 +84,7 @@ export async function getProfile(userId: string): Promise<ProfileResponse> {
     name: user.name,
     avatarUrl: user.image,
     createdAt: user.createdAt,
+    authProviders: accounts.map((account) => account.providerId),
     countries,
     services,
     ageRatingCountry: user.ageRatingCountry,

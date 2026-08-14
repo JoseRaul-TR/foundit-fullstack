@@ -385,7 +385,12 @@ async function loadWatchedMovieIds(userId: string): Promise<Set<number>> {
   return new Set(rows.map((r) => r.tmdbId));
 }
 
-/** tmdbId -> count of distinct watched seasons, for the fully-watched series check. */
+/**
+ * tmdbId -> count of distinct watched seasons, for the fully-watched series
+ * check. Season 0 is TMDB's specials bucket and is deliberately skipped:
+ * number_of_seasons doesn't include it, so counting it here inflates the total
+ * and would mark a series as finished while a real season is still unwatched.
+ */
 async function loadWatchedSeriesSeasonCounts(
   userId: string,
 ): Promise<Map<number, number>> {
@@ -395,7 +400,7 @@ async function loadWatchedSeriesSeasonCounts(
   });
   const counts = new Map<number, Set<number>>();
   for (const row of rows) {
-    if (row.seasonNumber === null) continue;
+    if (row.seasonNumber === null || row.seasonNumber === 0) continue;
     const set = counts.get(row.tmdbId) ?? new Set<number>();
     set.add(row.seasonNumber);
     counts.set(row.tmdbId, set);
@@ -481,18 +486,22 @@ export async function discoverSeriesMultiRegion(
   async function enrichAndFilter(
     items: NormalizedSearchResult[],
   ): Promise<NormalizedSearchResult[]> {
-    const survivors: NormalizedSearchResult[] = [];
-
-    await Promise.all(
+    // Decide in parallel, then filter in the original order.
+    //
+    // Pushing into a shared array from inside Promise.all ordered the result by
+    // completion time instead: items needing no detail call resolved
+    // synchronously and landed first, while every item that needed one arrived
+    // after its round trip to TMDB. Those are precisely the series the user has
+    // partially watched — so the ones they're midway through were pushed to the
+    // end of the merged list and fell outside the first page, which looked
+    // exactly like the fully-watched filter hiding them.
+    const decisions = await Promise.all(
       items.map(async (item) => {
         const watchedSeasons = watchedSeasonCounts.get(item.id) ?? 0;
         const needsDetail =
           needsAgeRatingCheck || (excludeWatched && watchedSeasons > 0);
 
-        if (!needsDetail) {
-          survivors.push(item);
-          return;
-        }
+        if (!needsDetail) return true;
 
         const detail = await fetchTmdb<TmdbSeries>(`/tv/${item.id}`, {
           append_to_response: "content_ratings",
@@ -503,7 +512,7 @@ export async function discoverSeriesMultiRegion(
           watchedSeasons > 0 &&
           watchedSeasons >= detail.number_of_seasons
         ) {
-          return; // fully watched — excluded
+          return false; // fully watched — excluded
         }
 
         if (needsAgeRatingCheck) {
@@ -523,15 +532,15 @@ export async function discoverSeriesMultiRegion(
             ageRatingMaxOrder !== undefined &&
             ratingOrder > ageRatingMaxOrder
           ) {
-            return;
+            return false;
           }
         }
 
-        survivors.push(item);
+        return true;
       }),
     );
 
-    return survivors;
+    return items.filter((_, index) => decisions[index]);
   }
 
   let survivors: NormalizedSearchResult[];
@@ -560,6 +569,7 @@ export async function discoverSeriesMultiRegion(
 
   const start = (params.page - 1) * PAGE_SIZE;
   const pageItems = survivors.slice(start, start + PAGE_SIZE);
+
   const hasMore =
     survivors.length > start + PAGE_SIZE || buffers.some((b) => !b.exhausted);
 

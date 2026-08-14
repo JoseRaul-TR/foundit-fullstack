@@ -1,4 +1,14 @@
 <!-- apps/web/app/components/media-detail/MovieDetailContent.vue -->
+<!-- HeroRow from Figma 94:216 (desktop) and 97:213 (mobile), over the backdrop
+     the wireframe doesn't draw: the drawing shows the row in isolation, and the
+     image is the only large one on the page. The hero overlaps its lower
+     gradient rather than sitting below it, so the two read as one block.
+
+     Section order is deliberate. "Where to watch" is the question the app is
+     named after and used to be fifth, under trailer, cast and crew — several
+     screens down on a phone. It now opens directly under the actions, and the
+     sections that are reference material stay collapsed. The default state is
+     free information: it says which parts matter. -->
 <template>
   <div
     v-if="pending"
@@ -21,96 +31,130 @@
       <img
         v-if="backdropUrl"
         :src="backdropUrl"
+        :srcset="backdropSrcSet"
+        sizes="(min-width: 768px) 768px, 100vw"
         :alt="movie.title"
         class="h-full w-full object-cover"
       />
+      <!-- Deeper than the wireframe's 39%: the poster no longer overlaps the
+           image, so the gradient is what ties the two together, and it needs
+           room to arrive at the page colour without a visible seam. -->
       <div
-        class="absolute inset-x-0 bottom-0 h-[39%] bg-gradient-to-t from-page to-transparent"
+        class="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-page via-page/80 to-transparent"
       />
     </div>
 
-    <div class="flex flex-col gap-6 px-5 pb-6 pt-0 sm:px-8">
-      <div class="mt-16 flex flex-col gap-4 sm:pt-10 sm:flex-row sm:gap-6">
+    <div class="flex flex-col gap-6 px-5 pb-6 sm:px-8">
+      <div
+        class="mt-4 flex flex-col items-center gap-3 text-center sm:mt-6 sm:flex-row sm:items-start sm:gap-7 sm:text-left"
+      >
         <div
-          class="h-[210px] w-[140px] shrink-0 self-center overflow-hidden rounded-xl bg-surface-elevated shadow-lg sm:h-[300px] sm:w-[200px] sm:self-end"
+          class="h-[210px] w-[140px] shrink-0 overflow-hidden rounded-xl bg-surface-elevated shadow-[0_8px_20px_rgba(0,0,0,0.5)] sm:h-[300px] sm:w-[200px] sm:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
         >
           <img
             v-if="posterUrl"
             :src="posterUrl"
             :alt="movie.title"
-            class="h-full w-full object-contain"
+            class="h-full w-full object-cover"
           />
         </div>
+
         <div
-          class="flex flex-1 flex-col gap-2 text-center sm:pb-2 sm:text-left"
+          class="flex min-w-0 flex-1 flex-col items-center gap-2.5 sm:items-start"
         >
-          <div
-            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
+          <!-- Above the title on purpose: it's the answer the app exists to
+               give, and putting it first means it's read before the name of
+               the thing it's about. -->
+          <p
+            v-if="subscribedServices.length"
+            class="text-[13px] font-semibold text-success"
           >
-            <h2 class="text-xl font-bold text-primary sm:text-2xl">
-              {{ movie.title }}
-            </h2>
+            <span class="sm:hidden">
+              {{
+                $t("mediaDetail.availableOn", { services: shortServicesLabel })
+              }}
+            </span>
+            <span class="hidden sm:inline">
+              {{
+                $t("mediaDetail.availableOn", { services: allServicesLabel })
+              }}
+            </span>
+          </p>
+
+          <h2 class="text-[22px] font-bold text-primary sm:text-[30px]">
+            {{ movie.title }}
+          </h2>
+
+          <p v-if="directedBy" class="text-sm text-secondary">
+            {{ $t("mediaDetail.directedBy", { names: directedBy }) }}
+          </p>
+
+          <p class="text-[13px] text-secondary sm:text-sm">{{ metaLine }}</p>
+
+          <div
+            v-if="movie.genres.length"
+            class="flex flex-wrap justify-center gap-2 sm:justify-start"
+          >
             <span
-              v-if="movie.ageRating"
-              class="rounded border border-border px-1.5 py-0.5 text-[11px] font-bold text-secondary"
+              v-for="genre in movie.genres"
+              :key="genre.id"
+              class="rounded-full bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-secondary"
             >
-              {{ movie.ageRating }}
+              {{ genre.name }}
             </span>
           </div>
-          <p class="text-sm text-secondary">
-            <template v-if="movie.releaseYear"
-              >{{ movie.releaseYear }}<span class="px-1.5">·</span></template
-            >
-            <template v-if="movie.runtime"
-              >{{ formattedRuntime }}<span class="px-1.5">·</span></template
-            >
-            {{ movie.genres.map((g) => g.name).join(", ") }}
-          </p>
-          <p
-            v-if="hasTmdbRating"
-            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
-          >
+
+          <p v-if="hasTmdbRating" class="flex items-center gap-1.5">
             <span
-              class="rounded-full bg-surface-elevated px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary"
+              class="rounded-full bg-white/[0.06] px-2 py-1 text-[11px] font-bold text-secondary"
             >
               TMDB
             </span>
-            <span class="text-sm font-bold text-brand">
-              ★ {{ movie.tmdbRating!.toFixed(1) }}
-              <span class="font-normal text-secondary"
-                >· {{ formattedVoteCount }} {{ $t("mediaDetail.votes") }}</span
-              >
+            <span class="text-[13px] font-bold text-brand">
+              ★ {{ tmdbRatingLabel }}
             </span>
+            <span class="text-xs text-secondary">
+              · {{ formattedVoteCount }} {{ $t("mediaDetail.votes") }}
+            </span>
+          </p>
+
+          <template v-if="authStore.isAuthenticated">
+            <RatingStars
+              :model-value="rating"
+              @update:model-value="setRating"
+            />
+            <div
+              class="mt-1 flex flex-wrap justify-center gap-2 sm:justify-start"
+            >
+              <WatchlistButton
+                :active="inWatchlist"
+                :pending="watchlistPending"
+                @toggle="toggleWatchlist"
+              />
+              <WatchedButton
+                :active="watched"
+                :pending="watchedPending"
+                @toggle="toggleWatched"
+              />
+            </div>
+          </template>
+          <p v-else class="text-[13px] text-secondary">
+            {{ $t("mediaDetail.loginToTrack") }}
           </p>
         </div>
       </div>
 
-      <div
-        class="flex flex-col items-center gap-3 border-y border-border py-4 sm:flex-row sm:justify-between"
-      >
-        <template v-if="authStore.isAuthenticated">
-          <div class="flex flex-wrap items-center justify-center gap-2.5">
-            <WatchlistButton
-              :active="inWatchlist"
-              :pending="watchlistPending"
-              @toggle="toggleWatchlist"
-            />
-            <WatchedButton
-              :active="watched"
-              :pending="watchedPending"
-              @toggle="toggleWatched"
-            />
-          </div>
-          <RatingStars :model-value="rating" @update:model-value="setRating" />
-        </template>
-        <p v-else class="text-center text-[13px] text-secondary">
-          {{ $t("mediaDetail.loginToTrack") }}
-        </p>
-      </div>
+      <CollapsableSection
+        :title="$t('mediaDetail.overview')"
+        :collapsible="false"
+        ><ExpandableText
+          :text="movie.overview || $t('mediaDetail.noOverview')"
+        />
+      </CollapsableSection>
 
-      <p class="text-sm leading-relaxed text-primary">
-        {{ movie.overview || $t("mediaDetail.noOverview") }}
-      </p>
+      <CollapsableSection :title="$t('mediaDetail.whereToWatch')" default-open>
+        <ProvidersSection :providers="movie.providers" />
+      </CollapsableSection>
 
       <CollapsableSection
         v-if="movie.trailer"
@@ -126,10 +170,10 @@
         v-if="movie.cast.length"
         :title="$t('mediaDetail.cast')"
       >
-        <HorizontalScrollRow>
+        <HorizontalScrollRow :has-more="castHasMore" @load-more="castLoadMore">
           <PersonCard
-            v-for="member in movie.cast"
-            :key="member.id"
+            v-for="member in castVisible"
+            :key="`${member.id}-${member.character}`"
             :id="member.id"
             :name="member.name"
             :profile-path="member.profilePath"
@@ -142,36 +186,33 @@
         v-if="movie.crew.length"
         :title="$t('mediaDetail.crew')"
       >
-        <HorizontalScrollRow>
+        <HorizontalScrollRow :has-more="crewHasMore" @load-more="crewLoadMore">
           <PersonCard
-            v-for="member in movie.crew"
-            :key="`${member.id}-${member.job}`"
+            v-for="member in crewVisible"
+            :key="member.id"
             :id="member.id"
             :name="member.name"
             :profile-path="member.profilePath"
-            :role-label="member.job"
+            :role-label="crewLabel(member.jobs)"
+            :role-title="crewTitle(member.jobs)"
           />
         </HorizontalScrollRow>
       </CollapsableSection>
 
-      <CollapsableSection :title="$t('mediaDetail.whereToWatch')">
-        <ProvidersSection :providers="movie.providers" />
-      </CollapsableSection>
-
-      <section
+      <CollapsableSection
         v-if="authStore.isAuthenticated && movie.recommendations.length"
-        class="flex flex-col gap-3"
+        :title="$t('mediaDetail.recommendations')"
+        default-open
       >
-        <h3 class="text-base font-bold text-primary">
-          {{ $t("mediaDetail.recommendations") }}
-        </h3>
-        <div
-          class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8"
+        <HorizontalScrollRow
+          :has-more="recommendationsHasMore"
+          :loading="recommendationsLoading"
+          @load-more="recommendationsLoadMore"
         >
           <div
-            v-for="item in movie.recommendations"
+            v-for="item in recommendations"
             :key="`${item.mediaType}-${item.id}`"
-            class="w-[160px] shrink-0"
+            class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
           >
             <MediaCard
               :id="item.id"
@@ -187,8 +228,9 @@
               "
             />
           </div>
-        </div>
-      </section>
+        </HorizontalScrollRow>
+      </CollapsableSection>
+
       <p
         v-else-if="!authStore.isAuthenticated"
         class="rounded-full bg-surface-elevated px-4 py-3 text-center text-sm text-secondary"
@@ -200,18 +242,17 @@
 </template>
 
 <script setup lang="ts">
-import CollapsableSection from "./CollapsableSection.vue";
-import HorizontalScrollRow from "./HorizontalScrollRow.vue";
-
 const props = defineProps<{ id: number }>();
 
 const authStore = useAuthStore();
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 
 const { data: movie, pending, error } = await useMovieDetail(props.id);
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
+const TMDB_BACKDROP_SIZES = [780, 1280] as const;
+const MOBILE_SERVICE_LIMIT = 2;
 
 const posterUrl = computed(() =>
   movie.value?.posterPath
@@ -223,20 +264,71 @@ const backdropUrl = computed(() =>
     ? `${TMDB_BACKDROP_BASE}${movie.value.backdropPath}`
     : null,
 );
-const hasTmdbRating = computed(
-  () => movie.value?.tmdbRating !== null && (movie.value?.tmdbRating ?? 0) > 0,
+
+const listFormatter = computed(
+  () =>
+    new Intl.ListFormat(locale.value, { style: "long", type: "conjunction" }),
 );
-const formattedVoteCount = computed(() => {
-  const count = movie.value?.voteCount;
-  if (count === null || count === undefined) return "";
-  return new Intl.NumberFormat(locale.value).format(count);
-});
+
+const directedBy = computed(() =>
+  movie.value?.directedBy.length
+    ? listFormatter.value.format(movie.value.directedBy)
+    : "",
+);
+
 const formattedRuntime = computed(() => {
   const minutes = movie.value?.runtime;
   if (!minutes) return "";
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
+});
+
+const metaLine = computed(() => {
+  const parts: string[] = [];
+  if (movie.value?.releaseYear) parts.push(String(movie.value.releaseYear));
+  parts.push(t("common.mediaType.movie"));
+  if (formattedRuntime.value) parts.push(formattedRuntime.value);
+  if (movie.value?.ageRating) parts.push(movie.value.ageRating);
+  return parts.join("  ·  ");
+});
+
+const hasTmdbRating = computed(
+  () => movie.value?.tmdbRating !== null && (movie.value?.tmdbRating ?? 0) > 0,
+);
+const tmdbRatingLabel = computed(() =>
+  (movie.value?.tmdbRating ?? 0).toFixed(1),
+);
+const formattedVoteCount = computed(() => {
+  const count = movie.value?.voteCount;
+  if (count === null || count === undefined) return "";
+  return new Intl.NumberFormat(locale.value).format(count);
+});
+
+// Rent and buy never count as "available on your services", the same rule
+// ProvidersSection enforces: those are per-item purchases, not something a
+// subscription covers.
+const subscribedServices = computed(() => {
+  const names = new Set<string>();
+  for (const byType of Object.values(movie.value?.providers ?? {})) {
+    for (const list of [byType.flatrate, byType.free, byType.ads]) {
+      for (const provider of list) {
+        if (provider.subscribed) names.add(provider.name);
+      }
+    }
+  }
+  return [...names];
+});
+
+const allServicesLabel = computed(() =>
+  listFormatter.value.format(subscribedServices.value),
+);
+const shortServicesLabel = computed(() => {
+  const list = subscribedServices.value;
+  if (list.length <= MOBILE_SERVICE_LIMIT)
+    return listFormatter.value.format(list);
+  const shown = listFormatter.value.format(list.slice(0, MOBILE_SERVICE_LIMIT));
+  return `${shown} ${t("mediaDetail.andMore", { count: list.length - MOBILE_SERVICE_LIMIT })}`;
 });
 
 const {
@@ -260,4 +352,42 @@ const { rating, setRating } = useRatingAction(
   movie.value?.user?.rating ?? null,
 );
 const { getGenreNames } = useGenres();
+
+const { crewLabel, crewTitle } = useCrewLabel();
+
+const {
+  visible: castVisible,
+  hasMore: castHasMore,
+  loadMore: castLoadMore,
+} = useProgressiveList(() => movie.value?.cast ?? [], PEOPLE_BATCH);
+
+const {
+  visible: crewVisible,
+  hasMore: crewHasMore,
+  loadMore: crewLoadMore,
+} = useProgressiveList(() => movie.value?.crew ?? [], PEOPLE_BATCH);
+
+const {
+  items: recommendations,
+  hasMore: recommendationsHasMore,
+  loading: recommendationsLoading,
+  loadMore: recommendationsLoadMore,
+} = useMediaRecommendations(
+  "movie",
+  props.id,
+  () => movie.value?.recommendations ?? [],
+  () => movie.value?.recommendationsHasMore ?? false,
+);
+
+// TMDB already serves the sizes; srcset just lets the browser pick one.
+// The modal is never wider than 768px, so w1280 only earns its bytes on a
+// retina screen — and on a phone it was ten times the pixels of the strip
+// it was being drawn into.
+const backdropSrcSet = computed(() => {
+  const path = movie.value?.backdropPath;
+  if (!path) return "";
+  return TMDB_BACKDROP_SIZES.map(
+    (width) => `https://image.tmdb.org/t/p/w${width}${path} ${width}w`,
+  ).join(", ");
+});
 </script>

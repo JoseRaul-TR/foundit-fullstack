@@ -1,4 +1,8 @@
 <!-- apps/web/app/components/media-detail/SeriesDetailContent.vue -->
+<!-- Same structure as the movie, with the season list and its bulk control.
+     See MovieDetailContent for the reasoning behind the hero and the section
+     order; the only difference here is that "Seasons" opens alongside "Where
+     to watch", since it's the other thing a viewer came for. -->
 <template>
   <div
     v-if="pending"
@@ -21,119 +25,149 @@
       <img
         v-if="backdropUrl"
         :src="backdropUrl"
+        :srcset="backdropSrcSet"
+        sizes="(min-width: 768px) 768px, 100vw"
         :alt="series.title"
         class="h-full w-full object-cover"
       />
       <div
-        class="absolute inset-x-0 bottom-0 h-[39%] bg-gradient-to-t from-page to-transparent"
+        class="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-page via-page/80 to-transparent"
       />
     </div>
 
-    <div class="flex flex-col gap-6 px-5 pb-6 pt-0 sm:px-8">
-      <div class="mt-16 flex flex-col gap-4 sm:pt-10 sm:flex-row sm:gap-6">
+    <div class="flex flex-col gap-6 px-5 pb-6 sm:px-8">
+      <div
+        class="mt-4 flex flex-col items-center gap-3 text-center sm:mt-6 sm:flex-row sm:items-start sm:gap-7 sm:text-left"
+      >
         <div
-          class="h-[210px] w-[140px] shrink-0 self-center overflow-hidden rounded-xl bg-surface-elevated shadow-lg sm:h-[300px] sm:w-[200px] sm:self-end"
+          class="h-[210px] w-[140px] shrink-0 overflow-hidden rounded-xl bg-surface-elevated shadow-[0_8px_20px_rgba(0,0,0,0.5)] sm:h-[300px] sm:w-[200px] sm:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
         >
           <img
             v-if="posterUrl"
             :src="posterUrl"
             :alt="series.title"
-            class="h-full w-full object-contain"
+            class="h-full w-full object-cover"
           />
         </div>
+
         <div
-          class="flex flex-1 flex-col gap-2 text-center sm:pb-2 sm:text-left"
+          class="flex min-w-0 flex-1 flex-col items-center gap-2.5 sm:items-start"
         >
-          <div
-            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
-          >
-            <h2 class="text-xl font-bold text-primary sm:text-2xl">
-              {{ series.title }}
-            </h2>
-            <StatusBadge :status="series.status" />
-            <span
-              v-if="series.ageRating"
-              class="rounded border border-border px-1.5 py-0.5 text-[11px] font-bold text-secondary"
-            >
-              {{ series.ageRating }}
-            </span>
-          </div>
-          <p class="text-sm text-secondary">
-            <template v-if="series.releaseYear"
-              >{{ $t("mediaDetail.firstAired", { year: series.releaseYear })
-              }}<span class="px-1.5">·</span></template
-            >
-            {{
-              $t("mediaDetail.seasonsCount", { count: series.numberOfSeasons })
-            }}
-            <span class="px-1.5">·</span>
-            {{ series.genres.map((g) => g.name).join(", ") }}
-          </p>
-          <p
-            v-if="hasTmdbRating"
-            class="flex flex-wrap items-center justify-center gap-2 sm:justify-start"
-          >
-            <span
-              class="rounded-full bg-surface-elevated px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary"
-            >
-              TMDB
-            </span>
-            <span class="text-sm font-bold text-brand">
-              ★ {{ series.tmdbRating!.toFixed(1) }}
-              <span class="font-normal text-secondary"
-                >· {{ formattedVoteCount }} {{ $t("mediaDetail.votes") }}</span
-              >
-            </span>
-          </p>
+          <!-- A new season is the more specific piece of news, so it replaces
+               the plain availability line rather than stacking with it. -->
           <p
             v-if="series.newSeasonsAvailable"
-            class="text-xs font-bold text-accent"
+            class="text-[13px] font-semibold text-accent"
           >
             {{
               $t("mediaDetail.newSeasonAvailable", {
-                services: series.availableOn.join(", "),
+                services: listFormatter.format(series.availableOn),
               })
             }}
+          </p>
+          <p
+            v-else-if="subscribedServices.length"
+            class="text-[13px] font-semibold text-success"
+          >
+            <span class="sm:hidden">
+              {{
+                $t("mediaDetail.availableOn", { services: shortServicesLabel })
+              }}
+            </span>
+            <span class="hidden sm:inline">
+              {{
+                $t("mediaDetail.availableOn", { services: allServicesLabel })
+              }}
+            </span>
+          </p>
+
+          <div
+            class="flex flex-wrap items-center justify-center gap-3 sm:justify-start"
+          >
+            <h2 class="text-[22px] font-bold text-primary sm:text-[30px]">
+              {{ series.title }}
+            </h2>
+            <StatusBadge :status="series.status" />
+          </div>
+
+          <p v-if="createdBy" class="text-sm text-secondary">
+            {{ $t("mediaDetail.createdBy", { names: createdBy }) }}
+          </p>
+
+          <p class="text-[13px] text-secondary sm:text-sm">{{ metaLine }}</p>
+
+          <div
+            v-if="series.genres.length"
+            class="flex flex-wrap justify-center gap-2 sm:justify-start"
+          >
+            <span
+              v-for="genre in series.genres"
+              :key="genre.id"
+              class="rounded-full bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-secondary"
+            >
+              {{ genre.name }}
+            </span>
+          </div>
+
+          <p v-if="hasTmdbRating" class="flex items-center gap-1.5">
+            <span
+              class="rounded-full bg-white/[0.06] px-2 py-1 text-[11px] font-bold text-secondary"
+            >
+              TMDB
+            </span>
+            <span class="text-[13px] font-bold text-brand">
+              ★ {{ tmdbRatingLabel }}
+            </span>
+            <span class="text-xs text-secondary">
+              · {{ formattedVoteCount }} {{ $t("mediaDetail.votes") }}
+            </span>
+          </p>
+
+          <!-- Inside the authenticated branch, unlike before: the stars used to
+               sit outside both arms of the condition, so a visitor who cannot
+               save a rating was still invited to give one. -->
+          <template v-if="authStore.isAuthenticated">
+            <RatingStars
+              :model-value="rating"
+              @update:model-value="setRating"
+            />
+            <div
+              class="mt-1 flex flex-wrap justify-center gap-2 sm:justify-start"
+            >
+              <WatchlistButton
+                :active="inWatchlist"
+                :pending="watchlistPending"
+                @toggle="toggleWatchlist"
+              />
+              <WatchedButton
+                :active="allSeasonsWatched"
+                :pending="bulkPending"
+                :active-label="$t('mediaDetail.allSeasonsWatched')"
+                :inactive-label="$t('mediaDetail.markAllSeasonsWatched')"
+                @toggle="toggleAllSeasons"
+              />
+            </div>
+          </template>
+          <p v-else class="text-[13px] text-secondary">
+            {{ $t("mediaDetail.loginToTrackSeries") }}
           </p>
         </div>
       </div>
 
-      <div
-        class="flex flex-col items-center gap-3 border-y border-border py-4 sm:flex-row sm:justify-between"
+      <CollapsableSection
+        :title="$t('mediaDetail.overview')"
+        :collapsible="false"
       >
-        <div
-          v-if="authStore.isAuthenticated"
-          class="flex flex-wrap items-center justify-center gap-2.5"
-        >
-          <WatchlistButton
-            :active="inWatchlist"
-            :pending="watchlistPending"
-            @toggle="toggleWatchlist"
-          />
-          <button
-            type="button"
-            class="rounded-full border border-border px-4 py-2 text-sm font-medium text-primary transition hover:border-accent disabled:opacity-50"
-            :disabled="markingAllWatched || allSeasonsWatched"
-            @click="markAllSeasonsWatched"
-          >
-            {{
-              allSeasonsWatched
-                ? $t("mediaDetail.watched")
-                : $t("mediaDetail.markWatched")
-            }}
-          </button>
-        </div>
-        <p v-else class="text-center text-[13px] text-secondary">
-          {{ $t("mediaDetail.loginToTrackSeries") }}
-        </p>
-        <RatingStars :model-value="rating" @update:model-value="setRating" />
-      </div>
+        <ExpandableText
+          :text="series.overview || $t('mediaDetail.noOverview')"
+        />
+      </CollapsableSection>
 
-      <p class="text-sm leading-relaxed text-primary">
-        {{ series.overview || $t("mediaDetail.noOverview") }}
-      </p>
+      <CollapsableSection :title="$t('mediaDetail.whereToWatch')" default-open>
+        <ProvidersSection :providers="series.providers" />
+      </CollapsableSection>
 
-      <CollapsableSection :title="$t('mediaDetail.seasons')">
+      <CollapsableSection :title="$t('mediaDetail.seasons')" default-open>
         <SeasonList
           :seasons="series.seasons"
           :new-seasons-available="series.newSeasonsAvailable"
@@ -158,10 +192,10 @@
         v-if="series.cast.length"
         :title="$t('mediaDetail.cast')"
       >
-        <HorizontalScrollRow>
+        <HorizontalScrollRow :has-more="castHasMore" @load-more="castLoadMore">
           <PersonCard
-            v-for="member in series.cast"
-            :key="member.id"
+            v-for="member in castVisible"
+            :key="`${member.id}-${member.character}`"
             :id="member.id"
             :name="member.name"
             :profile-path="member.profilePath"
@@ -174,36 +208,33 @@
         v-if="series.crew.length"
         :title="$t('mediaDetail.crew')"
       >
-        <HorizontalScrollRow>
+        <HorizontalScrollRow :has-more="crewHasMore" @load-more="crewLoadMore">
           <PersonCard
-            v-for="member in series.crew"
-            :key="`${member.id}-${member.job}`"
+            v-for="member in crewVisible"
+            :key="member.id"
             :id="member.id"
             :name="member.name"
             :profile-path="member.profilePath"
-            :role-label="member.job"
+            :role-label="crewLabel(member.jobs)"
+            :role-title="crewTitle(member.jobs)"
           />
         </HorizontalScrollRow>
       </CollapsableSection>
 
-      <CollapsableSection :title="$t('mediaDetail.whereToWatch')">
-        <ProvidersSection :providers="series.providers" />
-      </CollapsableSection>
-
-      <section
+      <CollapsableSection
         v-if="authStore.isAuthenticated && series.recommendations.length"
-        class="flex flex-col gap-3"
+        :title="$t('mediaDetail.recommendations')"
+        default-open
       >
-        <h3 class="text-base font-bold text-primary">
-          {{ $t("mediaDetail.recommendations") }}
-        </h3>
-        <div
-          class="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8"
+        <HorizontalScrollRow
+          :has-more="recommendationsHasMore"
+          :loading="recommendationsLoading"
+          @load-more="recommendationsLoadMore"
         >
           <div
-            v-for="item in series.recommendations"
+            v-for="item in recommendations"
             :key="`${item.mediaType}-${item.id}`"
-            class="w-[160px] shrink-0"
+            class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
           >
             <MediaCard
               :id="item.id"
@@ -219,8 +250,9 @@
               "
             />
           </div>
-        </div>
-      </section>
+        </HorizontalScrollRow>
+      </CollapsableSection>
+
       <p
         v-else-if="!authStore.isAuthenticated"
         class="rounded-full bg-surface-elevated px-4 py-3 text-center text-sm text-secondary"
@@ -232,18 +264,17 @@
 </template>
 
 <script setup lang="ts">
-import CollapsableSection from "./CollapsableSection.vue";
-import HorizontalScrollRow from "./HorizontalScrollRow.vue";
-
 const props = defineProps<{ id: number }>();
 
 const authStore = useAuthStore();
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 
 const { data: series, pending, error } = await useSeriesDetail(props.id);
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
+const TMDB_BACKDROP_SIZES = [780, 1280] as const;
+const MOBILE_SERVICE_LIMIT = 2;
 
 const posterUrl = computed(() =>
   series.value?.posterPath
@@ -255,14 +286,65 @@ const backdropUrl = computed(() =>
     ? `${TMDB_BACKDROP_BASE}${series.value.backdropPath}`
     : null,
 );
+
+const listFormatter = computed(
+  () =>
+    new Intl.ListFormat(locale.value, { style: "long", type: "conjunction" }),
+);
+
+const createdBy = computed(() =>
+  series.value?.createdBy.length
+    ? listFormatter.value.format(series.value.createdBy)
+    : "",
+);
+
+const metaLine = computed(() => {
+  const parts: string[] = [];
+  if (series.value?.releaseYear) parts.push(String(series.value.releaseYear));
+  parts.push(t("common.mediaType.series"));
+  if (series.value?.numberOfSeasons) {
+    parts.push(
+      t("mediaDetail.seasonsCount", { count: series.value.numberOfSeasons }),
+    );
+  }
+  if (series.value?.ageRating) parts.push(series.value.ageRating);
+  return parts.join("  ·  ");
+});
+
 const hasTmdbRating = computed(
   () =>
     series.value?.tmdbRating !== null && (series.value?.tmdbRating ?? 0) > 0,
+);
+const tmdbRatingLabel = computed(() =>
+  (series.value?.tmdbRating ?? 0).toFixed(1),
 );
 const formattedVoteCount = computed(() => {
   const count = series.value?.voteCount;
   if (count === null || count === undefined) return "";
   return new Intl.NumberFormat(locale.value).format(count);
+});
+
+const subscribedServices = computed(() => {
+  const names = new Set<string>();
+  for (const byType of Object.values(series.value?.providers ?? {})) {
+    for (const list of [byType.flatrate, byType.free, byType.ads]) {
+      for (const provider of list) {
+        if (provider.subscribed) names.add(provider.name);
+      }
+    }
+  }
+  return [...names];
+});
+
+const allServicesLabel = computed(() =>
+  listFormatter.value.format(subscribedServices.value),
+);
+const shortServicesLabel = computed(() => {
+  const list = subscribedServices.value;
+  if (list.length <= MOBILE_SERVICE_LIMIT)
+    return listFormatter.value.format(list);
+  const shown = listFormatter.value.format(list.slice(0, MOBILE_SERVICE_LIMIT));
+  return `${shown} ${t("mediaDetail.andMore", { count: list.length - MOBILE_SERVICE_LIMIT })}`;
 });
 
 const {
@@ -285,14 +367,40 @@ const {
   isPending: isSeasonPending,
   toggle: toggleSeasonWatched,
   markAllWatched,
+  unmarkAllWatched,
 } = useSeasonWatchedAction(props.id, initialWatchedSeasons);
 
-const markingAllWatched = ref(false);
+// Season 0 is TMDB's specials bucket and `number_of_seasons` doesn't count it,
+// so "all seasons" here means the real ones — the same rule the discover
+// watched filter and the media-state endpoint already follow.
+const regularSeasonNumbers = computed(() =>
+  (series.value?.seasons ?? [])
+    .map((s) => s.seasonNumber)
+    .filter((n) => n !== 0),
+);
+
 const allSeasonsWatched = computed(
   () =>
-    series.value?.seasons.every((s) => isSeasonWatched(s.seasonNumber)) ??
-    false,
+    regularSeasonNumbers.value.length > 0 &&
+    regularSeasonNumbers.value.every((n) => isSeasonWatched(n)),
 );
+
+const bulkPending = ref(false);
+
+// It toggles now. It used to only ever mark, and then disable itself, so
+// undoing meant unticking eleven seasons one at a time while every other
+// control in the app went both ways.
+async function toggleAllSeasons() {
+  if (bulkPending.value) return;
+  bulkPending.value = true;
+  try {
+    const seasons = regularSeasonNumbers.value;
+    if (allSeasonsWatched.value) await unmarkAllWatched(seasons);
+    else await markAllWatched(seasons);
+  } finally {
+    bulkPending.value = false;
+  }
+}
 
 const { rating, setRating } = useRatingAction(
   props.id,
@@ -300,15 +408,43 @@ const { rating, setRating } = useRatingAction(
   series.value?.user?.rating ?? null,
 );
 
-async function markAllSeasonsWatched() {
-  if (!series.value) return;
-  markingAllWatched.value = true;
-  try {
-    await markAllWatched(series.value.seasons.map((s) => s.seasonNumber));
-  } finally {
-    markingAllWatched.value = false;
-  }
-}
-
 const { getGenreNames } = useGenres();
+
+const { crewLabel, crewTitle } = useCrewLabel();
+
+const {
+  visible: castVisible,
+  hasMore: castHasMore,
+  loadMore: castLoadMore,
+} = useProgressiveList(() => series.value?.cast ?? [], PEOPLE_BATCH);
+
+const {
+  visible: crewVisible,
+  hasMore: crewHasMore,
+  loadMore: crewLoadMore,
+} = useProgressiveList(() => series.value?.crew ?? [], PEOPLE_BATCH);
+
+const {
+  items: recommendations,
+  hasMore: recommendationsHasMore,
+  loading: recommendationsLoading,
+  loadMore: recommendationsLoadMore,
+} = useMediaRecommendations(
+  "series",
+  props.id,
+  () => series.value?.recommendations ?? [],
+  () => series.value?.recommendationsHasMore ?? false,
+);
+
+// TMDB already serves the sizes; srcset just lets the browser pick one.
+// The modal is never wider than 768px, so w1280 only earns its bytes on a
+// retina screen — and on a phone it was ten times the pixels of the strip
+// it was being drawn into.
+const backdropSrcSet = computed(() => {
+  const path = series.value?.backdropPath;
+  if (!path) return "";
+  return TMDB_BACKDROP_SIZES.map(
+    (width) => `https://image.tmdb.org/t/p/w${width}${path} ${width}w`,
+  ).join(", ");
+});
 </script>

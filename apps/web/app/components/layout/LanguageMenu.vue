@@ -1,10 +1,13 @@
 <!-- apps/web/app/components/layout/LanguageMenu.vue -->
+<!-- Width is set by whoever positions this: a flyout beside the avatar menu,
+     an accordion inside it, or a panel above the footer selector all want
+     different ones. -->
 <template>
   <div
-    class="w-40 rounded-xl border border-border bg-surface-elevated p-1.5 shadow-xl"
+    class="rounded-xl border border-border bg-surface-elevated p-1.5 shadow-xl"
   >
     <button
-      v-for="option in options"
+      v-for="option in localeOptions"
       :key="option.code"
       type="button"
       class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm hover:bg-page"
@@ -22,19 +25,14 @@
 </template>
 
 <script setup lang="ts">
-const { locale, setLocale } = useI18n();
+import type { SupportedLocale } from "@foundit/types";
 
-// Language names are conventionally shown in their own language,
-// regardless of the currently active locale — not run through $t().
-const options = [
-  { code: "en" as const, label: "English" },
-  { code: "es" as const, label: "Español" },
-  { code: "sv" as const, label: "Svenska" },
-];
+const { setLocale } = useI18n();
+const { locale, localeOptions } = useLocale();
 
 const emit = defineEmits<{ close: [] }>();
 
-async function select(code: "en" | "es" | "sv") {
+async function select(code: SupportedLocale) {
   await setLocale(code);
   emit("close");
 }

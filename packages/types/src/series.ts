@@ -39,8 +39,10 @@ export interface SeriesDetailResponse {
   trailer: MediaTrailer | null;
   cast: NormalizedCastMember[];
   crew: NormalizedCrewMember[];
+  createdBy: string[];
   providers: Record<string, ProvidersByType>;
   recommendations: NormalizedSearchResult[];
+  recommendationsHasMore: boolean;
   user: SeriesDetailUser | null;
   numberOfSeasons: number;
   numberOfEpisodes: number;

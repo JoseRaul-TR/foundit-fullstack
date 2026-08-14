@@ -21,6 +21,21 @@ export const useAuthStore = defineStore("auth", () => {
 
   function clearUser() {
     user.value = null;
+    // The profile is a projection of the session: countries, services and the
+    // age-rating region only mean anything for the user they belong to. It
+    // used to survive a sign-out, so the next visitor — or the same person
+    // signed out — kept seeing the previous session's countries pinned in
+    // "Where to watch".
+    //
+    // Here rather than in signOut() because there is more than one way to lose
+    // a session: the 401 handler in useApi clears the user too, and any future
+    // path will as well. Whoever ends the session shouldn't have to remember
+    // what hung off it.
+    //
+    // Resolved inside the action, not at store setup: this store is created
+    // during app boot and shouldn't force another one into existence before
+    // anything needs it.
+    useProfileStore().reset();
   }
 
   return { user, isAuthenticated, setUser, clearUser };

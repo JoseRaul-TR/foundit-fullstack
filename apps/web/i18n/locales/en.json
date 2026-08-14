@@ -62,14 +62,28 @@
     "title": "Discover",
     "noResults": "No results found.",
     "filters": {
+      "title": "Filters",
+      "toggle": "Filters",
+      "activeCount": "{count} active filters",
       "genre": "Genre",
       "year": "Year",
       "minRating": "Minimum rating",
+      "country": "Country",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "selectCountryForPlatforms": "Select at least one country to filter by platform.",
       "platform": "Platform",
       "ageRating": "Age rating",
       "sortBy": "Sort by",
       "apply": "Apply filters",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "excludeWatched": "Hide what I've already watched",
+      "sort": {
+        "popularity": "Popularity",
+        "rating": "Rating",
+        "releaseDate": "Release date",
+        "title": "Title"
+      }
     },
     "typeTabs": {
       "movie": "Movies",
@@ -93,8 +107,13 @@
       "series": "Series",
       "person": "Person"
     },
+    "filterByType": "Filter by type",
     "language": "Language",
-    "search": "Search"
+    "search": "Search",
+    "clearSearch": "Clear search",
+    "removeCountry": "Remove {country}",
+    "scrollPrevious": "Previous",
+    "scrollNext": "Next"
   },
   "mediaDetail": {
     "addToWatchlist": "Add to Watchlist",
@@ -104,6 +123,7 @@
     "yourRating": "Your rating: {rating}/10",
     "loginToTrack": "Log in to save to your watchlist and mark as watched",
     "loginToTrackSeries": "Log in to save to your watchlist and track which seasons you've watched",
+    "overview": "Overview",
     "noOverview": "No overview available.",
     "cast": "Cast",
     "crew": "Crew",
@@ -111,10 +131,27 @@
     "providerTypes": {
       "flatrate": "Stream",
       "free": "Free",
-      "ads": "Free with ads",
       "rent": "Rent",
       "buy": "Buy"
     },
+    "withAds": "with ads",
+    "otherCountries": "Other countries",
+    "countrySubscribed": "{country}, available on your services",
+    "rentBuyToggle": "Also available to rent or buy ({count})",
+    "viewOnTmdb": "View options on TMDB",
+    "availability": {
+      "rentBuyOnly": "It isn't streaming in {country}, but you can rent or buy it.",
+      "noneHere": "No options in {country}.",
+      "streamingIn": "It is streaming in {countries}.",
+      "elsewhereCount": "TMDB has options in {count} other countries."
+    },
+    "directedBy": "Directed by {names}",
+    "createdBy": "Created by {names}",
+    "availableOn": "Available on {services}",
+    "andMore": "+{count} more",
+    "markAllSeasonsWatched": "Mark all seasons watched",
+    "allSeasonsWatched": "All seasons watched",
+    "dialogLabel": "Title details",
     "loginToSeeAvailability": "Log in and set your platforms to see what's available for you",
     "noProviders": "No streaming information available for this title yet.",
     "recommendations": "You might also like",
@@ -123,7 +160,7 @@
     "seasons": "Seasons",
     "seasonLabel": "Season {number} · {count} episodes",
     "markSeasonWatched": "Mark watched",
-    "newSeason": "NEW",
+    "newSeason": "New Season",
     "newSeasonAvailable": "New season available on {services}",
     "firstAired": "First aired {year}",
     "seasonsCount": "{count} seasons",
@@ -205,19 +242,20 @@
   },
   "profile": {
     "title": "Profile",
+    "editName": "Edit name",
+    "logout": "Log out",
     "identity": {
-      "syncedFromGoogle": "Synced from Google · read-only"
-    },
-    "manualAccount": {
-      "title": "Manual account (editable identity)",
-      "description": "Accounts created with email/password can edit their name, email, and password — unlike Google-synced accounts, which stay read-only.",
-      "changePassword": "Change password"
+      "syncedFromGoogle": "Synced from Google"
     },
     "countries": {
       "title": "Countries",
       "description": "Select the countries you want streaming availability for.",
       "add": "Add country",
-      "empty": "No countries selected yet."
+      "empty": "No countries selected yet.",
+      "removeConfirm": {
+        "title": "Remove this country?",
+        "description": "{country} and the services you marked there will be removed. You can add it again later."
+      }
     },
     "streamingServices": {
       "title": "Streaming services",
@@ -237,11 +275,8 @@
     "deleteConfirm": {
       "title": "Delete your account?",
       "description": "This will permanently delete your account, including your watchlist, history, and personal ratings. This action cannot be undone.",
-      "cancel": "Cancel",
       "confirm": "Delete Account"
-    },
-    "save": "Save changes",
-    "logout": "Log out"
+    }
   },
   "auth": {
     "login": {
@@ -269,6 +304,7 @@
       "strength": { "weak": "Weak", "medium": "Medium", "strong": "Strong" },
       "confirmPasswordLabel": "Confirm password",
       "submit": "Create account",
+      "success": "Account created",
       "or": "or",
       "googleButton": "Continue with Google",
       "hasAccount": "Already have an account?",
@@ -281,9 +317,13 @@
         "nameLength": "Name must be between 2 and 50 characters.",
         "invalidEmail": "Enter a valid email address.",
         "passwordLength": "Password must be between 8 and 128 characters.",
-        "passwordMismatch": "Passwords do not match."
+        "passwordMismatch": "Passwords do not match.",
+        "termsRequired": "You need to accept the terms to continue."
       }
     },
+    "googleConnecting": "Connecting to Google…",
+    "creatingAccount": "Creating account…",
+    "signingIn": "Signing in…",
     "errors": {
       "invalidCredentials": "Incorrect email or password.",
       "emailInUse": "This email is already registered."
@@ -313,6 +353,7 @@
     "season": {
       "markError": "Couldn't mark season {season} as watched. Please try again.",
       "unmarkError": "Couldn't unmark season {season}. Please try again.",
+      "allUnmarkError": "Couldn't unmark every season. Please try again.",
       "allError": "Couldn't mark every season as watched. Please try again."
     },
     "rating": {
@@ -341,5 +382,10 @@
       "deleteSuccess": "Your account has been deleted",
       "deleteError": "Couldn't delete your account. Please try again."
     }
+  },
+  "legal": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "underConstruction": "This page is under construction. The document will be published before launch."
   }
 }

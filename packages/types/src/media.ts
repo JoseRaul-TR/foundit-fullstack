@@ -68,6 +68,6 @@ export interface NormalizedCastMember {
 export interface NormalizedCrewMember {
   id: number;
   name: string;
-  job: string;
+  jobs: string[];
   profilePath: string | null;
 }

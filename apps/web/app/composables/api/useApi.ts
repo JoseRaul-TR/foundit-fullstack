@@ -15,6 +15,8 @@
 //   current path as ?redirect= — matching the Login page's existing "Sign in
 //   to continue" RedirectBanner.
 
+import { useQueryClient } from "@tanstack/vue-query";
+
 // Derived directly from Nuxt's own $fetch instead of importing ofetch's
 // FetchOptions — ofetch types `method` as a loose `string`, which Nitro's
 // stricter method-literal union rejects when passed back into $fetch.
@@ -26,6 +28,7 @@ export function useApi() {
   const route = useRoute();
   const localePath = useLocalePath();
   const authStore = useAuthStore();
+  const queryClient = useQueryClient();
 
   async function apiFetch<T>(
     path: string,
@@ -49,6 +52,7 @@ export function useApi() {
         // undoing the navigation before it's ever visible -- which is exactly
         // what made this look like the redirect wasn't happening at all.
         authStore.clearUser();
+        queryClient.clear();
 
         await navigateTo({
           path: localePath("/login"),

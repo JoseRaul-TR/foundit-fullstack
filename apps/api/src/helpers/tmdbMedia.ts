@@ -21,9 +21,7 @@ import type {
 } from "@foundit/types";
 import { fetchTmdb } from "@/lib/tmdb";
 
-export const MAX_CAST = 10;
-export const MAX_CREW = 10;
-export const MAX_RECOMMENDATIONS = 10;
+export const MAX_RECOMMENDATIONS = 20;
 
 export function parseYear(
   dateString: string | undefined | null,
@@ -42,12 +40,17 @@ export function extractTrailer(
   return trailer ? { youtubeKey: trailer.key } : null;
 }
 
+/**
+ * No cap. TMDB orders cast by billing, so a cut here removed the small parts
+ * and left the leads — defensible — but a person is about 100 bytes of JSON,
+ * so two hundred of them are 20 KB, a fraction of one poster. The client
+ * decides how many to draw; the payload is not where that decision belongs.
+ */
 export function extractCast(
   credits: TmdbCredits | undefined,
 ): NormalizedCastMember[] {
   return (credits?.cast ?? [])
     .filter((member) => !member.adult)
-    .slice(0, MAX_CAST)
     .map((member) => ({
       id: member.id,
       name: member.name,
@@ -56,24 +59,102 @@ export function extractCast(
     }));
 }
 
+/**
+ * TMDB returns crew grouped by department and id, with no notion of
+ * importance. This list supplies the missing one. It no longer decides who
+ * survives a cut — there isn't one — but it still decides two things: the
+ * order people appear in, and which of a person's jobs leads their card.
+ */
+const CREW_JOB_PRIORITY: readonly string[] = [
+  "Director",
+  "Screenplay",
+  "Writer",
+  "Story",
+  "Producer",
+  "Executive Producer",
+  "Director of Photography",
+  "Original Music Composer",
+  "Editor",
+  "Production Design",
+  "Costume Design",
+];
+
+function crewRank(job: string): number {
+  const index = CREW_JOB_PRIORITY.indexOf(job);
+  return index === -1 ? CREW_JOB_PRIORITY.length : index;
+}
+
+interface CrewAccumulator {
+  id: number;
+  name: string;
+  profilePath: string | null;
+  jobs: string[];
+}
+
+/**
+ * One entry per person, not per credit. TMDB sends a separate crew object for
+ * every job, so Nolan arrived three times on Inception — invisible under a cap
+ * of fifteen, three identical cards in a row without one.
+ *
+ * A person's own jobs are ordered by weight so their card leads with the one
+ * they're known for here, and people are ordered by their best job. The Map
+ * preserves TMDB's order and both sorts are stable, so anyone sharing a rank
+ * stays where TMDB put them.
+ */
 export function extractCrew(
   credits: TmdbCredits | undefined,
 ): NormalizedCrewMember[] {
-  return (credits?.crew ?? [])
-    .filter((member) => !member.adult)
-    .slice(0, MAX_CREW)
-    .map((member) => ({
-      id: member.id,
-      name: member.name,
-      job: member.job,
-      profilePath: member.profile_path,
+  const byPerson = new Map<number, CrewAccumulator>();
+
+  for (const member of credits?.crew ?? []) {
+    if (member.adult) continue;
+    const existing = byPerson.get(member.id);
+    if (existing) {
+      if (!existing.jobs.includes(member.job)) existing.jobs.push(member.job);
+    } else {
+      byPerson.set(member.id, {
+        id: member.id,
+        name: member.name,
+        profilePath: member.profile_path,
+        jobs: [member.job],
+      });
+    }
+  }
+
+  return [...byPerson.values()]
+    .map((person) => ({
+      person,
+      // Math.min over the jobs rather than reading the first one after
+      // sorting: same answer, no indexing, no assertion to argue with.
+      bestRank: Math.min(...person.jobs.map(crewRank)),
+    }))
+    .sort((a, b) => a.bestRank - b.bestRank)
+    .map(({ person }) => ({
+      id: person.id,
+      name: person.name,
+      jobs: [...person.jobs].sort((a, b) => crewRank(a) - crewRank(b)),
+      profilePath: person.profilePath,
     }));
+}
+
+/**
+ * Read from the full credits list on purpose, not from extractCrew's output.
+ * A line that names the director must not depend on whether the director
+ * happened to survive a cap — that dependency is exactly what made the crew
+ * section unreliable in the first place.
+ */
+export function extractDirectors(credits: TmdbCredits | undefined): string[] {
+  const names = new Set<string>();
+  for (const member of credits?.crew ?? []) {
+    if (member.job === "Director") names.add(member.name);
+  }
+  return [...names];
 }
 
 // NOTE: no longer slices to MAX_RECOMMENDATIONS unconditionally — discover.ts's
 // multi-region buffers need the FULL page (20 items), not a top-10 cut, since
 // it's the one doing its own merge/slice afterward. Recommendations callers
-// (movies.ts/series.ts) still want the top-10 behavior, so slicing moved to
+// (movies.ts/series.ts) still want the capped behavior, so slicing moved to
 // an explicit `limit` param defaulting to MAX_RECOMMENDATIONS.
 export function extractRecommendations(
   recommendations: TmdbPaginatedResponse<TmdbSearchResultItem> | undefined,

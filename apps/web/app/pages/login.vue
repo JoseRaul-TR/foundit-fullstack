@@ -1,9 +1,13 @@
 <!-- apps/web/app/pages/login.vue -->
+<!-- The card lives here now rather than in the layout, so the legal pages can
+     be a different shape without arguing with it. -->
 <template>
-  <div class="flex flex-col gap-6">
+  <div
+    class="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-6 sm:p-8"
+  >
     <div
       v-if="showRedirectBanner"
-      class="rounded-lg bg-surface-elevated px-4 py-3 text-center text-sm text-secondary"
+      class="rounded-full bg-surface-elevated px-4 py-2.5 text-center text-sm text-secondary"
     >
       {{ $t("auth.login.redirectBanner") }}
     </div>
@@ -15,50 +19,44 @@
       <p class="text-sm text-secondary">{{ $t("auth.login.subtitle") }}</p>
     </div>
 
+    <!-- role="alert" so a screen reader hears the refusal. Without it the
+         form simply doesn't submit and nothing is said. -->
     <p
       v-if="formError"
-      class="rounded-lg bg-error/10 px-4 py-3 text-sm text-error"
+      role="alert"
+      class="rounded-xl bg-error/10 px-4 py-3 text-sm text-error"
     >
       {{ formError }}
     </p>
 
     <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
-      <label class="flex flex-col gap-1.5 text-sm font-medium text-primary">
-        {{ $t("auth.login.emailLabel") }}
-        <input
-          v-model="email"
-          type="email"
-          autocomplete="email"
-          class="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-primary"
-          :class="{ 'border-error': emailError }"
-          @blur="touched.email = true"
-        />
-        <span v-if="emailError" class="text-xs text-error">{{
-          emailError
-        }}</span>
-      </label>
+      <AuthField
+        id="login-email"
+        v-model="email"
+        type="email"
+        autocomplete="email"
+        :label="$t('auth.login.emailLabel')"
+        :error="emailError"
+        @blur="touched.email = true"
+      />
 
-      <label class="flex flex-col gap-1.5 text-sm font-medium text-primary">
-        {{ $t("auth.login.passwordLabel") }}
-        <input
-          v-model="password"
-          type="password"
-          autocomplete="current-password"
-          class="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-primary"
-          :class="{ 'border-error': passwordError }"
-          @blur="touched.password = true"
-        />
-        <span v-if="passwordError" class="text-xs text-error">{{
-          passwordError
-        }}</span>
-      </label>
+      <AuthField
+        id="login-password"
+        v-model="password"
+        type="password"
+        autocomplete="current-password"
+        :label="$t('auth.login.passwordLabel')"
+        :error="passwordError"
+        @blur="touched.password = true"
+      />
 
       <button
         type="submit"
-        class="rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-page transition hover:brightness-110 disabled:opacity-50"
-        :disabled="submitting"
+        class="flex items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-page transition hover:brightness-110 disabled:opacity-50"
+        :disabled="submitting || googlePending"
       >
-        {{ submitting ? $t("common.loading") : $t("auth.login.submit") }}
+        <Spinner v-if="submitting" />
+        {{ submitting ? $t("auth.signingIn") : $t("auth.login.submit") }}
       </button>
     </form>
 
@@ -68,20 +66,18 @@
       <span class="h-px flex-1 bg-border" />
     </div>
 
-    <button
-      type="button"
-      class="rounded-full border border-border px-4 py-2.5 text-sm font-medium text-primary transition hover:border-primary/40 disabled:opacity-50"
+    <GoogleButton
+      :label="$t('auth.login.googleButton')"
+      :pending="googlePending"
       :disabled="submitting"
       @click="handleGoogleSignIn"
-    >
-      {{ $t("auth.login.googleButton") }}
-    </button>
+    />
 
     <p class="text-center text-sm text-secondary">
       {{ $t("auth.login.noAccount") }}
       <NuxtLink
         :to="localePath('/register')"
-        class="font-semibold text-accent hover:underline"
+        class="font-semibold text-brand hover:underline"
       >
         {{ $t("auth.login.registerLink") }}
       </NuxtLink>
@@ -114,7 +110,11 @@ const showRedirectBanner = computed(() => !!route.query.redirect);
 const email = ref("");
 const password = ref("");
 const touched = reactive({ email: false, password: false });
+// Two flags, not one: sharing `submitting` made the form's button announce
+// "Signing in…" because someone had clicked Google, which is a different
+// thing happening somewhere else.
 const submitting = ref(false);
+const googlePending = ref(false);
 const formError = ref("");
 
 const loginSchema = z.object({
@@ -183,14 +183,14 @@ async function handleSubmit() {
 }
 
 async function handleGoogleSignIn() {
-  submitting.value = true;
+  googlePending.value = true;
   try {
     await authClient.signIn.social({
       provider: "google",
       callbackURL: `${window.location.origin}${localePath(redirectTarget.value)}`,
     });
   } finally {
-    submitting.value = false;
+    googlePending.value = false;
   }
 }
 </script>

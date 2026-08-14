@@ -1,97 +1,117 @@
 <!-- apps/web/app/pages/profile.vue -->
+<!-- Figma 235:2: flat sections on the page, no cards. They were five identical
+     bordered boxes, which meant the danger zone looked like everything else —
+     it's the only one that keeps its border, and now that's what the border
+     says. -->
 <template>
   <div class="mx-auto flex w-full max-w-2xl flex-col gap-8 py-6">
     <h1 class="text-xl font-bold text-primary">{{ $t("profile.title") }}</h1>
 
-    <section
-      class="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5"
-    >
+    <section class="flex flex-col items-center gap-3 text-center">
       <div class="flex items-center gap-4">
-        <span
-          v-if="!profile?.avatarUrl"
-          class="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-accent text-lg font-bold text-page"
-        >
-          {{ initials }}
-        </span>
         <img
-          v-else
+          v-if="profile?.avatarUrl"
           :src="profile.avatarUrl"
           :alt="profile.name ?? ''"
           class="h-16 w-16 shrink-0 rounded-full object-cover"
         />
+        <span
+          v-else
+          class="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-accent text-lg font-bold text-page"
+        >
+          {{ initials }}
+        </span>
 
-        <div class="flex flex-1 flex-col gap-1">
-          <div v-if="editingName" class="flex items-center gap-2">
+        <div class="flex flex-col items-start gap-0.5 text-left">
+          <div v-if="editingName" class="flex flex-col gap-2">
             <input
+              id="profile-name"
               v-model="nameInput"
+              name="name"
               type="text"
-              class="flex-1 rounded-lg border border-border bg-surface-elevated px-3 py-1.5 text-sm text-primary"
+              class="rounded-full bg-surface-elevated px-4 py-2 text-base text-primary ring-1 ring-border"
               @keydown.enter="saveName"
               @keydown.escape="editingName = false"
             />
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="rounded-full bg-brand px-4 py-1.5 text-xs font-bold text-page transition hover:brightness-110"
+                @click="saveName"
+              >
+                {{ $t("common.save") }}
+              </button>
+              <button
+                type="button"
+                class="rounded-full px-4 py-1.5 text-xs font-semibold text-secondary transition hover:text-primary"
+                @click="editingName = false"
+              >
+                {{ $t("common.cancel") }}
+              </button>
+            </div>
+          </div>
+
+          <!-- A pencil, not a name that turns out to be a button. Text that
+               becomes a field when clicked gives no sign it can be, so nobody
+               clicks it. -->
+          <div v-else class="flex items-center gap-1.5">
+            <span class="text-base font-bold text-primary">
+              {{ profile?.name ?? "—" }}
+            </span>
             <button
               type="button"
-              class="text-xs font-semibold text-accent"
-              @click="saveName"
+              class="grid h-7 w-7 place-items-center rounded-full text-secondary transition hover:bg-surface-elevated hover:text-primary"
+              :aria-label="$t('profile.editName')"
+              @click="startEditName"
             >
-              {{ $t("profile.save") }}
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+              </svg>
             </button>
           </div>
-          <button
-            v-else
-            type="button"
-            class="w-fit text-left text-sm font-semibold text-primary hover:underline"
-            @click="startEditName"
-          >
-            {{ profile?.name ?? "—" }}
-          </button>
-          <span class="text-xs text-secondary">{{ profile?.email }}</span>
-          <span class="text-xs text-secondary/70">
+
+          <span class="text-sm text-secondary">{{ profile?.email }}</span>
+          <!-- Only for accounts that actually came from Google. Everyone used
+               to see this, including accounts that never touched it. -->
+          <span v-if="isGoogleAccount" class="text-xs text-secondary">
             {{ $t("profile.identity.syncedFromGoogle") }}
           </span>
         </div>
       </div>
-    </section>
 
-    <section
-      class="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5"
-    >
-      <div>
-        <h2 class="text-base font-bold text-primary">
-          {{ $t("profile.countries.title") }}
-        </h2>
-        <p class="text-sm text-secondary">
-          {{ $t("profile.countries.description") }}
-        </p>
-      </div>
-
-      <CountrySelector
-        :model-value="selectedCountryCodes"
-        :countries="countriesQuery.data.value ?? []"
-        :disabled="countryMutationPending"
-        @update:model-value="handleCountriesChange"
-      />
-    </section>
-
-    <section
-      v-for="code in selectedCountryCodes"
-      :key="code"
-      class="rounded-2xl border border-border bg-surface p-5"
-    >
-      <CollapsableSection
-        :title="`${$t('profile.streamingServices.title')} — ${countryName(code)}`"
+      <!-- Here rather than at the foot of the page: signing out belongs to who
+           you are, and next to "delete account" two ways of leaving would sit
+           side by side, one of them permanent. -->
+      <button
+        type="button"
+        class="rounded-full px-4 py-2 text-sm font-semibold text-secondary ring-1 ring-border transition hover:text-primary hover:ring-primary/40"
+        @click="signOut"
       >
-        <p class="mb-3 text-sm text-secondary">
-          {{ $t("profile.streamingServices.description") }}
-        </p>
-        <ServiceSelectorSection :country-code="code" />
-      </CollapsableSection>
+        {{ $t("profile.logout") }}
+      </button>
     </section>
 
-    <section
-      class="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5"
-    >
-      <div>
+    <CountryServicesSection
+      :countries="profileStore.countries"
+      :catalog="countriesQuery.data.value ?? []"
+      :loading="profileQuery.isPending.value"
+      :disabled="countryMutationPending"
+      @add="handleAddCountry"
+      @remove="handleRemoveCountry"
+    />
+
+    <section class="flex flex-col gap-3">
+      <div class="flex flex-col gap-1">
         <h2 class="text-base font-bold text-primary">
           {{ $t("profile.ageRating.title") }}
         </h2>
@@ -100,18 +120,19 @@
         </p>
       </div>
 
-      <AgeRatingSelect
+      <CountryPicker
+        :options="ageRatingOptions"
         :model-value="profileStore.ageRatingCountry"
-        :countries="profileStore.countries"
+        :placeholder="$t('profile.ageRating.selectPlaceholder')"
         :disabled="updatingAgeRating"
         @update:model-value="handleAgeRatingChange"
       />
     </section>
 
     <section
-      class="flex flex-col gap-3 rounded-2xl border border-red-500/30 bg-surface p-5"
+      class="flex flex-col gap-3 rounded-2xl border border-error/30 bg-surface p-5"
     >
-      <h2 class="text-base font-bold text-red-500">
+      <h2 class="text-base font-bold text-error">
         ⚠ {{ $t("profile.dangerZone.title") }}
       </h2>
       <p class="text-sm text-secondary">
@@ -119,16 +140,20 @@
       </p>
       <button
         type="button"
-        class="w-fit rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        class="w-fit rounded-full bg-error px-4 py-2 text-sm font-semibold text-page transition hover:brightness-110"
         @click="showDeleteModal = true"
       >
         {{ $t("profile.dangerZone.deleteAccount") }}
       </button>
     </section>
 
-    <DeleteAccountModal
+    <ConfirmDialog
       v-if="showDeleteModal"
-      :deleting="deletingAccount"
+      :title="$t('profile.deleteConfirm.title')"
+      :description="$t('profile.deleteConfirm.description')"
+      :confirm-label="$t('profile.deleteConfirm.confirm')"
+      danger
+      :pending="deletingAccount"
       @close="showDeleteModal = false"
       @confirm="handleDeleteAccount"
     />
@@ -136,11 +161,6 @@
 </template>
 
 <script setup lang="ts">
-import CountrySelector from "~/components/profile/CountrySelector.vue";
-import ServiceSelectorSection from "~/components/profile/ServiceSelectorSection.vue";
-import AgeRatingSelect from "~/components/profile/AgeRatingSelect.vue";
-import DeleteAccountModal from "~/components/profile/DeleteAccountModal.vue";
-import CollapsableSection from "~/components/media-detail/CollapsableSection.vue";
 import { useToast } from "~/composables/useToast";
 import { isUnauthorized } from "~/composables/api/useApi";
 
@@ -150,10 +170,14 @@ const profileStore = useProfileStore();
 const profileQuery = useProfileQuery();
 const countriesQuery = useCountriesQuery();
 const { signOut } = useAuth();
-
 const { t } = useI18n();
+const toast = useToast();
 
 const profile = computed(() => profileQuery.data.value);
+
+const isGoogleAccount = computed(
+  () => profile.value?.authProviders.includes("google") ?? false,
+);
 
 const initials = computed(() => {
   const name = profile.value?.name;
@@ -174,6 +198,7 @@ function startEditName() {
   nameInput.value = profile.value?.name ?? "";
   editingName.value = true;
 }
+
 async function saveName() {
   if (!nameInput.value.trim()) return;
   try {
@@ -187,12 +212,14 @@ async function saveName() {
   toast.success(t("feedback.profileName.success"));
 }
 
-const selectedCountryCodes = computed(() =>
-  profileStore.countries.map((c) => c.code),
+const { countryName, sortByCountryName } = useCountryName();
+
+const ageRatingOptions = computed(() =>
+  sortByCountryName(profileStore.countries, (c) => c.code).map((c) => ({
+    code: c.code,
+    name: countryName(c.code, c.name),
+  })),
 );
-function countryName(code: string): string {
-  return countriesQuery.data.value?.find((c) => c.code === code)?.name ?? code;
-}
 
 const { mutateAsync: addCountry, isPending: addingCountry } =
   useAddCountryMutation();
@@ -202,30 +229,26 @@ const countryMutationPending = computed(
   () => addingCountry.value || removingCountry.value,
 );
 
-const toast = useToast();
-
-async function handleCountriesChange(newCodes: string[]) {
-  const current = selectedCountryCodes.value;
-  const added = newCodes.filter((c) => !current.includes(c));
-  const removed = current.filter((c) => !newCodes.includes(c));
-
+async function handleAddCountry(code: string) {
   try {
-    for (const code of added) await addCountry(code);
+    await addCountry(code);
   } catch (error) {
     if (isUnauthorized(error)) return;
     toast.error(t("feedback.country.addError"));
     return;
   }
-  if (added.length > 0) toast.success(t("feedback.country.addSuccess"));
+  toast.success(t("feedback.country.addSuccess"));
+}
 
+async function handleRemoveCountry(code: string) {
   try {
-    for (const code of removed) await removeCountry(code);
+    await removeCountry(code);
   } catch (error) {
     if (isUnauthorized(error)) return;
     toast.error(t("feedback.country.removeError"));
     return;
   }
-  if (removed.length > 0) toast.success(t("feedback.country.removeSuccess"));
+  toast.success(t("feedback.country.removeSuccess"));
 }
 
 const { mutateAsync: updateAgeRatingCountry, isPending: updatingAgeRating } =

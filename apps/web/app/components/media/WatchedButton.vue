@@ -1,4 +1,3 @@
-<!-- apps/web/app/components/media/WatchedButton.vue -->
 <template>
   <button
     type="button"
@@ -13,11 +12,26 @@
     @click="$emit('toggle')"
   >
     <span class="text-lg leading-none">{{ active ? "✓" : "○" }}</span>
-    {{ active ? $t("mediaDetail.watched") : $t("mediaDetail.markWatched") }}
+    {{ active ? resolvedActiveLabel : resolvedInactiveLabel }}
   </button>
 </template>
 
 <script setup lang="ts">
-defineProps<{ active: boolean; pending: boolean }>();
+const props = defineProps<{
+  active: boolean;
+  pending: boolean;
+  // A series marks every season at once, so it needs to say so. Defaults keep
+  // the movie's wording without every caller repeating it.
+  activeLabel?: string;
+  inactiveLabel?: string;
+}>();
 defineEmits<{ toggle: [] }>();
+
+const { t } = useI18n();
+const resolvedActiveLabel = computed(
+  () => props.activeLabel ?? t("mediaDetail.watched"),
+);
+const resolvedInactiveLabel = computed(
+  () => props.inactiveLabel ?? t("mediaDetail.markWatched"),
+);
 </script>

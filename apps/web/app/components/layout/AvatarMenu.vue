@@ -33,18 +33,29 @@
       <button
         type="button"
         class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-primary hover:bg-page"
+        :aria-expanded="languageMenuOpen"
         @click="languageMenuOpen = !languageMenuOpen"
       >
         <span>{{ $t("common.language") }}</span>
         <span class="flex items-center gap-1 text-secondary">
-          <span class="text-xs uppercase">{{ locale }}</span>
-          <span>›</span>
+          <span class="text-xs">{{ localeLabel(locale) }}</span>
+          <!-- Points down while the panel is an accordion, right once it
+               becomes a flyout, so the arrow always says where it will open. -->
+          <span
+            class="inline-block transition-transform"
+            :class="languageMenuOpen ? 'rotate-90 sm:rotate-0' : ''"
+            aria-hidden="true"
+            >›</span
+          >
         </span>
       </button>
 
+      <!-- Below the row on phones, to the side from `sm`. The flyout needs
+           224px of menu plus 160 of panel plus the gap — 392 in total, on a
+           375px screen. It didn't overflow gracefully, it left the viewport. -->
       <LanguageMenu
         v-if="languageMenuOpen"
-        class="absolute right-full top-0 z-50 mr-2"
+        class="mt-1 w-full sm:absolute sm:right-full sm:top-0 sm:z-50 sm:mr-2 sm:mt-0 sm:w-40"
         @close="languageMenuOpen = false"
       />
     </div>
@@ -63,7 +74,7 @@
 
 <script setup lang="ts">
 const authStore = useAuthStore();
-const { locale } = useLocale();
+const { locale, localeLabel } = useLocale();
 const localePath = useLocalePath();
 const { signOut } = useAuth();
 

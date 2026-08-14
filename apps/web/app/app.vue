@@ -18,3 +18,11 @@
   <MediaDetailsModal />
   <ToastContainer />
 </template>
+<script setup lang="ts">
+// The one thing the <html> element has to say that Nuxt doesn't say for us.
+// Without it a screen reader falls back to the reader's own language and
+// pronounces Swedish with Spanish phonemes — and the app has three locales,
+// so it's wrong for two thirds of its users by construction.
+const { locale } = useI18n();
+useHead({ htmlAttrs: { lang: locale } });
+</script>

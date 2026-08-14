@@ -37,6 +37,7 @@ import certificationsRouter from "@/routes/catalog/certifications";
 // Profile domain (authenticated user settings)
 import profileRouter from "@/routes/profile/profile";
 import profileCountriesRouter from "@/routes/profile/countries";
+import profileMediaStateRouter from "@/routes/profile/mediaState";
 import profileServicesRouter from "@/routes/profile/services";
 
 // Library domain (authenticated user media tracking)
@@ -210,6 +211,7 @@ app.use(`${API_V1}/certifications`, certificationsRouter);
 app.use(`${API_V1}/countries`, countriesRouter);
 app.use(`${API_V1}/profile`, profileRouter);
 app.use(`${API_V1}/profile/countries`, profileCountriesRouter);
+app.use(`${API_V1}/profile/media-state`, profileMediaStateRouter);
 app.use(`${API_V1}/profile/services`, profileServicesRouter);
 app.use(`${API_V1}/watchlist`, watchlistRouter);
 app.use(`${API_V1}/history`, historyRouter);

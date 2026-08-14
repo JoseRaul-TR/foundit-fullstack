@@ -4,11 +4,15 @@ import type { GenresResponse } from "@foundit/types";
 // Cached once per session -- /api/v1/genres barely changes.
 export function useGenres() {
   const { apiFetch } = useApi();
+  const { locale } = useLocale();
 
-  const { data } = useAsyncData("genres", () =>
-    apiFetch<{ success: boolean; data: GenresResponse }>("/api/v1/genres").then(
-      (res) => res.data,
-    ),
+  const { data } = useAsyncData(
+    "genres",
+    () =>
+      apiFetch<{ success: boolean; data: GenresResponse }>(
+        "/api/v1/genres",
+      ).then((res) => res.data),
+    { watch: [locale] },
   );
 
   function getGenreNames(

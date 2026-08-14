@@ -62,14 +62,28 @@
     "title": "Descubrir",
     "noResults": "No se encontraron resultados.",
     "filters": {
+      "title": "Filtros",
+      "toggle": "Filtros",
+      "activeCount": "{count} filtros activos",
       "genre": "Género",
       "year": "Año",
       "minRating": "Puntuación mínima",
+      "country": "País",
+      "selectAll": "Seleccionar todo",
+      "deselectAll": "Deseleccionar todo",
+      "selectCountryForPlatforms": "Selecciona al menos un país para filtrar por plataforma.",
       "platform": "Plataforma",
       "ageRating": "Clasificación por edad",
       "sortBy": "Ordenar por",
       "apply": "Aplicar filtros",
-      "clear": "Borrar filtros"
+      "clear": "Borrar filtros",
+      "excludeWatched": "Ocultar lo que ya he visto",
+      "sort": {
+        "popularity": "Popularidad",
+        "rating": "Puntuación",
+        "releaseDate": "Fecha de estreno",
+        "title": "Título"
+      }
     },
     "typeTabs": {
       "movie": "Películas",
@@ -93,8 +107,13 @@
       "series": "Serie",
       "person": "Persona"
     },
+    "filterByType": "Filtrar por tipo",
     "language": "Idioma",
-    "search": "Buscar"
+    "search": "Buscar",
+    "clearSearch": "Borrar búsqueda",
+    "removeCountry": "Quitar {country}",
+    "scrollPrevious": "Anterior",
+    "scrollNext": "Siguiente"
   },
   "mediaDetail": {
     "addToWatchlist": "Añadir a mi lista",
@@ -104,6 +123,7 @@
     "yourRating": "Tu puntuación: {rating}/10",
     "loginToTrack": "Inicia sesión para guardar en tu lista y marcar como visto",
     "loginToTrackSeries": "Inicia sesión para guardar en tu lista y llevar el control de las temporadas que has visto",
+    "overview": "Sinopsis",
     "noOverview": "No hay sinopsis disponible.",
     "cast": "Reparto",
     "crew": "Equipo técnico",
@@ -111,10 +131,27 @@
     "providerTypes": {
       "flatrate": "Suscripción",
       "free": "Gratis",
-      "ads": "Gratis con anuncios",
       "rent": "Alquiler",
       "buy": "Compra"
     },
+    "withAds": "con anuncios",
+    "otherCountries": "Otros países",
+    "countrySubscribed": "{country}, disponible en tus servicios",
+    "rentBuyToggle": "También en alquiler o compra ({count})",
+    "viewOnTmdb": "Ver opciones en TMDB",
+    "availability": {
+      "rentBuyOnly": "No está en streaming en {country}, pero puedes alquilarla o comprarla.",
+      "noneHere": "No hay opciones en {country}.",
+      "streamingIn": "En {countries} sí está en streaming.",
+      "elsewhereCount": "TMDB tiene opciones en {count} países más."
+    },
+    "directedBy": "Dirigida por {names}",
+    "createdBy": "Creada por {names}",
+    "availableOn": "Disponible en {services}",
+    "andMore": "+{count} más",
+    "markAllSeasonsWatched": "Marcar todas las temporadas",
+    "allSeasonsWatched": "Todas las temporadas vistas",
+    "dialogLabel": "Detalles del título",
     "loginToSeeAvailability": "Inicia sesión y configura tus plataformas para ver qué está disponible para ti",
     "noProviders": "Aún no hay información de streaming para este título.",
     "recommendations": "También te puede interesar",
@@ -123,7 +160,7 @@
     "seasons": "Temporadas",
     "seasonLabel": "Temporada {number} · {count} episodios",
     "markSeasonWatched": "Marcar visto",
-    "newSeason": "NUEVO",
+    "newSeason": "Nueva temporada",
     "newSeasonAvailable": "Nueva temporada disponible en {services}",
     "firstAired": "Estreno {year}",
     "seasonsCount": "{count} temporadas",
@@ -205,19 +242,20 @@
   },
   "profile": {
     "title": "Perfil",
+    "editName": "Editar nombre",
+    "logout": "Cerrar sesión",
     "identity": {
-      "syncedFromGoogle": "Sincronizado con Google · solo lectura"
-    },
-    "manualAccount": {
-      "title": "Cuenta manual (identidad editable)",
-      "description": "Las cuentas creadas con email/contraseña pueden editar su nombre, email y contraseña, a diferencia de las cuentas sincronizadas con Google, que permanecen de solo lectura.",
-      "changePassword": "Cambiar contraseña"
+      "syncedFromGoogle": "Sincronizado con Google"
     },
     "countries": {
       "title": "Países",
       "description": "Selecciona los países para los que quieres ver disponibilidad de streaming.",
       "add": "Añadir país",
-      "empty": "Aún no has seleccionado ningún país."
+      "empty": "Aún no has seleccionado ningún país.",
+      "removeConfirm": {
+        "title": "¿Quitar este país?",
+        "description": "Se quitará {country} y los servicios que marcaste allí. Puedes volver a añadirlo más tarde."
+      }
     },
     "streamingServices": {
       "title": "Servicios de streaming",
@@ -237,11 +275,8 @@
     "deleteConfirm": {
       "title": "¿Eliminar tu cuenta?",
       "description": "Esto eliminará permanentemente tu cuenta, incluidos tu lista, tu historial y tus valoraciones personales. Esta acción no se puede deshacer.",
-      "cancel": "Cancelar",
       "confirm": "Eliminar cuenta"
-    },
-    "save": "Guardar cambios",
-    "logout": "Cerrar sesión"
+    }
   },
   "auth": {
     "login": {
@@ -269,6 +304,7 @@
       "strength": { "weak": "Débil", "medium": "Media", "strong": "Fuerte" },
       "confirmPasswordLabel": "Confirmar contraseña",
       "submit": "Crear cuenta",
+      "success": "Cuenta creada",
       "or": "o",
       "googleButton": "Continuar con Google",
       "hasAccount": "¿Ya tienes una cuenta?",
@@ -281,9 +317,13 @@
         "nameLength": "El nombre debe tener entre 2 y 50 caracteres.",
         "invalidEmail": "Introduce una dirección de correo electrónico válida.",
         "passwordLength": "La contraseña debe tener entre 8 y 128 caracteres.",
-        "passwordMismatch": "Las contraseñas no coinciden."
+        "passwordMismatch": "Las contraseñas no coinciden.",
+        "termsRequired": "Tienes que aceptar los términos para continuar."
       }
     },
+    "googleConnecting": "Conectando con Google…",
+    "creatingAccount": "Creando cuenta…",
+    "signingIn": "Iniciando sesión…",
     "errors": {
       "invalidCredentials": "Correo electrónico o contraseña incorrectos.",
       "emailInUse": "Este correo electrónico ya está registrado."
@@ -313,6 +353,7 @@
     "season": {
       "markError": "No se pudo marcar la temporada {season}. Inténtalo de nuevo.",
       "unmarkError": "No se pudo desmarcar la temporada {season}. Inténtalo de nuevo.",
+      "allUnmarkError": "No se pudieron desmarcar todas las temporadas. Inténtalo de nuevo.",
       "allError": "No se pudieron marcar todas las temporadas. Inténtalo de nuevo."
     },
     "rating": {
@@ -341,5 +382,10 @@
       "deleteSuccess": "Tu cuenta ha sido eliminada",
       "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
     }
+  },
+  "legal": {
+    "terms": "Términos de Servicio",
+    "privacy": "Política de Privacidad",
+    "underConstruction": "Esta página está en construcción. El documento se publicará antes del lanzamiento."
   }
 }

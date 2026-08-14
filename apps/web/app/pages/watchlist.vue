@@ -4,33 +4,22 @@
     <h1 class="text-xl font-bold text-primary">{{ $t("watchlist.title") }}</h1>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex gap-1.5 rounded-full bg-surface-elevated p-1">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition"
-          :class="
-            filterType === tab.value
-              ? 'bg-brand text-page'
-              : 'text-secondary hover:text-primary'
-          "
-          @click="filterType = tab.value"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
+      <SegmentedControl
+        v-model="filterType"
+        :options="tabs"
+        size="sm"
+        :aria-label="$t('common.filterByType')"
+      />
 
-      <label class="flex items-center gap-2 text-xs font-medium text-secondary">
+      <label
+        class="flex w-full flex-col gap-1 text-xs font-medium text-secondary sm:w-auto sm:flex-row sm:items-center sm:gap-2"
+      >
         {{ $t("watchlist.sortBy.label") }}
-        <select
-          v-model="sortBy"
-          class="rounded-lg border border-border bg-surface-elevated px-2 py-1.5 text-xs text-primary"
-        >
+        <SelectControl v-model="sortBy">
           <option value="added">{{ $t("watchlist.sortBy.added") }}</option>
           <option value="title">{{ $t("watchlist.sortBy.title") }}</option>
           <option value="year">{{ $t("watchlist.sortBy.year") }}</option>
-        </select>
+        </SelectControl>
       </label>
     </div>
 
@@ -92,29 +81,18 @@
         :subscribed="item.highlight.available"
         :provider="item.highlight.services[0]?.name ?? null"
         :new-season="item.newSeasonsAvailable ?? false"
-        removable
-        :removing="isRemoving(item)"
-        @remove="handleRemove(item)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import MediaCard from "~/components/media/MediaCard.vue";
-import type { WatchlistItemResponse } from "@foundit/types";
-
 definePageMeta({ middleware: "authenticated" });
 
 const { t } = useI18n();
 const localePath = useLocalePath();
 
 const query = useWatchlistQuery();
-const {
-  mutate: removeItem,
-  variables: removingVariables,
-  isPending: removePending,
-} = useRemoveFromWatchlistMutation();
 
 const filterType = ref<"all" | "movie" | "series">("all");
 const sortBy = ref<"added" | "title" | "year">("added");
@@ -144,16 +122,4 @@ const filteredSorted = computed(() => {
   }
   return sorted;
 });
-
-function isRemoving(item: WatchlistItemResponse): boolean {
-  return (
-    removePending.value &&
-    removingVariables.value?.tmdbId === item.tmdbId &&
-    removingVariables.value?.mediaType === item.mediaType
-  );
-}
-
-function handleRemove(item: WatchlistItemResponse) {
-  removeItem({ tmdbId: item.tmdbId, mediaType: item.mediaType });
-}
 </script>

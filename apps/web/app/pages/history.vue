@@ -4,32 +4,21 @@
     <h1 class="text-xl font-bold text-primary">{{ $t("history.title") }}</h1>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex gap-1.5 rounded-full bg-surface-elevated p-1">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          type="button"
-          class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition"
-          :class="
-            filterType === tab.value
-              ? 'bg-brand text-page'
-              : 'text-secondary hover:text-primary'
-          "
-          @click="filterType = tab.value"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
+      <SegmentedControl
+        v-model="filterType"
+        :options="tabs"
+        size="sm"
+        :aria-label="$t('common.filterByType')"
+      />
 
-      <label class="flex items-center gap-2 text-xs font-medium text-secondary">
+      <label
+        class="flex w-full flex-col gap-1 text-xs font-medium text-secondary sm:w-auto sm:flex-row sm:items-center sm:gap-2"
+      >
         {{ $t("watchlist.sortBy.label") }}
-        <select
-          v-model="sortBy"
-          class="rounded-lg border border-border bg-surface-elevated px-2 py-1.5 text-xs text-primary"
-        >
+        <SelectControl v-model="sortBy">
           <option value="watched">{{ $t("history.sortBy.watched") }}</option>
           <option value="title">{{ $t("watchlist.sortBy.title") }}</option>
-        </select>
+        </SelectControl>
       </label>
     </div>
 
@@ -93,8 +82,6 @@
 </template>
 
 <script setup lang="ts">
-import MediaCard from "~/components/media/MediaCard.vue";
-
 definePageMeta({ middleware: "authenticated" });
 
 const { t } = useI18n();

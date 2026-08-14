@@ -1,4 +1,4 @@
-<!-- apps/webb/app/components/home/LandingPerks.vue -->
+<!-- apps/web/app/components/home/LandingPerks.vue -->
 <template>
   <section class="mx-auto mt-16 w-full max-w-4xl px-4">
     <h2 class="text-center text-lg font-semibold text-primary">
@@ -22,12 +22,9 @@
       </div>
     </div>
     <div class="mt-6 flex justify-center">
-      <NuxtLink
-        :to="localePath('/register')"
-        class="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-page transition hover:brightness-110"
-      >
+      <BrandLink :to="localePath('/register')" class="px-6 py-2.5 text-sm">
         {{ $t("home.perks.cta") }}
-      </NuxtLink>
+      </BrandLink>
     </div>
   </section>
 </template>

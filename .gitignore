@@ -45,7 +45,9 @@ coverage/
 .node_repl_history
 
 # ─── Editors & OS ─────────────────────────────────────────────────────────
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .vscode-test/
 .idea/
 .fleet/

@@ -5,27 +5,47 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #0a0e1a;
-  --color-surface: #131a2b;
-  --color-surface-elevated: #1c2540;
-  --color-border: #2a3352;
-  --color-text-primary: #eef1f8;
-  --color-text-secondary: #8d97b3;
-  --color-text-accent-gold: #e8a33d;
-  --color-accent-gold: #e8a33d;
-  --color-accent-blue: #6ea8ff;
-  --color-success: #4ade80;
-  --color-error: #f87171;
+  --color-bg: 10 14 26;
+  --color-surface: 19 26 43;
+  --color-surface-elevated: 28 37 64;
+  --color-border: 42 51 82;
+  --color-text-primary: 238 241 248;
+  --color-text-secondary: 141 151 179;
+  --color-accent-gold: 232 163 61;
+  --color-accent-blue: 110 168 255;
+  --color-success: 74 222 128;
+  --color-error: 248 113 113;
 }
 
 @layer base {
   body {
     @apply bg-page text-primary;
   }
+  /* One ring for everything focusable, declared once. It was written by hand
+     on seven controls — in two different colours — and missing from the other
+     fifty. A focus ring that exists on some controls is worse than none: the
+     keyboard user learns it can't be trusted and starts counting tabs.
+
+     `:focus-visible` rather than `:focus`, so a mouse click doesn't leave one
+     behind. The dialog panels are excluded by the tabindex selector: they
+     take focus programmatically when they open, and a ring around the whole
+     panel says nothing. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-page;
+  }
 }
 
 @layer components {
-  .glass {
-    @apply bg-gradient-to-br from-white/15 to-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm;
+  /* The four markers that sit on a poster in MediaCard. The glass is defined
+     once here because it was written out four times and had already drifted:
+     three different gradients for one effect. What changes per marker is the
+     colour, and the colour lives in the gradient and the text, not in this. */
+  .poster-marker {
+    @apply bg-page/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-md;
   }
 }

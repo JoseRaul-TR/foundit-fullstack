@@ -62,14 +62,28 @@
     "title": "Upptäck",
     "noResults": "Inga resultat hittades.",
     "filters": {
+      "title": "Filter",
+      "toggle": "Filter",
+      "activeCount": "{count} aktiva filter",
       "genre": "Genre",
       "year": "År",
       "minRating": "Lägsta betyg",
+      "country": "Land",
+      "selectAll": "Välj alla",
+      "deselectAll": "Avmarkera alla",
+      "selectCountryForPlatforms": "Välj minst ett land för att filtrera på tjänst.",
       "platform": "Plattform",
       "ageRating": "Åldersgräns",
       "sortBy": "Sortera efter",
       "apply": "Använd filter",
-      "clear": "Rensa filter"
+      "clear": "Rensa filter",
+      "excludeWatched": "Dölj det jag redan sett",
+      "sort": {
+        "popularity": "Popularitet",
+        "rating": "Betyg",
+        "releaseDate": "Premiärdatum",
+        "title": "Titel"
+      }
     },
     "typeTabs": {
       "movie": "Filmer",
@@ -93,8 +107,13 @@
       "series": "Serie",
       "person": "Person"
     },
+    "filterByType": "Filtrera efter typ",
     "language": "Språk",
-    "search": "Sök"
+    "search": "Sök",
+    "clearSearch": "Rensa sökningen",
+    "removeCountry": "Ta bort {country}",
+    "scrollPrevious": "Föregående",
+    "scrollNext": "Nästa"
   },
   "mediaDetail": {
     "addToWatchlist": "Lägg till i min lista",
@@ -104,6 +123,7 @@
     "yourRating": "Ditt betyg: {rating}/10",
     "loginToTrack": "Logga in för att spara till din lista och markera som sedd",
     "loginToTrackSeries": "Logga in för att spara till din lista och hålla koll på vilka säsonger du har sett",
+    "overview": "Handling",
     "noOverview": "Ingen sammanfattning tillgänglig.",
     "cast": "Skådespelare",
     "crew": "Team",
@@ -111,10 +131,27 @@
     "providerTypes": {
       "flatrate": "Streaming",
       "free": "Gratis",
-      "ads": "Gratis med annonser",
       "rent": "Hyra",
       "buy": "Köp"
     },
+    "withAds": "med annonser",
+    "otherCountries": "Andra länder",
+    "countrySubscribed": "{country}, tillgänglig på dina tjänster",
+    "rentBuyToggle": "Finns även att hyra eller köpa ({count})",
+    "viewOnTmdb": "Se alternativ på TMDB",
+    "availability": {
+      "rentBuyOnly": "Den streamas inte i {country}, men du kan hyra eller köpa den.",
+      "noneHere": "Inga alternativ i {country}.",
+      "streamingIn": "Den streamas i {countries}.",
+      "elsewhereCount": "TMDB har alternativ i {count} andra länder."
+    },
+    "directedBy": "Regi: {names}",
+    "createdBy": "Skapad av {names}",
+    "availableOn": "Tillgänglig på {services}",
+    "andMore": "+{count} till",
+    "markAllSeasonsWatched": "Markera alla säsonger",
+    "allSeasonsWatched": "Alla säsonger sedda",
+    "dialogLabel": "Titeldetaljer",
     "loginToSeeAvailability": "Logga in och ange dina plattformar för att se vad som är tillgängligt för dig",
     "noProviders": "Ingen streaminginformation tillgänglig för den här titeln än.",
     "recommendations": "Du kanske också gillar",
@@ -123,7 +160,7 @@
     "seasons": "Säsonger",
     "seasonLabel": "Säsong {number} · {count} avsnitt",
     "markSeasonWatched": "Markera sedd",
-    "newSeason": "NY",
+    "newSeason": "Ny säsong",
     "newSeasonAvailable": "Ny säsong tillgänglig på {services}",
     "firstAired": "Premiär {year}",
     "seasonsCount": "{count} säsonger",
@@ -205,19 +242,20 @@
   },
   "profile": {
     "title": "Profil",
+    "editName": "Redigera namn",
+    "logout": "Logga ut",
     "identity": {
-      "syncedFromGoogle": "Synkroniserad från Google · skrivskyddad"
-    },
-    "manualAccount": {
-      "title": "Manuellt konto (redigerbar identitet)",
-      "description": "Konton som skapats med e-post/lösenord kan redigera sitt namn, sin e-postadress och sitt lösenord — till skillnad från Google-synkroniserade konton, som förblir skrivskyddade.",
-      "changePassword": "Byt lösenord"
+      "syncedFromGoogle": "Synkroniserad från Google"
     },
     "countries": {
       "title": "Länder",
       "description": "Välj de länder du vill se streamingtillgänglighet för.",
       "add": "Lägg till land",
-      "empty": "Inga länder valda än."
+      "empty": "Inga länder valda än.",
+      "removeConfirm": {
+        "title": "Ta bort landet?",
+        "description": "{country} och tjänsterna du markerade där tas bort. Du kan lägga till det igen senare."
+      }
     },
     "streamingServices": {
       "title": "Streamingtjänster",
@@ -237,11 +275,8 @@
     "deleteConfirm": {
       "title": "Vill du ta bort ditt konto?",
       "description": "Detta raderar ditt konto permanent, inklusive din lista, din historik och dina personliga betyg. Detta går inte att ångra.",
-      "cancel": "Avbryt",
       "confirm": "Ta bort konto"
-    },
-    "save": "Spara ändringar",
-    "logout": "Logga ut"
+    }
   },
   "auth": {
     "login": {
@@ -269,6 +304,7 @@
       "strength": { "weak": "Svag", "medium": "Medel", "strong": "Stark" },
       "confirmPasswordLabel": "Bekräfta lösenord",
       "submit": "Skapa konto",
+      "success": "Kontot har skapats",
       "or": "eller",
       "googleButton": "Fortsätt med Google",
       "hasAccount": "Har du redan ett konto?",
@@ -281,9 +317,13 @@
         "nameLength": "Namnet måste vara mellan 2 och 50 tecken.",
         "invalidEmail": "Ange en giltig e-postadress.",
         "passwordLength": "Lösenordet måste vara mellan 8 och 128 tecken.",
-        "passwordMismatch": "Lösenorden matchar inte."
+        "passwordMismatch": "Lösenorden matchar inte.",
+        "termsRequired": "Du måste godkänna villkoren för att fortsätta."
       }
     },
+    "googleConnecting": "Ansluter till Google…",
+    "creatingAccount": "Skapar konto…",
+    "signingIn": "Loggar in…",
     "errors": {
       "invalidCredentials": "Fel e-postadress eller lösenord.",
       "emailInUse": "Den här e-postadressen är redan registrerad."
@@ -313,6 +353,7 @@
     "season": {
       "markError": "Kunde inte markera säsong {season} som sedd. Försök igen.",
       "unmarkError": "Kunde inte avmarkera säsong {season}. Försök igen.",
+      "allUnmarkError": "Kunde inte avmarkera alla säsonger. Försök igen.",
       "allError": "Kunde inte markera alla säsonger som sedda. Försök igen."
     },
     "rating": {
@@ -341,5 +382,10 @@
       "deleteSuccess": "Ditt konto har raderats",
       "deleteError": "Kunde inte radera ditt konto. Försök igen."
     }
+  },
+  "legal": {
+    "terms": "Användarvillkor",
+    "privacy": "Integritetspolicy",
+    "underConstruction": "Den här sidan är under uppbyggnad. Dokumentet publiceras före lanseringen."
   }
 }
