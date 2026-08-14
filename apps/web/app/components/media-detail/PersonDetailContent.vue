@@ -155,7 +155,6 @@ interface PersonCreditItem {
   posterPath: string | null;
   year: number | null;
   tmdbRating: number | null;
-  popularity: number | null;
   roleLabels: string[];
 }
 
@@ -166,7 +165,6 @@ interface RawCredit {
   posterPath: string | null;
   year: number | null;
   tmdbRating: number | null;
-  popularity: number | null;
   roleLabel: string;
   department?: string;
 }
@@ -198,7 +196,6 @@ function buildCredits(person: PersonDetailResponse) {
     posterPath: c.posterPath,
     year: c.year,
     tmdbRating: c.tmdbRating,
-    popularity: c.popularity,
     roleLabel: c.character,
   }));
   const seriesCast: RawCredit[] = person.seriesCredits.cast.map((c) => ({
@@ -208,7 +205,6 @@ function buildCredits(person: PersonDetailResponse) {
     posterPath: c.posterPath,
     year: c.firstAirYear,
     tmdbRating: c.tmdbRating,
-    popularity: c.popularity,
     roleLabel: c.character,
   }));
   const movieCrew: RawCredit[] = person.movieCredits.crew.map((c) => ({
@@ -218,7 +214,6 @@ function buildCredits(person: PersonDetailResponse) {
     posterPath: c.posterPath,
     year: c.year,
     tmdbRating: c.tmdbRating,
-    popularity: c.popularity,
     roleLabel: c.job,
     department: c.department,
   }));
@@ -229,7 +224,6 @@ function buildCredits(person: PersonDetailResponse) {
     posterPath: c.posterPath,
     year: c.firstAirYear,
     tmdbRating: c.tmdbRating,
-    popularity: c.popularity,
     roleLabel: c.job,
     department: c.department,
   }));
@@ -244,15 +238,28 @@ function buildCredits(person: PersonDetailResponse) {
     ? allCrew
     : [...allCast, ...allCrew.filter((c) => c.department !== department)];
 
-  const byRelevanceDescending = (a: PersonCreditItem, b: PersonCreditItem) => {
-    const aValue = a.popularity ?? a.tmdbRating ?? 0;
-    const bValue = b.popularity ?? b.tmdbRating ?? 0;
-    return bValue - aValue;
+  // Chronological, newest first. The previous rule sorted by
+  // `popularity ?? tmdbRating`, and the mixing of two incomparable scales was
+  // the smaller of its two problems. The larger one: TMDB's popularity on a
+  // credit belongs to the programme, not to this person's part in it, so one
+  // evening as a guest on a nightly talk show outranked a leading role in a
+  // film — the talk show is watched every day and the film once.
+  //
+  // TMDB gives us a year and not a date, so ties are broken by rating: within
+  // one year, the better-regarded credit first. Credits with no year go last
+  // and say so here, instead of landing there by accident the way `?? 0` used
+  // to put them.
+  const byYearDescending = (a: PersonCreditItem, b: PersonCreditItem) => {
+    if (a.year === null && b.year === null) return 0;
+    if (a.year === null) return 1;
+    if (b.year === null) return -1;
+    if (a.year !== b.year) return b.year - a.year;
+    return (b.tmdbRating ?? 0) - (a.tmdbRating ?? 0);
   };
 
   return {
-    primary: dedupeByTitle(primaryRaw).sort(byRelevanceDescending),
-    other: dedupeByTitle(otherRaw).sort(byRelevanceDescending),
+    primary: dedupeByTitle(primaryRaw).sort(byYearDescending),
+    other: dedupeByTitle(otherRaw).sort(byYearDescending),
   };
 }
 
