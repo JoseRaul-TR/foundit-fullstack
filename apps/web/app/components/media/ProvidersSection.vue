@@ -23,7 +23,7 @@ Note: rent/buy are NEVER highlighted as "subscribed" even if the backend
 marks them — Figma is explicit: "pay-per-item, not account-based".
 -->
 <template>
-  <div v-if="hasAnyCountry" class="flex flex-col gap-4">
+  <div v-if="hasAnyCountry" ref="sectionRef" class="flex flex-col gap-4">
     <!-- The pills wrap, and the select drops to its own line on a phone. In a
          single row with `ml-auto` it ended up on its own line anyway, but
          right-aligned and half-width, which reads as an accident rather than a
@@ -57,10 +57,15 @@ marks them — Figma is explicit: "pay-per-item, not account-based".
                any of them. Rent and buy never count towards it. -->
           <span
             v-if="hasSubscribedIn(code)"
-            class="h-1.5 w-1.5 rounded-full"
-            :class="code === selectedCode ? 'bg-page/70' : 'bg-success'"
+            class="relative flex h-1.5 w-1.5"
             aria-hidden="true"
-          />
+          >
+            <span
+              class="absolute inset-0 rounded-full bg-success"
+              :class="seen ? 'motion-safe:animate-halo' : ''"
+            />
+            <span class="relative h-1.5 w-1.5 rounded-full bg-success" />
+          </span>
         </button>
 
         <!-- The country you just looked up stays as a pill, so going back and
@@ -134,6 +139,7 @@ marks them — Figma is explicit: "pay-per-item, not account-based".
           :name="provider.name"
           :logo-path="provider.logoPath"
           :subscribed="provider.subscribed"
+          :pulse="seen"
         />
       </div>
     </div>
@@ -152,6 +158,7 @@ marks them — Figma is explicit: "pay-per-item, not account-based".
           :logo-path="entry.provider.logoPath"
           :subscribed="entry.provider.subscribed"
           :with-ads="entry.withAds"
+          :pulse="seen"
         />
       </div>
     </div>
@@ -490,4 +497,6 @@ const secondaryMessage = computed(() => {
     ? t("mediaDetail.availability.elsewhereCount", { count: elsewhere })
     : "";
 });
+
+const { target: sectionRef, seen } = useInView();
 </script>

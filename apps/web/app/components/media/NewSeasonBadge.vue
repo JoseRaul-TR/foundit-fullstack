@@ -1,7 +1,8 @@
-<!-- apps/web/app/components/media/NewSeasonBadge.vue -->
+<!-- Same glass as the other three markers on a poster: only the colour
+     differs, and it differs in one gradient and one text token. -->
 <template>
   <span
-    class="inline-flex h-8 items-center rounded-full bg-page/35 bg-gradient-to-br from-accent/50 to-accent/15 px-3 text-[11px] font-bold text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md"
+    class="poster-marker inline-flex h-8 items-center rounded-full bg-gradient-to-br from-accent/20 to-accent/5 px-3 text-[11px] font-bold text-accent"
   >
     {{ $t("mediaDetail.newSeason") }}
   </span>

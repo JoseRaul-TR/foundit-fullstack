@@ -48,7 +48,7 @@
       <NewSeasonBadge v-if="showNewSeason" class="absolute left-2 top-2" />
       <span
         v-else-if="showWatched"
-        class="absolute left-2 top-2 inline-flex h-8 items-center gap-1.5 rounded-full bg-page/35 bg-gradient-to-br from-primary/40 to-primary/10 px-3 text-[11px] font-bold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md"
+        class="poster-marker absolute left-2 top-2 inline-flex h-8 items-center gap-1.5 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 px-3 text-[11px] font-bold text-primary"
       >
         <svg
           class="h-3.5 w-3.5"
@@ -71,7 +71,7 @@
       <button
         v-if="showBookmark"
         type="button"
-        class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-page/35 bg-gradient-to-br from-brand/50 to-brand/15 text-brand shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md transition hover:brightness-125 disabled:opacity-50"
+        class="poster-marker absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand/20 to-brand/5 text-brand transition hover:brightness-125 disabled:opacity-50"
         :aria-label="
           inWatchlist
             ? $t('mediaDetail.inWatchlist')
@@ -97,7 +97,7 @@
       <!-- Bottom left: where you can already watch it, on your own services. -->
       <span
         v-if="showProvider"
-        class="absolute bottom-2 left-2 inline-flex h-8 max-w-[calc(100%-1rem)] items-center rounded-full bg-page/35 bg-gradient-to-br from-success/50 to-success/15 px-3 text-[11px] font-bold text-success shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md"
+        class="poster-marker absolute bottom-2 left-2 inline-flex h-8 max-w-[calc(100%-1rem)] items-center rounded-full bg-gradient-to-br from-success/20 to-success/5 px-3 text-[11px] font-bold text-success"
       >
         {{ provider }}
       </span>

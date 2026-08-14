@@ -41,7 +41,7 @@
         <div class="flex flex-wrap items-center justify-center gap-4 lg:gap-6">
           <NuxtLink
             :to="localePath('/about')"
-            class="text-[13px] font-medium text-secondary transition-colors hover:text-primary lg:text-sm"
+            class="py-2 text-[13px] font-medium text-secondary transition-colors hover:text-primary lg:text-sm"
           >
             {{ $t("footer.about") }}
           </NuxtLink>
@@ -49,7 +49,7 @@
             href="https://github.com/JoseRaul-TR/foundit-fullstack"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-[13px] font-medium text-secondary transition-colors hover:text-primary lg:text-sm"
+            class="py-2 text-[13px] font-medium text-secondary transition-colors hover:text-primary lg:text-sm"
           >
             {{ $t("footer.github") }}
           </a>

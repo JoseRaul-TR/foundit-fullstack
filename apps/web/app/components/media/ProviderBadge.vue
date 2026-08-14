@@ -7,11 +7,12 @@
 <template>
   <span
     class="flex h-9 items-center gap-2 rounded-full pl-1.5 pr-3.5 text-[13px]"
-    :class="
+    :class="[
       subscribed
         ? 'border-[1.5px] border-success bg-success/[0.14] text-success'
-        : 'bg-surface-elevated text-primary'
-    "
+        : 'bg-surface-elevated text-primary',
+      subscribed && pulse ? 'motion-safe:animate-ring-pulse' : '',
+    ]"
     :aria-label="ariaLabel"
   >
     <img
@@ -48,6 +49,7 @@ const props = defineProps<{
   logoPath: string;
   subscribed?: boolean;
   withAds?: boolean;
+  pulse?: boolean;
 }>();
 
 const { t } = useI18n();

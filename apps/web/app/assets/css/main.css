@@ -11,7 +11,6 @@
   --color-border: 42 51 82;
   --color-text-primary: 238 241 248;
   --color-text-secondary: 141 151 179;
-  --color-text-accent-gold: 232 163 61;
   --color-accent-gold: 232 163 61;
   --color-accent-blue: 110 168 255;
   --color-success: 74 222 128;
@@ -42,7 +41,11 @@
 }
 
 @layer components {
-  .glass {
-    @apply bg-gradient-to-br from-white/15 to-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm;
+  /* The four markers that sit on a poster in MediaCard. The glass is defined
+     once here because it was written out four times and had already drifted:
+     three different gradients for one effect. What changes per marker is the
+     colour, and the colour lives in the gradient and the text, not in this. */
+  .poster-marker {
+    @apply bg-page/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-md;
   }
 }

@@ -29,6 +29,27 @@ export default {
       maxWidth: {
         container: "1280px",
       },
+      keyframes: {
+        // A halo that leaves the dot alone. Scaling the dot itself would make
+        // the thing you're meant to read the thing that moves.
+        halo: {
+          "75%, 100%": { transform: "scale(2.6)", opacity: "0" },
+        },
+        // Grows outside the border, so the pill's own geometry never changes
+        // and nothing around it reflows.
+        "ring-pulse": {
+          "0%": { boxShadow: "0 0 0 0 rgb(var(--color-success) / 0.45)" },
+          "70%": { boxShadow: "0 0 0 5px rgb(var(--color-success) / 0)" },
+          "100%": { boxShadow: "0 0 0 0 rgb(var(--color-success) / 0)" },
+        },
+      },
+      animation: {
+        // Same duration for both, so the dot and the pills beat together
+        // instead of drifting against each other. Three runs, 4.8s total:
+        // under the five seconds past which WCAG 2.2.2 wants a pause control.
+        halo: "halo 1.6s cubic-bezier(0,0,0.2,1) 3",
+        "ring-pulse": "ring-pulse 1.6s ease-out 3",
+      },
     },
   },
 } satisfies Config;

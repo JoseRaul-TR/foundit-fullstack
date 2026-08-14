@@ -85,7 +85,7 @@
           <!-- i18n-t rather than a concatenated string: the two links sit in
                different places in each language, and gluing them on either
                side of the text would only work in one of the three. -->
-          <i18n-t keypath="auth.register.termsLabel" tag="span">
+          <i18n-t keypath="auth.register.termsLabel" tag="span" scope="global">
             <template #terms>
               <NuxtLink
                 :to="localePath('/terms')"
