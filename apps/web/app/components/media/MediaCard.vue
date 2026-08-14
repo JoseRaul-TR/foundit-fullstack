@@ -9,14 +9,7 @@
      them are authenticated-only, since nothing they report exists for a
      visitor. -->
 <template>
-  <div
-    class="group flex w-full flex-col gap-2 text-left"
-    role="button"
-    tabindex="0"
-    @click="mediaModal.open(id, mediaType)"
-    @keydown.enter="mediaModal.open(id, mediaType)"
-    @keydown.space.prevent="mediaModal.open(id, mediaType)"
-  >
+  <div class="group relative flex w-full flex-col gap-2 text-left">
     <div
       class="relative aspect-[255/383] w-full overflow-hidden rounded-[20px] bg-surface-elevated"
     >
@@ -65,13 +58,13 @@
         {{ $t("mediaDetail.watched") }}
       </span>
 
-      <!-- Top right: the bookmark. keydown is stopped as well as click, or
-           Enter on the button would bubble to the card and open the modal
-           behind the action the user just took. -->
+      <!-- Top right: the bookmark, and the only control on the poster. It sits
+           on z-10 so the title's stretched pseudo-element passes underneath it
+           rather than over it. -->
       <button
         v-if="showBookmark"
         type="button"
-        class="poster-marker absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand/20 to-brand/5 text-brand transition hover:brightness-125 disabled:opacity-50"
+        class="poster-marker absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand/20 to-brand/5 text-brand transition hover:brightness-125 disabled:opacity-50"
         :aria-label="
           inWatchlist
             ? $t('mediaDetail.inWatchlist')
@@ -79,8 +72,7 @@
         "
         :aria-pressed="inWatchlist"
         :disabled="toggleWatchlist.isPending.value"
-        @click.stop="onToggleWatchlist"
-        @keydown.stop
+        @click="onToggleWatchlist"
       >
         <svg
           class="h-[18px] w-[18px]"
@@ -104,7 +96,24 @@
     </div>
 
     <div class="flex flex-col gap-0.5 px-0.5">
-      <p class="truncate text-sm font-semibold text-primary">{{ title }}</p>
+      <!-- The card's control is the title, and the title's ::after covers the
+           whole card. Before this the card was a div with role="button" that
+           contained a real button, and a control inside a control is not
+           reliably conveyed by screen readers.
+
+           The title also makes a better control than the card did: its
+           accessible name is the film's name rather than everything printed on
+           the card, and the focus ring draws around one line of text instead
+           of around a poster. The bookmark sits above the pseudo-element on
+           z-10, which is what let both `.stop` modifiers go — nothing bubbles
+           anywhere now, because the two controls are siblings. -->
+      <button
+        type="button"
+        class="block w-full truncate text-left text-sm font-semibold text-primary after:absolute after:inset-0 after:rounded-[20px]"
+        @click="mediaModal.open(id, mediaType)"
+      >
+        {{ title }}
+      </button>
       <p class="truncate text-xs text-secondary">
         <span v-if="year">{{ year }} · </span>
         <span>{{ typeLabel }}</span>
