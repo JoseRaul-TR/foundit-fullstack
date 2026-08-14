@@ -59,7 +59,7 @@
           class="h-7 w-7 shrink-0 rounded-lg bg-[linear-gradient(45deg,_#e8a33d_14.286%,_#c9791f_85.714%)]"
         />
         <span
-          class="hidden whitespace-nowrap text-xl font-bold sm:inline"
+          class="sr-only whitespace-nowrap text-xl font-bold sm:not-sr-only sm:inline sm:whitespace-nowrap"
           :class="isHomeActive ? 'text-brand' : 'text-primary'"
         >
           {{ appName }}

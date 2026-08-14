@@ -68,7 +68,13 @@
       />
     </div>
 
-    <template v-if="selectedCode">
+    <!-- The heading is static text, so it can be drawn before the data and
+         reserve its own height. Only the list needs standing in for, and it
+         has a known one — the scroller is exactly five rows tall. Without
+         this the section goes from one line of "no countries yet" to some
+         360px the moment the profile resolves, and on a slow connection
+         that lands after first paint: everything below it jumps. -->
+    <template v-if="loading || selectedCode">
       <div class="flex flex-col gap-1">
         <h3 class="text-base font-bold text-primary">
           {{ $t("profile.streamingServices.title") }}
@@ -77,7 +83,13 @@
           {{ $t("profile.streamingServices.description") }}
         </p>
       </div>
+
+      <div
+        v-if="loading"
+        class="h-[312px] animate-pulse rounded-2xl bg-surface-elevated motion-reduce:animate-none"
+      />
       <ServiceSelectorSection
+        v-else-if="selectedCode"
         :key="selectedCode"
         :country-code="selectedCode"
       />
@@ -109,6 +121,7 @@ import type { CountryItem, ProfileCountry } from "@foundit/types";
 const props = defineProps<{
   countries: ProfileCountry[];
   catalog: CountryItem[];
+  loading?: boolean;
   disabled?: boolean;
 }>();
 

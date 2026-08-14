@@ -7,7 +7,7 @@
      read would otherwise be stuck. -->
 <template>
   <div class="flex min-h-screen flex-col bg-page text-primary">
-    <div class="flex flex-1 items-center justify-center px-4 py-12">
+    <main class="flex flex-1 items-center justify-center px-4 py-12">
       <div class="w-full max-w-sm">
         <div class="mb-8 flex justify-center">
           <NuxtLink
@@ -23,7 +23,7 @@
 
         <slot />
       </div>
-    </div>
+    </main>
 
     <AppFooter />
   </div>

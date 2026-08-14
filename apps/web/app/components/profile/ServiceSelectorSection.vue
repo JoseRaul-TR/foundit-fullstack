@@ -5,7 +5,7 @@
 <template>
   <div
     v-if="providersQuery.isPending.value"
-    class="flex max-h-[312px] flex-col gap-2 overflow-hidden pr-1"
+    class="flex max-h-[312px] flex-col gap-2 overflow-hidden px-1 py-1"
   >
     <div
       v-for="n in 5"

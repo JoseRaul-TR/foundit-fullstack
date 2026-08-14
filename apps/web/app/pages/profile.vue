@@ -83,7 +83,7 @@
           <span class="text-sm text-secondary">{{ profile?.email }}</span>
           <!-- Only for accounts that actually came from Google. Everyone used
                to see this, including accounts that never touched it. -->
-          <span v-if="isGoogleAccount" class="text-xs text-secondary/70">
+          <span v-if="isGoogleAccount" class="text-xs text-secondary">
             {{ $t("profile.identity.syncedFromGoogle") }}
           </span>
         </div>
@@ -104,6 +104,7 @@
     <CountryServicesSection
       :countries="profileStore.countries"
       :catalog="countriesQuery.data.value ?? []"
+      :loading="profileQuery.isPending.value"
       :disabled="countryMutationPending"
       @add="handleAddCountry"
       @remove="handleRemoveCountry"
@@ -139,7 +140,7 @@
       </p>
       <button
         type="button"
-        class="w-fit rounded-full bg-error px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+        class="w-fit rounded-full bg-error px-4 py-2 text-sm font-semibold text-page transition hover:brightness-110"
         @click="showDeleteModal = true"
       >
         {{ $t("profile.dangerZone.deleteAccount") }}

@@ -251,9 +251,7 @@ marks them — Figma is explicit: "pay-per-item, not account-based".
       </p>
     </div>
 
-    <p
-      class="flex flex-wrap items-center gap-1.5 text-[10px] text-secondary/70"
-    >
+    <p class="flex flex-wrap items-center gap-1.5 text-[10px] text-secondary">
       {{ $t("mediaDetail.justWatchAttribution") }}
       <a
         href="https://www.justwatch.com/"

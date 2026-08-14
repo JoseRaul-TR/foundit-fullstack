@@ -54,7 +54,7 @@
             class="flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition disabled:opacity-50"
             :class="
               danger
-                ? 'bg-error text-white hover:brightness-110'
+                ? 'bg-error text-page hover:brightness-110'
                 : 'bg-brand text-page hover:brightness-110'
             "
             :disabled="pending"
