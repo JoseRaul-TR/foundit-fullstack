@@ -20,10 +20,8 @@
       :autocomplete="autocomplete"
       :aria-invalid="!!error"
       :aria-describedby="error ? `${id}-error` : undefined"
-      class="w-full rounded-full bg-surface-elevated px-4 py-2.5 text-base text-primary ring-1 transition placeholder:text-secondary focus:outline-none focus:ring-2"
-      :class="
-        error ? 'ring-error focus:ring-error' : 'ring-border focus:ring-brand'
-      "
+      class="w-full rounded-full bg-surface-elevated px-4 py-2.5 text-base text-primary ring-1 transition placeholder:text-secondary focus:outline-none"
+      :class="error ? 'ring-error' : 'ring-border'"
       @input="
         $emit('update:modelValue', ($event.target as HTMLInputElement).value)
       "

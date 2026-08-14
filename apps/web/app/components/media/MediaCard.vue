@@ -71,7 +71,7 @@
       <button
         v-if="showBookmark"
         type="button"
-        class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-page/35 bg-gradient-to-br from-brand/50 to-brand/15 text-brand shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md transition hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
+        class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-page/35 bg-gradient-to-br from-brand/50 to-brand/15 text-brand shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md transition hover:brightness-125 disabled:opacity-50"
         :aria-label="
           inWatchlist
             ? $t('mediaDetail.inWatchlist')

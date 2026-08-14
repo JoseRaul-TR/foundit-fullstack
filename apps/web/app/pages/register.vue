@@ -79,7 +79,7 @@
             v-model="termsAccepted"
             name="terms"
             type="checkbox"
-            class="mt-0.5 h-4 w-4 shrink-0 accent-brand focus:ring-2 focus:ring-brand"
+            class="mt-0.5 h-4 w-4 shrink-0 accent-brand"
             @change="touched.terms = true"
           />
           <!-- i18n-t rather than a concatenated string: the two links sit in

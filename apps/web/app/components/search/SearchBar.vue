@@ -75,7 +75,7 @@
       <button
         v-if="inputValue"
         type="button"
-        class="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-secondary transition hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        class="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-secondary transition hover:text-primary"
         :aria-label="$t('common.clearSearch')"
         @click="clearInput"
       >

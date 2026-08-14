@@ -38,7 +38,7 @@
           </h2>
           <button
             type="button"
-            class="flex h-8 w-8 items-center justify-center rounded-full text-secondary transition hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            class="flex h-8 w-8 items-center justify-center rounded-full text-secondary transition hover:text-primary"
             :aria-label="$t('common.close')"
             @click="close"
           >

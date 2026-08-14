@@ -22,6 +22,23 @@
   body {
     @apply bg-page text-primary;
   }
+  /* One ring for everything focusable, declared once. It was written by hand
+     on seven controls — in two different colours — and missing from the other
+     fifty. A focus ring that exists on some controls is worse than none: the
+     keyboard user learns it can't be trusted and starts counting tabs.
+
+     `:focus-visible` rather than `:focus`, so a mouse click doesn't leave one
+     behind. The dialog panels are excluded by the tabindex selector: they
+     take focus programmatically when they open, and a ring around the whole
+     panel says nothing. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-page;
+  }
 }
 
 @layer components {

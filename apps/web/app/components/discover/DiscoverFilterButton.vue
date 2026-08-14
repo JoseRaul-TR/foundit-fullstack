@@ -4,7 +4,7 @@
 <template>
   <button
     type="button"
-    class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-secondary transition hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-secondary transition hover:text-primary"
     :aria-label="label"
     :aria-expanded="store.filtersOpen"
     aria-controls="discover-filter-drawer"

@@ -29,7 +29,7 @@
               v-model="nameInput"
               name="name"
               type="text"
-              class="rounded-full bg-surface-elevated px-4 py-2 text-base text-primary ring-1 ring-border focus:outline-none focus:ring-2 focus:ring-brand"
+              class="rounded-full bg-surface-elevated px-4 py-2 text-base text-primary ring-1 ring-border"
               @keydown.enter="saveName"
               @keydown.escape="editingName = false"
             />
