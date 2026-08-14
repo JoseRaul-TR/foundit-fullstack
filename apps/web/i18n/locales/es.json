@@ -259,7 +259,8 @@
     },
     "streamingServices": {
       "title": "Servicios de streaming",
-      "description": "Marca a qué servicios estás suscrito en cada país."
+      "description": "Marca a qué servicios estás suscrito en cada país.",
+      "selectCountryFirst": "Selecciona un país arriba para ver aquí los servicios de streaming disponibles."
     },
     "ageRating": {
       "title": "Región de clasificación por edad",

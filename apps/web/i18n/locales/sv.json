@@ -259,7 +259,8 @@
     },
     "streamingServices": {
       "title": "Streamingtjänster",
-      "description": "Markera vilka tjänster du prenumererar på i varje land."
+      "description": "Markera vilka tjänster du prenumererar på i varje land.",
+      "selectCountryFirst": "Välj ett land ovan för att se tillgängliga streamingtjänster här."
     },
     "ageRating": {
       "title": "Region för åldersgränser",

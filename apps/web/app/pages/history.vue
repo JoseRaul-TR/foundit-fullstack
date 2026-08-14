@@ -11,15 +11,14 @@
         :aria-label="$t('common.filterByType')"
       />
 
-      <label class="flex items-center gap-2 text-xs font-medium text-secondary">
+      <label
+        class="flex w-full flex-col gap-1 text-xs font-medium text-secondary sm:w-auto sm:flex-row sm:items-center sm:gap-2"
+      >
         {{ $t("watchlist.sortBy.label") }}
-        <select
-          v-model="sortBy"
-          class="rounded-lg border border-border bg-surface-elevated px-2 py-1.5 text-xs text-primary"
-        >
+        <SelectControl v-model="sortBy">
           <option value="watched">{{ $t("history.sortBy.watched") }}</option>
           <option value="title">{{ $t("watchlist.sortBy.title") }}</option>
-        </select>
+        </SelectControl>
       </label>
     </div>
 

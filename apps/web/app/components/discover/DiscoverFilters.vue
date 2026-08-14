@@ -36,7 +36,7 @@
         <input
           v-model.number="localFilters.yearFrom"
           type="number"
-          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
+          class="rounded-full border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
           placeholder="1900"
         />
       </label>
@@ -47,7 +47,7 @@
         <input
           v-model.number="localFilters.yearTo"
           type="number"
-          class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
+          class="rounded-full border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
           :placeholder="String(currentYear)"
         />
       </label>
@@ -161,10 +161,7 @@
       class="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-secondary"
     >
       {{ $t("discover.filters.ageRating") }}
-      <select
-        v-model="ageRatingMax"
-        class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
-      >
+      <SelectControl v-model="ageRatingMax">
         <option :value="null">—</option>
         <option
           v-for="cert in certifications"
@@ -173,7 +170,7 @@
         >
           {{ cert.certification }}
         </option>
-      </select>
+      </SelectControl>
     </label>
     <p v-else class="text-xs text-secondary">
       <NuxtLink
@@ -187,10 +184,7 @@
       class="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-secondary"
     >
       {{ $t("discover.filters.sortBy") }}
-      <select
-        v-model="localFilters.sort"
-        class="rounded-lg border border-border bg-surface-elevated px-2.5 py-1.5 text-sm normal-case text-primary"
-      >
+      <SelectControl v-model="localFilters.sort">
         <option value="popularity">
           {{ $t("discover.filters.sort.popularity") }}
         </option>
@@ -199,7 +193,7 @@
           {{ $t("discover.filters.sort.releaseDate") }}
         </option>
         <option value="title">{{ $t("discover.filters.sort.title") }}</option>
-      </select>
+      </SelectControl>
     </label>
 
     <label class="flex items-center gap-2 text-xs font-semibold text-secondary">

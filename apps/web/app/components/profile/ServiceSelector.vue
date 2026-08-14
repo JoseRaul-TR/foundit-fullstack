@@ -6,7 +6,7 @@
      stated — which is why it sat wrong. -->
 <template>
   <div
-    class="flex max-h-[312px] flex-col gap-2 overflow-y-auto overscroll-contain pr-1"
+    class="flex max-h-[312px] flex-col gap-2 overflow-y-auto overscroll-contain px-1 py-1"
   >
     <div
       v-for="provider in providers"
