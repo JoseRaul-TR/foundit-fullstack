@@ -23,7 +23,7 @@
     @submit.prevent="submit"
   >
     <div
-      class="relative w-full max-w-[560px] rounded-full transition-shadow"
+      class="relative w-full max-w-[560px] rounded-full transition-shadow has-[:focus-visible]:shadow-[0_0_0_3px_rgba(232,163,61,0.35),0_4px_4px_rgba(0,0,0,0.25)]"
       :class="
         isActiveState
           ? 'bg-surface-elevated bg-gradient-to-br from-brand/10 to-transparent shadow-[0_4px_4px_rgba(0,0,0,0.25)] ring-[1.5px] ring-inset ring-brand'
@@ -52,7 +52,15 @@
            bug, not a design preference.
 
            Autocorrect and auto-capitalisation are off because the input is
-           titles and proper nouns, which is precisely what they get wrong. -->
+           titles and proper nouns, which is precisely what they get wrong.
+
+           The global focus ring is switched off here and handled by the
+           wrapper instead. On the input it draws around the field's own box,
+           which is a rectangle inside a pill — the radius belongs to the
+           wrapper. The wrapper's gold ring alone wasn't enough either: it
+           reports focus *or* content, so tabbing into a field that already
+           has text changed nothing on screen. The `has-[:focus-visible]`
+           halo is the part that only ever means focus.-->
       <input
         id="search-query"
         ref="inputRef"
@@ -65,7 +73,7 @@
         spellcheck="false"
         :placeholder="$t('search.placeholder')"
         :aria-label="$t('search.placeholder')"
-        class="h-10 w-full appearance-none bg-transparent pl-11 pr-10 text-base text-primary placeholder:text-secondary focus:outline-none sm:text-sm [&::-webkit-search-cancel-button]:hidden"
+        class="h-10 w-full appearance-none bg-transparent pl-11 pr-10 text-base text-primary placeholder:text-secondary focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
         @focus="isFocused = true"
         @blur="isFocused = false"
       />
