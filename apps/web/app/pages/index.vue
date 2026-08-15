@@ -46,6 +46,17 @@
         <p class="text-sm text-secondary">
           {{ $t("search.tryDifferentTerm") }}
         </p>
+        <!-- A way out, for the one case where the page has nothing else to
+             offer. Only when signed in: Discover is what a visitor doesn't
+             have, and for them AccountPrompt below is the way forward. -->
+        <button
+          v-if="authStore.isAuthenticated"
+          type="button"
+          class="mt-2 rounded-full bg-surface-elevated px-4 py-2 text-sm font-semibold text-primary ring-1 ring-border transition hover:ring-primary/40"
+          @click="clearSearch"
+        >
+          {{ $t("search.backToDiscover") }}
+        </button>
         <AccountPrompt v-if="!authStore.isAuthenticated" />
       </div>
 
@@ -97,6 +108,7 @@ const typeOptions = computed(() => [
   { value: "person" as SearchType, label: t("search.typeTabs.person") },
 ]);
 
+const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 
@@ -110,6 +122,7 @@ const {
   search: performSearch,
   loadFromQuery,
   fetchNextPage,
+  clear: clearSearch,
 } = useSearch();
 
 const { getGenreNames } = useGenres();
@@ -124,10 +137,24 @@ const routeType = computed(
 // via `watch` — the only place that ever triggers a fetch.
 await useAsyncData(
   "search",
-  // Returns null rather than nothing: an undefined handler leaves Nuxt with
-  // no payload to hand to the client, so the fetch runs a second time while
-  // hydrating — the exact duplication the awaited call exists to avoid.
-  () => loadFromQuery(routeQuery.value, routeType.value).then(() => null),
+  () => {
+    // Read from the router, not from `useRoute()`. Nuxt injects each page a
+    // frozen snapshot of the route it was rendered with, so a page on its way
+    // out doesn't see the incoming one mid-transition. Switching locale leaves
+    // the previous instance alive holding that snapshot — and since
+    // useAsyncData deduplicates by key, that instance stays the owner of
+    // "search" and its closure is the one that runs. It read an empty query,
+    // and loadFromQuery answers an empty query by clearing the store: every
+    // search after a language change actively erased itself.
+    //
+    // Reading the router makes it irrelevant which closure runs, which is the
+    // point — the previous instance is not something this page can control.
+    const query = router.currentRoute.value.query;
+    return loadFromQuery(
+      query.q?.toString() ?? "",
+      (query.type?.toString() as SearchType) || "multi",
+    ).then(() => null);
+  },
   { watch: [routeQuery, routeType] },
 );
 

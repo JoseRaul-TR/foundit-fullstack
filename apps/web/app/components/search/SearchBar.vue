@@ -130,7 +130,20 @@ let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 watch(inputValue, (value) => {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    if (value.trim().length >= 3) submit();
+    const trimmed = value.trim();
+    // Both directions, and the same threshold in each. This only ever acted
+    // upward: under three characters it did nothing at all, so emptying the
+    // field by hand left the URL still carrying the old query. The route never
+    // changed, index.vue's watcher never fired, and the page went on rendering
+    // results for a search the field no longer showed. Clearing with the ✕
+    // worked only because that button calls search.clear() itself, which is
+    // why the failure looked like it depended on the phase of the moon.
+    //
+    // The guard on `search.query` is what keeps typing up from an empty field
+    // from navigating on every keystroke: there is only something to clear if
+    // a search is actually in effect.
+    if (trimmed.length >= 3) submit();
+    else if (search.query.value) search.clear();
   }, 400);
 });
 

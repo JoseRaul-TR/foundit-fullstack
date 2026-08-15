@@ -46,6 +46,7 @@
     "resultsTitle": "Sökresultat",
     "noResultsFor": "Inga resultat hittades för “{query}”.",
     "tryDifferentTerm": "Prova en annan sökterm.",
+    "backToDiscover": "Tillbaka till @:discover.title",
     "typeTabs": {
       "all": "Alla",
       "movie": "Filmer",

@@ -46,6 +46,7 @@
     "resultsTitle": "Resultados de búsqueda",
     "noResultsFor": "No se encontraron resultados para “{query}”.",
     "tryDifferentTerm": "Prueba con otro término de búsqueda.",
+    "backToDiscover": "Volver a @:discover.title",
     "typeTabs": {
       "all": "Todos",
       "movie": "Películas",

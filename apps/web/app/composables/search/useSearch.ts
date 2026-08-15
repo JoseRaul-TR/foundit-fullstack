@@ -8,8 +8,18 @@ export function useSearch() {
   const { locale } = useLocale();
   const localePath = useLocalePath();
 
+  // Last one wins. The guard here used to be `if (store.loading) return`,
+  // which is first-one-wins: a query typed while another was in flight was
+  // dropped without a trace, leaving the URL announcing one search and the
+  // store holding another. Simply removing it isn't enough either — two
+  // answers can arrive out of order and the older one overwrite the newer.
+  //
+  // A token settles both: every call takes the next number, and only the call
+  // that still holds the current one is allowed to write.
+  let requestId = 0;
+
   async function fetchPage(page: number) {
-    if (store.loading) return;
+    const id = ++requestId;
     store.loading = true;
     store.error = null;
 
@@ -27,6 +37,8 @@ export function useSearch() {
         },
       });
 
+      if (id !== requestId) return;
+
       store.results =
         page === 1
           ? response.data.results
@@ -34,9 +46,10 @@ export function useSearch() {
       store.page = response.data.page;
       store.totalPages = response.data.totalPages;
     } catch {
+      if (id !== requestId) return;
       store.error = "errors.generic";
     } finally {
-      store.loading = false;
+      if (id === requestId) store.loading = false;
     }
   }
 
@@ -47,6 +60,11 @@ export function useSearch() {
   async function loadFromQuery(query: string, type: SearchType) {
     const trimmed = query.trim();
     if (trimmed.length < 3) {
+      // Invalidate anything still in flight before emptying the store, or its
+      // answer arrives afterwards and writes results into a search that no
+      // longer exists. Reachable now that clearing the field by hand is a real
+      // path: type three characters, then delete them before the answer lands.
+      requestId++;
       store.clear();
       return;
     }
