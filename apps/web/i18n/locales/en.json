@@ -46,6 +46,7 @@
     "resultsTitle": "Search Results",
     "noResultsFor": "No results found for “{query}”.",
     "tryDifferentTerm": "Try a different search term.",
+    "backToDiscover": "Back to @:discover.title",
     "typeTabs": {
       "all": "All",
       "movie": "Movies",
