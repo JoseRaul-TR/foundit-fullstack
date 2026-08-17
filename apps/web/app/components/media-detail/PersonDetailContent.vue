@@ -135,7 +135,7 @@
         <img
           v-for="(photo, index) in person.photos"
           :key="index"
-          :src="`${TMDB_PROFILE_BASE}${photo.filePath}`"
+          :src="tmdbImage(photo.filePath, 185) ?? undefined"
           :alt="person.name"
           class="h-[213px] w-[160px] shrink-0 rounded-xl object-cover"
           loading="lazy"
@@ -268,14 +268,7 @@ const props = defineProps<{ id: number }>();
 const { t, te, locale } = useI18n();
 const { data: person, pending, error } = await usePersonDetail(props.id);
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
-const TMDB_PROFILE_BASE = "https://image.tmdb.org/t/p/w185";
-
-const profileUrl = computed(() =>
-  person.value?.profilePath
-    ? `${TMDB_IMAGE_BASE}${person.value.profilePath}`
-    : null,
-);
+const profileUrl = computed(() => tmdbImage(person.value?.profilePath, 500));
 
 const departmentLabel = computed(() => {
   const dep = person.value?.knownForDepartment;

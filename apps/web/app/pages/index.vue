@@ -65,8 +65,10 @@
           class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6"
         >
           <MediaCard
-            v-for="item in results"
+            v-for="(item, i) in results"
             :key="`${item.mediaType}-${item.id}`"
+            :eager="i < 4"
+            :priority="i === 0"
             :id="item.id"
             :media-type="item.mediaType"
             :title="item.title"

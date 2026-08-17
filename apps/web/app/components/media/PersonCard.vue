@@ -59,9 +59,8 @@ const props = defineProps<{
 }>();
 
 const mediaModal = useMediaModal();
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w185";
-
-const photoUrl = computed(() =>
-  props.profilePath ? `${TMDB_IMAGE_BASE}${props.profilePath}` : null,
-);
+// w185 for a 110px circle. No srcset: TMDB's only smaller portrait width is
+// w45, which is too small at any pixel ratio, so the browser would have
+// nothing to choose between.
+const photoUrl = computed(() => tmdbImage(props.profilePath, 185));
 </script>
