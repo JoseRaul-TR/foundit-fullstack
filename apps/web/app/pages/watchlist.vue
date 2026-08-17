@@ -70,8 +70,10 @@
 
     <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
       <MediaCard
-        v-for="item in filteredSorted"
+        v-for="(item, i) in filteredSorted"
         :key="`${item.mediaType}-${item.tmdbId}`"
+        :eager="i < 4"
+        :priority="i === 0"
         :id="item.tmdbId"
         :media-type="item.mediaType"
         :title="item.tmdb.title"

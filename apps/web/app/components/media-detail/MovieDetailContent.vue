@@ -249,21 +249,10 @@ const { t, locale } = useI18n();
 
 const { data: movie, pending, error } = await useMovieDetail(props.id);
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
-const TMDB_BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
-const TMDB_BACKDROP_SIZES = [780, 1280] as const;
 const MOBILE_SERVICE_LIMIT = 2;
 
-const posterUrl = computed(() =>
-  movie.value?.posterPath
-    ? `${TMDB_IMAGE_BASE}${movie.value.posterPath}`
-    : null,
-);
-const backdropUrl = computed(() =>
-  movie.value?.backdropPath
-    ? `${TMDB_BACKDROP_BASE}${movie.value.backdropPath}`
-    : null,
-);
+const posterUrl = computed(() => tmdbImage(movie.value?.posterPath, 500));
+const backdropUrl = computed(() => tmdbImage(movie.value?.backdropPath, 1280));
 
 const listFormatter = computed(
   () =>
@@ -383,11 +372,7 @@ const {
 // The modal is never wider than 768px, so w1280 only earns its bytes on a
 // retina screen — and on a phone it was ten times the pixels of the strip
 // it was being drawn into.
-const backdropSrcSet = computed(() => {
-  const path = movie.value?.backdropPath;
-  if (!path) return "";
-  return TMDB_BACKDROP_SIZES.map(
-    (width) => `https://image.tmdb.org/t/p/w${width}${path} ${width}w`,
-  ).join(", ");
-});
+const backdropSrcSet = computed(() =>
+  tmdbImageSrcset(movie.value?.backdropPath, [780, 1280]),
+);
 </script>

@@ -75,12 +75,11 @@ const props = defineProps<{
   subscribedIds: number[];
 }>();
 
-const TMDB_LOGO_BASE = "https://image.tmdb.org/t/p/w92";
 const toast = useToast();
 const { t } = useI18n();
 
 function logoUrl(provider: ProviderItem): string | null {
-  return provider.logoPath ? `${TMDB_LOGO_BASE}${provider.logoPath}` : null;
+  return tmdbImage(provider.logoPath, 92);
 }
 
 const failedLogos = reactive(new Set<number>());

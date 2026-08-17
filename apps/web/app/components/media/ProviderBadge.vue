@@ -54,10 +54,10 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const TMDB_LOGO_BASE = "https://image.tmdb.org/t/p/original";
-const logoUrl = computed(() =>
-  props.logoPath ? `${TMDB_LOGO_BASE}${props.logoPath}` : null,
-);
+// w92 for a 26px square. It was `original` — TMDB's full-resolution file,
+// often several hundred pixels wide — for a badge that draws at 26, up to
+// eight times in a single "where to watch" panel.
+const logoUrl = computed(() => tmdbImage(props.logoPath, 92));
 
 // Covers both cases: no logoPath at all (logoUrl null, handled by v-else
 // above already) AND a valid path that fails to actually load at runtime

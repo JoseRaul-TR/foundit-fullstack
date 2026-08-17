@@ -8,7 +8,7 @@
     >
       <img
         v-if="season.posterPath"
-        :src="`${TMDB_IMAGE_BASE}${season.posterPath}`"
+        :src="tmdbImage(season.posterPath, 154) ?? undefined"
         :alt="`Season ${season.seasonNumber}`"
         class="h-10 w-7 shrink-0 rounded object-cover"
         loading="lazy"
@@ -78,8 +78,6 @@ const props = defineProps<{
 }>();
 
 defineEmits<{ "toggle-watched": [seasonNumber: number] }>();
-
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w154";
 
 // Acceptance criteria #76: sorted by season number ascending, EXCEPT
 // Specials (season 0) which TMDB always numbers as 0 regardless of when

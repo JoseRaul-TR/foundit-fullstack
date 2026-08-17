@@ -16,9 +16,12 @@
       <img
         v-if="posterUrl"
         :src="posterUrl"
+        :srcset="posterSrcset"
+        :sizes="sizes ?? DEFAULT_SIZES"
         :alt="title"
         class="h-full w-full object-cover transition group-hover:brightness-110"
-        loading="lazy"
+        :loading="eager || priority ? 'eager' : 'lazy'"
+        :fetchpriority="priority ? 'high' : undefined"
       />
       <div v-else class="flex h-full w-full items-center justify-center">
         <svg
@@ -143,6 +146,19 @@ const props = defineProps<{
   provider?: string | null;
   newSeason?: boolean;
   genres?: string[];
+  /**
+   * Above the fold: load without waiting. The grid decides this, not the card
+   * — which cards are in the first row depends on the column count, and the
+   * column count lives in the grid's own classes.
+   */
+  eager?: boolean;
+  /**
+   * The LCP candidate. Implies `eager` and adds `fetchpriority="high"`, which
+   * only means anything while it is scarce — exactly one card per page.
+   */
+  priority?: boolean;
+  /** Drawn width, in `sizes` syntax. Defaults to the three page grids. */
+  sizes?: string;
 }>();
 
 const { t } = useI18n();
@@ -151,11 +167,22 @@ const authStore = useAuthStore();
 const mediaState = useMediaState();
 const toggleWatchlist = useToggleWatchlistMutation();
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
-
-const posterUrl = computed(() =>
-  props.posterPath ? `${TMDB_IMAGE_BASE}${props.posterPath}` : null,
+// w342 as the `src`: the width the card draws at DPR 1, and what a browser
+// without srcset support gets. The srcset carries the rest.
+const posterUrl = computed(() => tmdbImage(props.posterPath, 342));
+const posterSrcset = computed(() =>
+  tmdbImageSrcset(props.posterPath, [185, 342, 500]),
 );
+
+// Derived from layouts/default.vue and the grids the card renders in. Written
+// as calc() rather than round vw values because at 412px/DPR 1.75 the card
+// needs 319 device pixels and w342 is the next size up — a 23px margin that
+// any approximation spends, landing back on w500.
+const DEFAULT_SIZES =
+  "(min-width: 1280px) 286px," +
+  " (min-width: 1024px) calc((100vw - 136px) / 4)," +
+  " (min-width: 640px) calc((100vw - 80px) / 3)," +
+  " calc((100vw - 48px) / 2)";
 
 // People are not tracked: there is no list to add them to and nothing to mark
 // as seen.
