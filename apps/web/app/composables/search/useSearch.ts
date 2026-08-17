@@ -7,6 +7,7 @@ export function useSearch() {
   const { public: publicConfig } = useRuntimeConfig();
   const { locale } = useLocale();
   const localePath = useLocalePath();
+  const router = useRouter();
 
   // Last one wins. The guard here used to be `if (store.loading) return`,
   // which is first-one-wins: a query typed while another was in flight was
@@ -77,10 +78,21 @@ export function useSearch() {
   // Called by SearchBar — only updates the URL. index.vue's useAsyncData
   // watcher reacts to the route change and does the actual fetch, so
   // there's exactly one code path that ever calls the API.
+  //
+  // `tab` is carried forward rather than rebuilt: it belongs to Discover, not
+  // to search, and dropping it is what made leaving and re-entering search
+  // land on the wrong tab (#206). It is read from the router and not from a
+  // `useRoute()` captured in setup — this runs from a debounce, long after
+  // setup, and an injected route is a snapshot. Same trap as #183.
   async function search(query: string, type: SearchType) {
-    await navigateTo(localePath({ path: "/", query: { q: query, type } }), {
-      replace: true,
-    });
+    const { tab } = router.currentRoute.value.query;
+    await navigateTo(
+      localePath({
+        path: "/",
+        query: { q: query, type, ...(tab ? { tab } : {}) },
+      }),
+      { replace: true },
+    );
   }
 
   async function fetchNextPage() {
@@ -88,8 +100,12 @@ export function useSearch() {
     await fetchPage(store.page + 1);
   }
 
+  // Returns to Discover on the tab the user left, not on the default one.
   async function clear() {
-    await navigateTo(localePath("/"), { replace: true });
+    const { tab } = router.currentRoute.value.query;
+    await navigateTo(localePath({ path: "/", query: tab ? { tab } : {} }), {
+      replace: true,
+    });
   }
 
   return {

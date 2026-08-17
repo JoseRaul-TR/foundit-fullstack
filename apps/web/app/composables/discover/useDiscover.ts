@@ -16,14 +16,17 @@ export function useDiscover() {
   const route = useRoute();
 
   // The active tab lives in the URL so the view is shareable and the back
-  // button behaves. Search and Discover share `/` and both use `?type=`, with
-  // `q` as the arbiter: with a query the page is in search mode and `type`
-  // filters the results, without one it's Discover and `type` is the tab.
+  // button behaves — under its own parameter, not the `type` search uses.
   //
-  // Singular in the URL to match the vocabulary search already uses there;
+  // `/` hosts both surfaces and both used to write `?type=`: in search mode it
+  // names the result filter (multi/movie/series/person), here it named the tab.
+  // One name with two meanings, and searching from the series tab destroyed the
+  // tab on the way out (#206).
+  //
+  // Singular in the URL to match the vocabulary search uses for its own filter;
   // plural internally because that's what the store calls its sections.
   const activeMediaType = computed<DiscoverMediaType>(() =>
-    route.query.type === "series" ? "series" : "movies",
+    route.query.tab === "series" ? "series" : "movies",
   );
 
   // Country first, provider as a refinement within the selected countries.

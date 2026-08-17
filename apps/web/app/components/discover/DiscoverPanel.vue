@@ -37,7 +37,7 @@
 <script setup lang="ts">
 const discover = useDiscover();
 const { data: profile } = useDiscoverProfile();
-const route = useRoute();
+const router = useRouter();
 const localePath = useLocalePath();
 const store = useDiscoverStore();
 const { t } = useI18n();
@@ -79,10 +79,20 @@ const activeHasMore = computed(() =>
     : discover.seriesHasMore.value,
 );
 
+// The default tab is never written to the URL: absent means movies, which is
+// the same convention search already uses for `type`. Writing it would give
+// one state two addresses — `/` and `/?tab=movie` showing the same thing — and
+// turn the landing URL into something that never stays clean.
+const DEFAULT_TAB: DiscoverTabValue = "movie";
+
 function selectTab(urlValue: DiscoverTabValue) {
-  return navigateTo(
-    localePath({ path: "/", query: { ...route.query, type: urlValue } }),
-  );
+  // Read from the router, not from the injected route: this runs from a click,
+  // and a child of the page gets the same frozen snapshot the page does (#183,
+  // and the rule in #214).
+  const query = { ...router.currentRoute.value.query };
+  if (urlValue === DEFAULT_TAB) delete query.tab;
+  else query.tab = urlValue;
+  return navigateTo(localePath({ path: "/", query }));
 }
 
 // Tracked by hand rather than read from the watcher's previous value: on the
