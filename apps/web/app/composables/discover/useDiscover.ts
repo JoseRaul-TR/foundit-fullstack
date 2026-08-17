@@ -87,6 +87,10 @@ export function useDiscover() {
     if (section.loading) return;
     section.loading = true;
     section.error = null;
+    // Claimed before the await, not on success: a second caller arriving while
+    // this is in flight has to be able to see that the language is already
+    // being fetched.
+    section.loadedLocale = locale.value;
 
     try {
       const response = await $fetch<{
@@ -134,14 +138,18 @@ export function useDiscover() {
     await fetchPage(activeMediaType.value, 1);
   }
 
-  // Switching tabs fetches only what isn't there yet. The store keeps both
-  // sections with their accumulated pages, so returning to a tab restores it as
-  // it was rather than paying for a full multi-region merge again — one TMDB
-  // call per configured country, plus another round whenever the watched filter
-  // trims too much, plus one /tv/{id} per partially-watched series.
+  // The one entry point for "make sure what's on screen is right". Stale means
+  // either nothing loaded or loaded in another language, and both answers live
+  // in the section rather than in whoever called.
+  //
+  // The `loading` half of the guard is what stops the double request: on a
+  // locale change the dying DiscoverPanel gets here first and starts the fetch,
+  // and the freshly mounted one arrives to find the language already claimed.
   async function ensureActiveLoaded() {
     const mediaType = activeMediaType.value;
-    if (store[mediaType].results.length > 0) return;
+    const section = store[mediaType];
+    const fresh = section.loadedLocale === locale.value;
+    if (fresh && (section.loading || section.results.length > 0)) return;
     store.resetSection(mediaType);
     await fetchPage(mediaType, 1);
   }
