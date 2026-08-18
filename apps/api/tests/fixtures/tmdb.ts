@@ -4,7 +4,10 @@
 // match apps/api/src/types/tmdb.types.ts exactly, with sensible defaults
 // overridable per test.
 import type {
+  TmdbCertificationsResponse,
   TmdbMovie,
+  TmdbPaginatedResponse,
+  TmdbSearchResultItem,
   TmdbSeries,
   TmdbWatchProvidersResponse,
 } from "@/types/tmdb.types";
@@ -67,6 +70,54 @@ export function watchProviders(
           display_priority: 1,
         })),
       },
+    },
+  };
+}
+
+/**
+ * A /discover list item. Deliberately minimal: these carry far less than a
+ * detail response, which is exactly why discover has to enrich some of them
+ * with a second call.
+ */
+export function listItem(
+  id: number,
+  overrides: Partial<TmdbSearchResultItem> = {},
+): TmdbSearchResultItem {
+  return {
+    id,
+    title: `Title ${id}`,
+    name: `Title ${id}`,
+    poster_path: `/poster-${id}.jpg`,
+    genre_ids: [18],
+    release_date: "2020-01-01",
+    first_air_date: "2020-01-01",
+    vote_average: 7,
+    vote_count: 500,
+    popularity: 100 - id, // descending by id, so fetch order is predictable
+    ...overrides,
+  };
+}
+
+export function discoverPage(
+  items: TmdbSearchResultItem[],
+  { page = 1, totalPages = 1 } = {},
+): TmdbPaginatedResponse<TmdbSearchResultItem> {
+  return {
+    page,
+    results: items,
+    total_pages: totalPages,
+    total_results: items.length * totalPages,
+  };
+}
+
+/** TMDB's per-country certification list, as /certification/tv/list returns it. */
+export function certifications(
+  countryCode: string,
+  entries: { certification: string; order: number }[],
+): TmdbCertificationsResponse {
+  return {
+    certifications: {
+      [countryCode]: entries.map((e) => ({ ...e, meaning: "" })),
     },
   };
 }
