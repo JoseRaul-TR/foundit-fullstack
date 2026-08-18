@@ -380,12 +380,22 @@ async function collectPage({
   }
 
   const start = (page - 1) * PAGE_SIZE;
+  const results = survivors.slice(start, start + PAGE_SIZE);
+
+  // A page the budget could not fill is the end of what this request can
+  // honestly offer. Every request starts with empty buffers, so a deep page
+  // has to be reached from scratch within MAX_FETCH_ROUNDS — and when that
+  // runs out, the remaining TMDB pages say nothing about whether *this*
+  // request could ever have got there. Reporting more on the strength of them
+  // handed the client an empty page and an invitation to ask again, forever
+  // (#227).
   const hasMore =
-    survivors.length > start + PAGE_SIZE ||
-    buffers.some((buffer) => !buffer.exhausted);
+    results.length === PAGE_SIZE &&
+    (survivors.length > start + PAGE_SIZE ||
+      buffers.some((buffer) => !buffer.exhausted));
 
   return {
-    results: survivors.slice(start, start + PAGE_SIZE),
+    results,
     // Approximate on purpose: the merged-and-filtered count so far, not a true
     // total across regions, which TMDB cannot give for a query it never ran as
     // one. `totalPages` is what the client paginates on.
