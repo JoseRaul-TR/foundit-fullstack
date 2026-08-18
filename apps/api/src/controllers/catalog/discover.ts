@@ -1,12 +1,15 @@
 // apps/api/src/controllers/catalog/discover.ts
+
 /**
  * Exposes GET /discover/movies and GET /discover/series.
  *
- * Auth is OPTIONAL here (extractSession, not requireAuth) — same pattern
- * as movies.ts/series.ts. Discover only makes sense as a personalized
- * feature in practice (it's gated to the authenticated+idle state of
- * index.vue per the ticket), but the endpoint itself doesn't hard-require
- * a session: `regions`/`excludeWatched` simply have no effect without one.
+ * Auth is REQUIRED here, unlike movies.ts/series.ts and unlike this endpoint
+ * until #210. Every Discover filter reads the user: `regions` comes from their
+ * subscriptions, `excludeWatched` from their history, `ageRatingCountry` from
+ * their profile. Without a session the endpoint used to answer 200 with a
+ * generic feed and say nothing — so losing a session mid-browse silently
+ * replaced personalized results with unpersonalized ones. requireAuth makes it
+ * a 401, which apiFetch already knows how to turn into a trip to login.
  *
  * `regions` is a JSON-encoded array (`[{"countryCode":"ES","providerIds":[8,337]}]`)
  * rather than several flat query params — the frontend already has this
@@ -17,11 +20,10 @@
  * constraint. The flat `region`/`provider` pair that used to sit alongside it
  * belonged to the legacy single-region path and no client ever sent them.
  */
-
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { isLocale, type SupportedLocale } from "@foundit/types";
-import { extractSession } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { discoverMovies, discoverSeries } from "@/services/catalog/discover";
 
 const regionGroupSchema = z.object({
@@ -90,7 +92,7 @@ function resolveLocale(lang: string | undefined): SupportedLocale {
 
 export async function discoverMoviesController(req: Request, res: Response) {
   const query = baseQuerySchema.parse(req.query);
-  const user = await extractSession(req);
+  const userId = getUserId(req);
 
   const data = await discoverMovies({
     genres: query.genres,
@@ -104,7 +106,7 @@ export async function discoverMoviesController(req: Request, res: Response) {
     sort: query.sort,
     locale: resolveLocale(query.lang),
     page: query.page,
-    userId: user?.id ?? null,
+    userId,
     excludeWatched: query.excludeWatched,
   });
 
@@ -113,7 +115,7 @@ export async function discoverMoviesController(req: Request, res: Response) {
 
 export async function discoverSeriesController(req: Request, res: Response) {
   const query = seriesQuerySchema.parse(req.query);
-  const user = await extractSession(req);
+  const userId = getUserId(req);
 
   const data = await discoverSeries({
     genres: query.genres,
@@ -128,7 +130,7 @@ export async function discoverSeriesController(req: Request, res: Response) {
     status: query.status,
     locale: resolveLocale(query.lang),
     page: query.page,
-    userId: user?.id ?? null,
+    userId,
     excludeWatched: query.excludeWatched,
   });
 

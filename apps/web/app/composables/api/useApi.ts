@@ -1,16 +1,18 @@
 // apps/web/app/composables/api/useApi.ts
 //
 // Thin typed wrapper around Nuxt's $fetch for every apps/api call.
-// - Prefixes requests with runtimeConfig.public.apiBase.
+// - Prefixes requests with useApiBase() — loopback on the server, the public
+//   origin in the browser.
 // - Sends our own SupportedLocale ("en"/"es"/"sv") as `lang` — NOT
 //   useLocale().tmdbLanguage ("en-US"). apps/api's own Zod schemas
 //   expect SupportedLocale and map to a TMDB language code internally
 //   (see apps/api/src/services/search.ts); sending "en-US" here would
 //   fail validation on every request.
-// - Sends credentials so Better Auth's session cookie travels on the
-//   cross-origin requests of local development (web:3000 -> api:3001).
-//   In production both are served from a single origin, where this is
-//   simply the default behaviour anyway.
+// - Carries the session cookie in both directions. In the browser,
+//   `credentials` does it. On the server it cannot: `credentials` is a
+//   directive to the browser's own cookie store, and there is no such store
+//   in Nitro — the cookies belong to the incoming request and have to be
+//   forwarded by hand. Same reasoning, and same one line, as plugins/auth.ts.
 // - On 401, clears the local session and redirects to /login, preserving the
 //   current path as ?redirect= — matching the Login page's existing "Sign in
 //   to continue" RedirectBanner.
@@ -30,15 +32,31 @@ export function useApi() {
   const authStore = useAuthStore();
   const queryClient = useQueryClient();
 
+  // Read here, in the composable body, and closed over — not inside apiFetch.
+  // useRequestHeaders reaches the incoming request through the Nuxt instance,
+  // and calling it after an await doesn't throw: it returns nothing useful and
+  // the request goes out anonymous, which is indistinguishable from a
+  // logged-out user. See #211.
+  const forwardedCookie = import.meta.server
+    ? useRequestHeaders(["cookie"]).cookie
+    : undefined;
+
   async function apiFetch<T>(
     path: string,
     options: ApiFetchOptions = {},
   ): Promise<T> {
+    // Built through Headers rather than by spreading: `options.headers` is a
+    // HeadersInit, which may be a Headers instance or an array of pairs, and
+    // spreading either of those silently produces an empty object.
+    const headers = new Headers(options.headers);
+    if (forwardedCookie) headers.set("cookie", forwardedCookie);
+
     try {
       return await $fetch<T>(path, {
         baseURL: apiBase,
         credentials: "include",
         ...options,
+        headers,
         query: {
           lang: locale.value,
           ...options.query,
