@@ -642,3 +642,22 @@ describe("discover — with regions, the cases #184 changed", () => {
     expect(params?.with_watch_providers).toBe("350");
   });
 });
+
+describe("discover — auth", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+    clearCache();
+    mockedFetchTmdb.mockReset();
+  });
+
+  it("requires a session", async () => {
+    // Answering an anonymous caller with a generic feed is what made a lost
+    // session invisible: the filters simply stopped applying. #210.
+    const res = await request(app)
+      .get("/api/v1/discover/movies")
+      .set("X-Forwarded-For", uniqueIp());
+
+    expect(res.status).toBe(401);
+    expect(calledPaths()).not.toContain("/discover/movie");
+  });
+});

@@ -4,8 +4,7 @@ import type { SearchType } from "~/stores/search";
 
 export function useSearch() {
   const store = useSearchStore();
-  const { public: publicConfig } = useRuntimeConfig();
-  const { locale } = useLocale();
+  const { apiFetch } = useApi();
   const localePath = useLocalePath();
   const router = useRouter();
 
@@ -25,15 +24,16 @@ export function useSearch() {
     store.error = null;
 
     try {
-      const response = await $fetch<{
+      // No `lang` here, and no baseURL: apiFetch adds the locale from the same
+      // useLocale() this used to read, and resolves loopback vs public origin
+      // itself. Two sources for one parameter is how #208 happened.
+      const response = await apiFetch<{
         success: boolean;
         data: PaginatedResponse<NormalizedSearchResult>;
       }>("/api/v1/search", {
-        baseURL: publicConfig.apiBase,
         query: {
           q: store.query,
           type: store.type,
-          lang: locale.value,
           page,
         },
       });
@@ -46,8 +46,11 @@ export function useSearch() {
           : [...store.results, ...response.data.results];
       store.page = response.data.page;
       store.totalPages = response.data.totalPages;
-    } catch {
+    } catch (error) {
       if (id !== requestId) return;
+      // apiFetch has already cleared the session and started the navigation to
+      // login. An error banner on top of that describes nothing that happened.
+      if (isUnauthorized(error)) return;
       store.error = "errors.generic";
     } finally {
       if (id === requestId) store.loading = false;

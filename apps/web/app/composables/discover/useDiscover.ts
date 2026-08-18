@@ -10,7 +10,7 @@ export type DiscoverMediaType = "movies" | "series";
 
 export function useDiscover() {
   const store = useDiscoverStore();
-  const { public: publicConfig } = useRuntimeConfig();
+  const { apiFetch } = useApi();
   const { locale } = useLocale();
   const profileStore = useProfileStore();
   const route = useRoute();
@@ -93,14 +93,16 @@ export function useDiscover() {
     section.loadedLocale = locale.value;
 
     try {
-      const response = await $fetch<{
+      // No `lang` and no baseURL here: apiFetch adds the locale from the same
+      // useLocale() this reads for loadedLocale, and resolves loopback vs
+      // public origin itself. Two sources for one parameter is how #208
+      // happened.
+
+      const response = await apiFetch<{
         success: boolean;
         data: PaginatedResponse<NormalizedSearchResult>;
       }>(`/api/v1/discover/${mediaType}`, {
-        baseURL: publicConfig.apiBase,
-        credentials: "include",
         query: {
-          lang: locale.value,
           page,
           sort: store.filters.sort,
           genres: store.filters.genres.length
@@ -121,8 +123,10 @@ export function useDiscover() {
           : [...section.results, ...response.data.results];
       section.page = response.data.page;
       section.totalPages = response.data.totalPages;
-    } catch {
-      section.error = "errors.generic";
+    } catch (error) {
+      // apiFetch has already cleared the session and started the navigation to
+      // login. An error banner on top of that describes nothing that happened.
+      if (!isUnauthorized(error)) section.error = "errors.generic";
     } finally {
       section.loading = false;
     }

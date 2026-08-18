@@ -87,7 +87,8 @@ export interface DiscoverParams {
   sort: DiscoverSort;
   locale: SupportedLocale;
   page: number;
-  userId?: string | null;
+  /** Required since #210: the endpoint is behind requireAuth. */
+  userId: string;
   excludeWatched?: boolean;
   /** Absent or empty means no country or platform constraint. */
   regions?: RegionGroup[];
@@ -432,9 +433,9 @@ async function loadWatchedSeriesSeasonCounts(
 export async function discoverMovies(
   params: DiscoverParams,
 ): Promise<PaginatedResponse<NormalizedSearchResult>> {
-  const excludeWatched = params.excludeWatched && !!params.userId;
+  const excludeWatched = !!params.excludeWatched;
   const watchedIds = excludeWatched
-    ? await loadWatchedMovieIds(params.userId!)
+    ? await loadWatchedMovieIds(params.userId)
     : new Set<number>();
 
   return collectPage({
@@ -452,9 +453,9 @@ export async function discoverMovies(
 export async function discoverSeries(
   params: SeriesDiscoverParams,
 ): Promise<PaginatedResponse<NormalizedSearchResult>> {
-  const excludeWatched = params.excludeWatched && !!params.userId;
+  const excludeWatched = !!params.excludeWatched;
   const watchedSeasonCounts = excludeWatched
-    ? await loadWatchedSeriesSeasonCounts(params.userId!)
+    ? await loadWatchedSeriesSeasonCounts(params.userId)
     : new Map<number, number>();
 
   const needsAgeRatingCheck = !!(
