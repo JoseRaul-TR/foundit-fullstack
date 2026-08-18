@@ -101,7 +101,7 @@ import type { SearchType } from "~/stores/search";
 const { public: publicConfig } = useRuntimeConfig();
 const appName = publicConfig.appName;
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const typeOptions = computed(() => [
   { value: "multi" as SearchType, label: t("search.typeTabs.all") },
@@ -157,7 +157,7 @@ await useAsyncData(
       (query.type?.toString() as SearchType) || "multi",
     ).then(() => null);
   },
-  { watch: [routeQuery, routeType] },
+  { watch: [routeQuery, routeType, locale] },
 );
 
 function changeType(type: SearchType) {

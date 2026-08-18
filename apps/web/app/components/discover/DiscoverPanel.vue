@@ -40,7 +40,7 @@ const { data: profile } = useDiscoverProfile();
 const router = useRouter();
 const localePath = useLocalePath();
 const store = useDiscoverStore();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 // Singular in the URL to match the vocabulary search already uses there;
 // plural internally because that's what the store calls its sections.
@@ -120,4 +120,15 @@ onMounted(() => {
 // The drawer is a route-independent overlay; leaving it open across a
 // navigation would reopen it on the next visit for no reason.
 onUnmounted(() => store.closeFilters());
+
+// A locale change makes every section stale, and `ensureActiveLoaded` is the
+// only thing that decides what to do about it — comparing the section's
+// language against the active one rather than assuming a watcher noticed.
+//
+// This panel is remounted on a locale change, so this fires from the instance
+// on its way out and the new one arrives to find the fetch already claimed.
+// Which of the two gets here first stops mattering, which is the point.
+watch(locale, () => {
+  void discover.ensureActiveLoaded();
+});
 </script>

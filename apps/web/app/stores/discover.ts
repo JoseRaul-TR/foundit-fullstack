@@ -24,10 +24,22 @@ interface SectionState {
   totalPages: number;
   loading: boolean;
   error: string | null;
+  // Which language these results are in. Staleness becomes a property of the
+  // data instead of something a watcher has to notice in time — which it
+  // couldn't, because DiscoverPanel is remounted on a locale change and the
+  // dying instance and the new one both tried (#208).
+  loadedLocale: string | null;
 }
 
 function emptySection(): SectionState {
-  return { results: [], page: 1, totalPages: 1, loading: false, error: null };
+  return {
+    results: [],
+    page: 1,
+    totalPages: 1,
+    loading: false,
+    error: null,
+    loadedLocale: null,
+  };
 }
 
 const DEFAULT_EXCLUDE_WATCHED = true;
