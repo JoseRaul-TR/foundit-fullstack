@@ -12,6 +12,10 @@
  * rather than several flat query params — the frontend already has this
  * shape from profileStore.subscribedServices grouped by country, and a
  * JSON blob avoids fragile positional-array query param encoding.
+ *
+ * Since #184 it is also the ONLY way to express a country or platform
+ * constraint. The flat `region`/`provider` pair that used to sit alongside it
+ * belonged to the legacy single-region path and no client ever sent them.
  */
 
 import type { Request, Response } from "express";
@@ -64,9 +68,6 @@ const baseQuerySchema = z.object({
   voteCountMin: z.coerce.number().min(0).optional(),
   ageRatingMax: z.string().optional(),
   ageRatingCountry: z.string().length(2).toUpperCase().optional(),
-  // Legacy single-region params — still accepted for #36/#37 callers.
-  provider: z.coerce.number().optional(),
-  region: z.string().optional(),
   regions: regionsQuerySchema,
   sort: z
     .enum(["popularity", "rating", "release_date", "title"])
@@ -99,8 +100,6 @@ export async function discoverMoviesController(req: Request, res: Response) {
     voteCountMin: query.voteCountMin,
     ageRatingMax: query.ageRatingMax,
     ageRatingCountry: query.ageRatingCountry,
-    provider: query.provider,
-    region: query.region,
     regions: query.regions,
     sort: query.sort,
     locale: resolveLocale(query.lang),
@@ -124,8 +123,6 @@ export async function discoverSeriesController(req: Request, res: Response) {
     voteCountMin: query.voteCountMin,
     ageRatingMax: query.ageRatingMax,
     ageRatingCountry: query.ageRatingCountry,
-    provider: query.provider,
-    region: query.region,
     regions: query.regions,
     sort: query.sort,
     status: query.status,
