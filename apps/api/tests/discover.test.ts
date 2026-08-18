@@ -603,8 +603,40 @@ describe("discover — no regions selected (#184)", () => {
     expect(
       mockedFetchTmdb.mock.calls.filter((c) => c[0] === "/discover/movie"),
     ).toHaveLength(10);
-    // Answered with what survived, and the client is told to page on.
-    expect(res.body.data.totalPages).toBeGreaterThan(res.body.data.page);
+    // Answered with what survived — and, because the budget ran out before
+    // even the first page could be filled, without inviting another request.
+    // Reporting more here is #227.
+    expect(res.body.data.totalPages).toBe(res.body.data.page);
+  });
+
+  it("stops offering more once the budget cannot fill the requested page", async () => {
+    // Twenty distinct titles per TMDB page and a catalogue that never runs
+    // out: ten rounds is 200 survivors, so page 10 is the last full one and
+    // page 11 cannot exist within one request's budget.
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockImplementation(async (_path, params) => {
+      const tmdbPage = Number(params?.page ?? 1);
+      return discoverPage(
+        Array.from({ length: 20 }, (_, i) => listItem(tmdbPage * 100 + i)),
+        { page: tmdbPage, totalPages: 500 },
+      );
+    });
+
+    const full = await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies", { page: 10 }));
+
+    expect(full.body.data.results).toHaveLength(20);
+    // A full page with catalogue left really does have more.
+    expect(full.body.data.totalPages).toBeGreaterThan(full.body.data.page);
+
+    const beyond = await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies", { page: 11 }));
+
+    expect(beyond.body.data.results).toEqual([]);
+    // The symptom: this reported totalPages 12 and the client asked again.
+    expect(beyond.body.data.totalPages).toBe(beyond.body.data.page);
   });
 });
 
