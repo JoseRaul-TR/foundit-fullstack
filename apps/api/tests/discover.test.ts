@@ -76,6 +76,17 @@ function discoverUrl(
   return `/api/v1/discover/${mediaType}?${query.toString()}`;
 }
 
+/** The state #184 is about: nothing selected, no country or platform constraint. */
+function discoverUrlNoRegions(
+  mediaType: "movies" | "series",
+  params: Record<string, string | number> = {},
+): string {
+  const query = new URLSearchParams(
+    Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)])),
+  ).toString();
+  return `/api/v1/discover/${mediaType}${query ? `?${query}` : ""}`;
+}
+
 /** Every path fetchTmdb was called with, for the bounded-N+1 assertions. */
 function calledPaths(): string[] {
   return mockedFetchTmdb.mock.calls.map((call) => call[0]);
@@ -368,5 +379,266 @@ describe("discover — multi-region path, as it behaves today", () => {
       // And no per-title enrichment: movies never need the second call.
       expect(calledPaths().filter((p) => p.startsWith("/movie/"))).toEqual([]);
     });
+  });
+});
+
+/**
+ * #184's own tests. Everything above characterises the path that survives;
+ * these exercise the one that was broken — no regions at all — and each maps to
+ * a line in the ticket's acceptance list.
+ */
+describe("discover — no regions selected (#184)", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+    clearCache();
+    mockedFetchTmdb.mockReset();
+  });
+
+  it("constrains neither country nor platform", async () => {
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
+
+    await (await authed(testUser)).get(discoverUrlNoRegions("movies"));
+
+    const calls = mockedFetchTmdb.mock.calls.filter(
+      (c) => c[0] === "/discover/movie",
+    );
+    // One buffer, not one per country — and it asks TMDB for nothing regional.
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.[1]).not.toHaveProperty("watch_region");
+    expect(calls[0]?.[1]).not.toHaveProperty("with_watch_providers");
+  });
+
+  it("removes a watched movie", async () => {
+    // The ticket's symptom, on the movie side.
+    const testUser = await createTestUser();
+    await prisma.watchedItem.create({
+      data: {
+        userId: testUser.id,
+        tmdbId: 2,
+        mediaType: "movie",
+        seasonNumber: null,
+      },
+    });
+    mockedFetchTmdb.mockResolvedValue(
+      discoverPage([listItem(1), listItem(2), listItem(3)]),
+    );
+
+    const res = await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies", { excludeWatched: "true" }));
+
+    expect(res.body.data.results.map((r: { id: number }) => r.id)).toEqual([
+      1, 3,
+    ]);
+  });
+
+  it("removes a fully watched series and keeps a partially watched one", async () => {
+    // The ticket's symptom as reported: this returned 10 as well.
+    const testUser = await createTestUser();
+    await prisma.watchedItem.createMany({
+      data: [
+        {
+          userId: testUser.id,
+          tmdbId: 10,
+          mediaType: "series",
+          seasonNumber: 1,
+        },
+        {
+          userId: testUser.id,
+          tmdbId: 10,
+          mediaType: "series",
+          seasonNumber: 2,
+        },
+        {
+          userId: testUser.id,
+          tmdbId: 20,
+          mediaType: "series",
+          seasonNumber: 1,
+        },
+      ],
+    });
+    mockedFetchTmdb.mockImplementation(async (path) => {
+      if (path === "/tv/10")
+        return seriesFixture({ id: 10, number_of_seasons: 2 });
+      if (path === "/tv/20")
+        return seriesFixture({ id: 20, number_of_seasons: 5 });
+      return discoverPage([listItem(10), listItem(20), listItem(30)]);
+    });
+
+    const res = await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("series", { excludeWatched: "true" }));
+
+    const ids = res.body.data.results.map((r: { id: number }) => r.id);
+    expect(ids).not.toContain(10);
+    expect(ids).toContain(20);
+    expect(ids).toContain(30);
+  });
+
+  it("sends both ends of the movie year range", async () => {
+    // Asserted on the params, not the results: TMDB does this filtering, so
+    // checking the returned ids would only test the mock. The legacy path sent
+    // primary_release_year — one exact year — and dropped yearTo entirely.
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
+
+    await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies", { yearFrom: 1990, yearTo: 1999 }));
+
+    const params = callParamsFor("/discover/movie");
+    expect(params?.["primary_release_date.gte"]).toBe("1990-01-01");
+    expect(params?.["primary_release_date.lte"]).toBe("1999-12-31");
+    expect(params).not.toHaveProperty("primary_release_year");
+  });
+
+  it("sends both ends of the series year range", async () => {
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
+
+    await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("series", { yearFrom: 1990, yearTo: 1999 }));
+
+    const params = callParamsFor("/discover/tv");
+    expect(params?.["first_air_date.gte"]).toBe("1990-01-01");
+    expect(params?.["first_air_date.lte"]).toBe("1999-12-31");
+    expect(params).not.toHaveProperty("first_air_date_year");
+  });
+
+  it("applies the series age filter", async () => {
+    // Absent from the legacy path entirely — /discover/tv has no native
+    // certification parameter, so with no post-filter there was no filter.
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockImplementation(async (path) => {
+      if (path === "/certification/tv/list") {
+        return certifications("SE", [
+          { certification: "7", order: 1 },
+          { certification: "11", order: 2 },
+          { certification: "15", order: 3 },
+        ]);
+      }
+      if (path === "/tv/10") {
+        return seriesFixture({
+          id: 10,
+          content_ratings: { results: [{ iso_3166_1: "SE", rating: "15" }] },
+        });
+      }
+      if (path === "/tv/20") {
+        return seriesFixture({
+          id: 20,
+          content_ratings: { results: [{ iso_3166_1: "SE", rating: "7" }] },
+        });
+      }
+      return discoverPage([listItem(10), listItem(20)]);
+    });
+
+    const res = await (
+      await authed(testUser)
+    ).get(
+      discoverUrlNoRegions("series", {
+        ageRatingCountry: "SE",
+        ageRatingMax: "11",
+      }),
+    );
+
+    const ids = res.body.data.results.map((r: { id: number }) => r.id);
+    expect(ids).not.toContain(10);
+    expect(ids).toContain(20);
+  });
+
+  it("rejects a certification that does not exist in the country sent with it", async () => {
+    // Previously this filtered nothing and said nothing, which is
+    // indistinguishable from working.
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockImplementation(async (path) => {
+      if (path === "/certification/tv/list") {
+        return certifications("SE", [{ certification: "7", order: 1 }]);
+      }
+      return discoverPage([listItem(10)]);
+    });
+
+    const res = await (
+      await authed(testUser)
+    ).get(
+      discoverUrlNoRegions("series", {
+        ageRatingCountry: "SE",
+        ageRatingMax: "18",
+      }),
+    );
+
+    expect(res.status).toBe(400);
+    // And it fails before doing any work.
+    expect(calledPaths()).not.toContain("/discover/tv");
+  });
+
+  it("stops after ten rounds instead of walking the catalogue", async () => {
+    // Every page returns the same watched title, so nothing ever survives and
+    // the buffer never exhausts — 500 pages of it. Without the cap this walks
+    // all of them inside one request, which is the scenario in the ticket's
+    // symptom and is cheap today only because the filter isn't running.
+    const testUser = await createTestUser();
+    await prisma.watchedItem.create({
+      data: {
+        userId: testUser.id,
+        tmdbId: 1,
+        mediaType: "movie",
+        seasonNumber: null,
+      },
+    });
+    mockedFetchTmdb.mockImplementation(async (_path, params) =>
+      discoverPage([listItem(1)], {
+        page: Number(params?.page ?? 1),
+        totalPages: 500,
+      }),
+    );
+
+    const res = await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies", { excludeWatched: "true" }));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.results).toEqual([]);
+    expect(
+      mockedFetchTmdb.mock.calls.filter((c) => c[0] === "/discover/movie"),
+    ).toHaveLength(10);
+    // Answered with what survived, and the client is told to page on.
+    expect(res.body.data.totalPages).toBeGreaterThan(res.body.data.page);
+  });
+});
+
+describe("discover — with regions, the cases #184 changed", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+    clearCache();
+    mockedFetchTmdb.mockReset();
+  });
+
+  it("still sends both ends of the year range", async () => {
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
+
+    await (
+      await authed(testUser)
+    ).get(discoverUrl("movies", { yearFrom: 1990, yearTo: 1999 }));
+
+    const params = callParamsFor("/discover/movie");
+    expect(params?.["primary_release_date.gte"]).toBe("1990-01-01");
+    expect(params?.["primary_release_date.lte"]).toBe("1999-12-31");
+  });
+
+  it("sends a single provider without the OR separator", async () => {
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
+
+    const regions = JSON.stringify([{ countryCode: "SE", providerIds: [350] }]);
+    await (
+      await authed(testUser)
+    ).get(`/api/v1/discover/movies?regions=${encodeURIComponent(regions)}`);
+
+    const params = callParamsFor("/discover/movie");
+    expect(params?.watch_region).toBe("SE");
+    expect(params?.with_watch_providers).toBe("350");
   });
 });

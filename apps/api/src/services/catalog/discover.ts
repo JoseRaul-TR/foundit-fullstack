@@ -228,13 +228,12 @@ function initBuffers(regions: RegionGroup[] | undefined): RegionBuffer[] {
  * the two cases identically, which is the point of #184.
  */
 function regionParams(buffer: RegionBuffer) {
-  if (!buffer.countryCode) return {};
-  return {
-    watch_region: buffer.countryCode,
-    ...(buffer.providerIds.length
-      ? { with_watch_providers: buffer.providerIds.join("|") }
-      : {}),
-  };
+  return buffer.countryCode
+    ? {
+        watch_region: buffer.countryCode,
+        with_watch_providers: buffer.providerIds.join("|"),
+      }
+    : {};
 }
 
 function dedupeAndMerge(buffers: RegionBuffer[]): NormalizedSearchResult[] {
