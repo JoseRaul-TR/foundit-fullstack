@@ -96,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+import { useQueryClient } from "@tanstack/vue-query";
 import type { SearchType } from "~/stores/search";
 
 const { public: publicConfig } = useRuntimeConfig();
@@ -159,6 +160,36 @@ await useAsyncData(
   },
   { watch: [routeQuery, routeType, locale] },
 );
+
+const { apiFetch } = useApi();
+const queryClient = useQueryClient();
+const discover = useDiscover();
+
+// Both surfaces on this page render MediaCard, and every card reads
+// media-state. Awaiting it is what keeps the rendered HTML and the payload
+// saying the same thing — see #192, where not doing it left sixty bookmarks
+// showing "Add to Watchlist" on a page where everything was already on the
+// list.
+//
+// Discover additionally needs the profile *first*: buildRegionsParam reads
+// profileStore.subscribedServices, and the only thing that fills that store is
+// useProfileQuery's watcher. Calling the composable here is what fires it —
+// with the cache warm its `immediate: true` run is synchronous, so the store
+// is populated before the Discover request is built. DiscoverPanel calls the
+// same composable; TanStack dedupes, and there is one fetch either way.
+//
+// That ordering used to live in DiscoverPanel's `onMounted`, which is exactly
+// what kept Discover off the server and made it render
+// "No se encontraron resultados." to a signed-in user (0.47 CLS).
+if (import.meta.server && authStore.isAuthenticated) {
+  await queryClient.prefetchQuery(mediaStateQueryOptions(apiFetch));
+
+  if (isIdle.value) {
+    await queryClient.prefetchQuery(profileQueryOptions(apiFetch));
+    useProfileQuery();
+    await discover.ensureActiveLoaded();
+  }
+}
 
 function changeType(type: SearchType) {
   if (routeQuery.value.trim().length >= 3) {
