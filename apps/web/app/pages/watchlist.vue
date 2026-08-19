@@ -96,12 +96,18 @@ definePageMeta({ middleware: "authenticated" });
 const { apiFetch } = useApi();
 const queryClient = useQueryClient();
 
+// Read before the await. A composable called after an await in setup has lost
+// its Nuxt instance and returns nothing useful without throwing (#211) — and
+// the prefetch's key has to be the one useWatchlistQuery will read, or the
+// payload ships full under a key nobody looks at (#192).
+const { locale } = useLocale();
+
 // media-state comes along because every MediaCard reads it, and because it
 // runs during SSR regardless — see the note in useMediaState.ts. Awaiting it
 // is what makes the rendered HTML and the serialized payload agree.
 if (import.meta.server) {
   await Promise.all([
-    queryClient.prefetchQuery(watchlistQueryOptions(apiFetch)),
+    queryClient.prefetchQuery(watchlistQueryOptions(apiFetch, locale.value)),
     queryClient.prefetchQuery(mediaStateQueryOptions(apiFetch)),
   ]);
 }

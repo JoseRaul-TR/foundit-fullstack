@@ -17,7 +17,10 @@ interface ToggleVariables {
 
 interface ToggleContext {
   previousState: MediaStateResponse | undefined;
-  previousList: WatchlistItemResponse[] | undefined;
+  // Every cached language, not just the active one. The key gained a locale
+  // segment in #218, so there can be several watchlists in the cache at once
+  // and a removal has to reach all of them.
+  previousLists: [readonly unknown[], WatchlistItemResponse[] | undefined][];
 }
 
 /**
@@ -49,12 +52,18 @@ export function useToggleWatchlistMutation() {
 
     onMutate: async ({ tmdbId, mediaType, add }): Promise<ToggleContext> => {
       await queryClient.cancelQueries({ queryKey: MEDIA_STATE_QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey: WATCHLIST_QUERY_KEY });
 
       const previousState = queryClient.getQueryData<MediaStateResponse>(
         MEDIA_STATE_QUERY_KEY,
       );
-      const previousList =
-        queryClient.getQueryData<WatchlistItemResponse[]>(WATCHLIST_QUERY_KEY);
+      // getQueriesData, not getQueryData: the latter matches keys exactly, so
+      // it stopped finding anything the moment the locale joined the key
+      // (#218). It would have failed silently — the optimistic removal just
+      // wouldn't happen, with no error anywhere.
+      const previousLists = queryClient.getQueriesData<WatchlistItemResponse[]>(
+        { queryKey: WATCHLIST_QUERY_KEY },
+      );
 
       queryClient.setQueryData<MediaStateResponse>(
         MEDIA_STATE_QUERY_KEY,
@@ -75,9 +84,12 @@ export function useToggleWatchlistMutation() {
       // client doesn't have. That asymmetry is the point of keeping the flags
       // in an ids-only payload: the icon flips instantly either way, and only
       // the watchlist page waits for a refetch.
+      //
+      // setQueriesData applies it to every cached language, since an item
+      // leaving the list leaves it in all of them.
       if (!add) {
-        queryClient.setQueryData<WatchlistItemResponse[]>(
-          WATCHLIST_QUERY_KEY,
+        queryClient.setQueriesData<WatchlistItemResponse[]>(
+          { queryKey: WATCHLIST_QUERY_KEY },
           (old) =>
             (old ?? []).filter(
               (item) =>
@@ -86,7 +98,7 @@ export function useToggleWatchlistMutation() {
         );
       }
 
-      return { previousState, previousList };
+      return { previousState, previousLists };
     },
 
     // The rollback happens whatever the cause; the toast doesn't. On a 401
@@ -96,8 +108,8 @@ export function useToggleWatchlistMutation() {
       if (context?.previousState) {
         queryClient.setQueryData(MEDIA_STATE_QUERY_KEY, context.previousState);
       }
-      if (context?.previousList) {
-        queryClient.setQueryData(WATCHLIST_QUERY_KEY, context.previousList);
+      for (const [key, data] of context?.previousLists ?? []) {
+        queryClient.setQueryData(key, data);
       }
       if (isUnauthorized(err)) return;
       toast.error(
@@ -109,6 +121,8 @@ export function useToggleWatchlistMutation() {
       );
     },
 
+    // Prefix match, so every language's list is invalidated, not only the one
+    // on screen.
     onSettled: (_data, _error, variables) => {
       if (variables.add) {
         void queryClient.invalidateQueries({ queryKey: WATCHLIST_QUERY_KEY });

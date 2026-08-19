@@ -99,6 +99,10 @@
 import { useQueryClient } from "@tanstack/vue-query";
 import type { SearchType } from "~/stores/search";
 
+const { apiFetch } = useApi();
+const queryClient = useQueryClient();
+const discover = useDiscover();
+
 const { public: publicConfig } = useRuntimeConfig();
 const appName = publicConfig.appName;
 
@@ -161,9 +165,14 @@ await useAsyncData(
   { watch: [routeQuery, routeType, locale] },
 );
 
-const { apiFetch } = useApi();
-const queryClient = useQueryClient();
-const discover = useDiscover();
+// Genres are needed by both surfaces on this page — the search results grid
+// and Discover's carousel — and search results are rendered for signed-out
+// visitors too, so this sits outside the session guard. useQuery does not
+// fetch during SSR (#192), so without this the first render draws every card
+// with no genre chips and fills them in after hydration.
+if (import.meta.server) {
+  await queryClient.prefetchQuery(genresQueryOptions(apiFetch, locale.value));
+}
 
 // Both surfaces on this page render MediaCard, and every card reads
 // media-state. Awaiting it is what keeps the rendered HTML and the payload

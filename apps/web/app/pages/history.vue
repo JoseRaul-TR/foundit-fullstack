@@ -91,12 +91,15 @@ definePageMeta({ middleware: "authenticated" });
 const { apiFetch } = useApi();
 const queryClient = useQueryClient();
 
+// Before the await — see the note in watchlist.vue (#211, #192).
+const { locale } = useLocale();
+
 // media-state comes along because every MediaCard reads it, and because it
 // runs during SSR regardless — see the note in useMediaState.ts. Awaiting it
 // is what makes the rendered HTML and the serialized payload agree.
 if (import.meta.server) {
   await Promise.all([
-    queryClient.prefetchQuery(historyQueryOptions(apiFetch)),
+    queryClient.prefetchQuery(historyQueryOptions(apiFetch, locale.value)),
     queryClient.prefetchQuery(mediaStateQueryOptions(apiFetch)),
   ]);
 }
