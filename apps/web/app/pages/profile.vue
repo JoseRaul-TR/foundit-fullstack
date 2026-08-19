@@ -161,10 +161,51 @@
 </template>
 
 <script setup lang="ts">
+import { useQueryClient } from "@tanstack/vue-query";
 import { useToast } from "~/composables/useToast";
 import { isUnauthorized } from "~/composables/api/useApi";
+import type { ProfileResponse } from "@foundit/types";
 
 definePageMeta({ middleware: "authenticated" });
+
+const { apiFetch } = useApi();
+const queryClient = useQueryClient();
+
+// Fill the cache before the first render, so the server has something to
+// render with. `useQuery` never fetches during SSR — it registers its observer
+// and waits for a browser — so without this the page renders against an empty
+// cache, `dehydrate` finds nothing, and every value on the page arrives after
+// first paint. That is the whole of #192.
+//
+// Both in one `Promise.all`: the profile and the country catalogue that fills
+// the pickers' options. Two requests, one round trip.
+//
+// `prefetchQuery` swallows its own errors by design, which is what we want
+// here: a 401 leaves the cache empty rather than throwing the page, and the
+// `authenticated` middleware has already redirected anyone without a session.
+if (import.meta.server) {
+  await Promise.all([
+    queryClient.prefetchQuery(profileQueryOptions(apiFetch)),
+    queryClient.prefetchQuery(countriesQueryOptions(apiFetch)),
+  ]);
+
+  // The provider catalogue for the country the page will actually show.
+  // `useProvidersQuery` runs during SSR whether or not we ask it to, and its
+  // result lands after the render — so without this the server emits the
+  // five-row skeleton while the payload carries the real list, and Vue
+  // reports a mismatch it will not rectify in production.
+  //
+  // codes[0] duplicates the choice CountryServicesSection makes in its own
+  // watchEffect. The duplication is deliberate and the two must not drift:
+  // if that default ever changes, this changes with it.
+  const profile = queryClient.getQueryData<ProfileResponse>(PROFILE_QUERY_KEY);
+  const firstCountry = profile?.countries[0]?.code;
+  if (firstCountry) {
+    await queryClient.prefetchQuery(
+      providersQueryOptions(apiFetch, firstCountry),
+    );
+  }
+}
 
 const profileStore = useProfileStore();
 const profileQuery = useProfileQuery();

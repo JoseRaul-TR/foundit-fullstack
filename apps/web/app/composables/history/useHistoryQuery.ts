@@ -8,6 +8,8 @@ import type {
 
 export const HISTORY_QUERY_KEY = ["history"] as const;
 
+type ApiFetch = ReturnType<typeof useApi>["apiFetch"];
+
 export interface NormalizedHistoryItem {
   tmdbId: number;
   mediaType: "movie" | "series";
@@ -20,7 +22,7 @@ export interface NormalizedHistoryItem {
 }
 
 async function fetchAllPages<T>(
-  apiFetch: ReturnType<typeof useApi>["apiFetch"],
+  apiFetch: ApiFetch,
   type: "movie" | "series",
 ): Promise<T[]> {
   const fetchPage = (page: number) =>
@@ -38,11 +40,9 @@ async function fetchAllPages<T>(
   return [first.results, ...rest.map((p) => p.results)].flat();
 }
 
-export function useHistoryQuery() {
-  const { apiFetch } = useApi();
-  const authStore = useAuthStore();
-
-  return useQuery({
+/** Same reasoning as watchlistQueryOptions — see #192. */
+export function historyQueryOptions(apiFetch: ApiFetch) {
+  return {
     queryKey: HISTORY_QUERY_KEY,
     queryFn: async (): Promise<NormalizedHistoryItem[]> => {
       const [movies, series] = await Promise.all([
@@ -72,6 +72,15 @@ export function useHistoryQuery() {
 
       return [...normalizedMovies, ...normalizedSeries];
     },
+  };
+}
+
+export function useHistoryQuery() {
+  const { apiFetch } = useApi();
+  const authStore = useAuthStore();
+
+  return useQuery({
+    ...historyQueryOptions(apiFetch),
     enabled: computed(() => authStore.isAuthenticated),
   });
 }
