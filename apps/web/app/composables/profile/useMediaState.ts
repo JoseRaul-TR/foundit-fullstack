@@ -9,16 +9,44 @@ import type { MediaStateResponse, MediaStateSeries } from "@foundit/types";
 
 export const MEDIA_STATE_QUERY_KEY = ["media-state"] as const;
 
-export function useMediaStateQuery() {
-  const { apiFetch } = useApi();
-  const authStore = useAuthStore();
+type ApiFetch = ReturnType<typeof useApi>["apiFetch"];
 
-  return useQuery({
+/**
+ * Same factory reasoning as the others (#192), and here it fixes a defect
+ * rather than an absence.
+ *
+ * This query runs during SSR whether or not anyone asks it to — measured
+ * 19 Aug: `media-state` appears in the dehydrated payload of `/watchlist`
+ * and `/history` with no prefetch of any kind. But its result lands *after*
+ * the HTML is rendered and *before* `dehydrate` runs on `app:rendered`, so
+ * the server emits every bookmark unfilled while the payload says otherwise.
+ * The client hydrates against the payload and Vue reports one attribute
+ * mismatch per card — sixty on this account's watchlist:
+ *
+ *     rendered on server:  fill="none"
+ *     expected on client:  fill="currentColor"
+ *
+ * In production Vue does not rectify these, so the markers stay wrong.
+ *
+ * Awaiting it in the page makes the render and the payload agree. The bytes
+ * were already being shipped; only the HTML changes.
+ */
+export function mediaStateQueryOptions(apiFetch: ApiFetch) {
+  return {
     queryKey: MEDIA_STATE_QUERY_KEY,
     queryFn: () =>
       apiFetch<{ success: boolean; data: MediaStateResponse }>(
         "/api/v1/profile/media-state",
       ).then((res) => res.data),
+  };
+}
+
+export function useMediaStateQuery() {
+  const { apiFetch } = useApi();
+  const authStore = useAuthStore();
+
+  return useQuery({
+    ...mediaStateQueryOptions(apiFetch),
     enabled: computed(() => authStore.isAuthenticated),
   });
 }

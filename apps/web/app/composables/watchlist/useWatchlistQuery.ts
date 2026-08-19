@@ -10,11 +10,18 @@ import type { PaginatedResponse, WatchlistItemResponse } from "@foundit/types";
 
 export const WATCHLIST_QUERY_KEY = ["watchlist"] as const;
 
-export function useWatchlistQuery() {
-  const { apiFetch } = useApi();
-  const authStore = useAuthStore();
+type ApiFetch = ReturnType<typeof useApi>["apiFetch"];
 
-  return useQuery({
+/**
+ * The query's definition, in one place, so `useQuery` on the client and
+ * `queryClient.prefetchQuery` on the server cannot disagree about it (#192).
+ *
+ * `enabled` stays out: it belongs to the client observer, `prefetchQuery`
+ * ignores it, and on the server the `authenticated` middleware has already
+ * established there is a session.
+ */
+export function watchlistQueryOptions(apiFetch: ApiFetch) {
+  return {
     queryKey: WATCHLIST_QUERY_KEY,
     queryFn: async () => {
       const fetchPage = (page: number) =>
@@ -25,6 +32,8 @@ export function useWatchlistQuery() {
           query: { type: "all", sort: "added", page },
         }).then((res) => res.data);
 
+      // Page 1 awaited, the rest in parallel: N requests but two round trips,
+      // whatever the list length. Measured 19 Aug: 76 items over 4 pages.
       const first = await fetchPage(1);
       const rest = await Promise.all(
         Array.from({ length: Math.max(0, first.totalPages - 1) }, (_, i) =>
@@ -33,6 +42,15 @@ export function useWatchlistQuery() {
       );
       return [first.results, ...rest.map((p) => p.results)].flat();
     },
+  };
+}
+
+export function useWatchlistQuery() {
+  const { apiFetch } = useApi();
+  const authStore = useAuthStore();
+
+  return useQuery({
+    ...watchlistQueryOptions(apiFetch),
     enabled: computed(() => authStore.isAuthenticated),
   });
 }

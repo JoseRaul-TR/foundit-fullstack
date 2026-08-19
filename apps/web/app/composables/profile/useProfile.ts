@@ -10,20 +10,43 @@ import type { ProfileResponse } from "@foundit/types";
 
 export const PROFILE_QUERY_KEY = ["profile"] as const;
 
+type ApiFetch = ReturnType<typeof useApi>["apiFetch"];
+
+/**
+ * The query's definition, in one place, so `useQuery` on the client and
+ * `queryClient.prefetchQuery` on the server cannot disagree about it (#192).
+ *
+ * Writing the key twice is how a prefetch fails silently: it fills a cache
+ * entry nobody reads, the payload ships full, and the page stays exactly as
+ * broken while looking implemented.
+ *
+ * `enabled` deliberately stays out of here. It belongs to the client observer;
+ * `prefetchQuery` ignores it, and on the server the `authenticated` middleware
+ * has already established there is a session.
+ */
+export function profileQueryOptions(apiFetch: ApiFetch) {
+  return {
+    queryKey: PROFILE_QUERY_KEY,
+    queryFn: () =>
+      apiFetch<{ success: boolean; data: ProfileResponse }>(
+        "/api/v1/profile",
+      ).then((res) => res.data),
+  };
+}
+
 export function useProfileQuery() {
   const { apiFetch } = useApi();
   const authStore = useAuthStore();
   const profileStore = useProfileStore();
 
   const query = useQuery({
-    queryKey: PROFILE_QUERY_KEY,
-    queryFn: () =>
-      apiFetch<{ success: boolean; data: ProfileResponse }>(
-        "/api/v1/profile",
-      ).then((res) => res.data),
+    ...profileQueryOptions(apiFetch),
     enabled: computed(() => authStore.isAuthenticated),
   });
 
+  // Fires on the server too, once the data is prefetched — which is how the
+  // country pills reach the initial HTML without any new code: the watcher
+  // fills profileStore, and Pinia serializes it into the payload.
   watch(
     query.data,
     (profile) => {
