@@ -1,0 +1,21 @@
+// apps/web/tsconfig.test.json
+//
+// The tests live outside every tsconfig Nuxt generates: `tsconfig.json` here
+// is `"files": []` plus references to .nuxt/*, and .nuxt/ is regenerated on
+// every `nuxt prepare` so it cannot be edited. Without a project of their own,
+// ESLint's project service cannot parse them — "was not found by the project
+// service".
+//
+// Referencing it from tsconfig.json pulls every SFC a test imports into this
+// project too, and this project does not inherit the ambient declarations that
+// give a template its global `$t` — `include` is replaced, not extended, so the
+// .vue files reach here without them. That produced two errors in
+// WatchlistButton.vue, a component that is correct and passes under
+// `nuxt typecheck` on its own.
+//
+// tests/globals.d.ts is what fixes it: a `/// <reference>` adds to the type set
+// rather than replacing it. Both had to exist before either worked.
+{
+  "extends": "./.nuxt/tsconfig.app.json",
+  "include": ["tests/**/*.ts", "tests/**/*.d.ts", "vitest.config.ts"]
+}
