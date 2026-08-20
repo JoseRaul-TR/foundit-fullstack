@@ -10,7 +10,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck && vue-tsc -p tsconfig.test.json --noEmit",
+    "typecheck": "nuxt typecheck",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -84,7 +84,12 @@ export default tseslint.config(
     // Config files at the package root are outside tsconfig's `include`, so
     // they can't be type-checked — they're handled by the syntax-only block
     // above and must not be re-matched here.
-    ignores: ["**/*.config.ts"],
+    //
+    // Tests likewise: they belong to no tsconfig Nuxt generates, and the block
+    // below parses them without a project. Leaving them matched here would
+    // pin projectService: true, which is what produces "was not found by the
+    // project service".
+    ignores: ["**/*.config.ts", "apps/web/tests/**"],
 
     extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
@@ -109,27 +114,21 @@ export default tseslint.config(
   },
 
   // ——— apps/web tests ———
-  // The block above already matches these files and supplies the project
-  // service; this only adds what a test file needs on top. They are covered by
-  // tsconfig.test.json rather than by any of Nuxt's generated projects — see
-  // that file for why.
+  // They belong to no tsconfig Nuxt generates, and giving them one
+  // (tsconfig.test.json, referenced from tsconfig.json) makes `nuxt typecheck`
+  // walk that project and report every auto-import inside an imported SFC as
+  // missing — ten errors in SearchBar.vue for `ref`, `watch`, `computed`,
+  // `onUnmounted` and `useSearch`, none of them real.
+  //
+  // So they are parsed without a project, which is why the block above
+  // excludes them: it pins projectService: true, and flat config merges
+  // parserOptions rather than replacing them. Type-aware rules do not run on
+  // these five files as a result; they stay on everywhere else.
   {
     files: ["apps/web/tests/**/*.ts"],
+    extends: [...tseslint.configs.recommended],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
-    },
-    rules: {
-      // mountSuspended returns a wrapper whose types depend on the component,
-      // and assertions on rendered output are the point. Same reasoning as
-      // apps/api's Supertest block above. Redundant with the apps/web block's
-      // own overrides today, and stated anyway: those exist because ESLint
-      // cannot resolve Nuxt's auto-imports, and if that ever stops being true
-      // these files still need them for their own reason.
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
     },
   },
 
