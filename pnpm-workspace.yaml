@@ -8,6 +8,10 @@ allowBuilds:
   esbuild: true
   prisma: false
   vue-demi: true
+# Added automatically by pnpm when installing a package newer than the
+# minimum-release-age gate. happy-dom 20.11.6 arrived for #200's test setup.
+minimumReleaseAgeExclude:
+  - happy-dom@20.11.6
 overrides:
   vue-router: ^5.2.0
   typescript: ^6.0.3

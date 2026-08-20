@@ -108,6 +108,31 @@ export default tseslint.config(
     },
   },
 
+  // ——— apps/web tests ———
+  // The block above already matches these files and supplies the project
+  // service; this only adds what a test file needs on top. They are covered by
+  // tsconfig.test.json rather than by any of Nuxt's generated projects — see
+  // that file for why.
+  {
+    files: ["apps/web/tests/**/*.ts"],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
+    },
+    rules: {
+      // mountSuspended returns a wrapper whose types depend on the component,
+      // and assertions on rendered output are the point. Same reasoning as
+      // apps/api's Supertest block above. Redundant with the apps/web block's
+      // own overrides today, and stated anyway: those exist because ESLint
+      // cannot resolve Nuxt's auto-imports, and if that ever stops being true
+      // these files still need them for their own reason.
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+    },
+  },
+
   // ——— Vue SFCs ———
   {
     files: ["apps/web/**/*.vue"],
