@@ -134,8 +134,14 @@ const filteredSorted = computed(() => {
       : items.filter((i) => i.mediaType === filterType.value);
 
   const sorted = [...filtered];
+  // The locale explicitly, not Node's or the browser's default — #184 fixed
+  // the same defect server-side, where Å and Ä landed in the wrong place in
+  // Swedish. Since #192 the list is server-rendered too, so a disagreement
+  // between the two collators is a hydration mismatch, not just a wrong order.
   if (sortBy.value === "title") {
-    sorted.sort((a, b) => a.tmdb.title.localeCompare(b.tmdb.title));
+    sorted.sort((a, b) =>
+      a.tmdb.title.localeCompare(b.tmdb.title, locale.value),
+    );
   } else if (sortBy.value === "year") {
     sorted.sort((a, b) => (b.tmdb.year ?? 0) - (a.tmdb.year ?? 0));
   } else {
@@ -143,6 +149,7 @@ const filteredSorted = computed(() => {
       (a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime(),
     );
   }
+
   return sorted;
 });
 </script>

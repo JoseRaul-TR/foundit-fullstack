@@ -1,14 +1,20 @@
 //apps/api/src/services/library/watchlist.ts
+
 /**
  * title/year are cached on WatchlistItem at add-time (see migration adding
- * those two nullable columns) instead of always fetched from TMDB. This is
- * the resolution to the sort/pagination tension discussed: DB can only
- * ORDER BY + LIMIT/OFFSET correctly on columns it actually has, and
- * title/year aren't derivable from tmdbId alone without a TMDB call per
- * item. Caching them at write time means GET can paginate/sort entirely
- * at the DB level for all three sort modes, and only ever enriches exactly
- * the 20 items of the requested page with live TMDB data (poster, rating,
- * providers) — never more, regardless of sort or watchlist size.
+ * those two nullable columns). The original reason was that the DB can only
+ * ORDER BY + LIMIT/OFFSET on columns it has, so caching them meant GET could
+ * paginate and sort entirely at the DB level.
+ *
+ * That is no longer what happens. The web client requests every page with
+ * sort=added and does its filtering and sorting in the browser over the
+ * enriched TMDB titles, so `orderBy: { title }` below is never reached from
+ * the app and a GET enriches the whole list rather than one page of 20. The
+ * columns are still written and no longer read. #234 is where that gets
+ * resolved; this comment is here so it doesn't keep claiming otherwise.
+ *
+ * The write still uses one fixed language on purpose — see the note on
+ * addToWatchlistController.
  *
  * newSeasonsAvailable reuses the exact same compound condition as #39's
  * series detail (status must be "returning", user must have watched at
@@ -16,11 +22,11 @@
  * subscribed service) — same feature, same semantics, just surfaced here
  * too.
  */
-
 import {
   LOCALE_TO_TMDB_LANG,
   type MediaType,
   type PaginatedResponse,
+  type SupportedLocale,
   type WatchlistHighlightService,
   type WatchlistItemHighlight,
   type WatchlistItemResponse,
@@ -41,11 +47,19 @@ import { toSeriesStatus } from "@/services/catalog/series";
 import type { TmdbMovie, TmdbSeries } from "@/types/tmdb.types";
 import { AppError } from "@/middleware/errorHandler";
 
-const BASIC_LANGUAGE = LOCALE_TO_TMDB_LANG.en; // no ?lang= in this ticket; see note in routes/watchlist.ts
+/**
+ * The language the cached title is written in. Fixed, not the caller's:
+ * nothing sorts on this column today (see the note at the top of this file),
+ * but it exists to be an ordering key, and an ordering key in whichever
+ * language the user happened to be reading is worse than one in a language
+ * that is at least known. #234 decides what replaces it.
+ */
+const STORED_TITLE_LANGUAGE = LOCALE_TO_TMDB_LANG.en;
 
 export interface WatchlistQuery {
   type: WatchlistTypeFilter;
   sort: WatchlistSort;
+  locale: SupportedLocale;
   page: number;
 }
 
@@ -64,10 +78,11 @@ interface WatchlistRow {
 function fetchRawTmdb(
   tmdbId: number,
   mediaType: MediaType,
+  language: string,
 ): Promise<TmdbMovie | TmdbSeries> {
   return fetchMediaRaw(tmdbId, mediaType, {
     append_to_response: "watch/providers",
-    language: BASIC_LANGUAGE,
+    language,
   });
 }
 
@@ -160,8 +175,13 @@ async function enrichRow(
   userId: string,
   subscribedSet: Set<string>,
   watchedMovieSet: Set<number>,
+  language: string,
 ): Promise<WatchlistItemResponse> {
-  const raw = await fetchRawTmdb(row.tmdbId, row.mediaType as MediaType);
+  const raw = await fetchRawTmdb(
+    row.tmdbId,
+    row.mediaType as MediaType,
+    language,
+  );
   return buildResponse(row, userId, raw, subscribedSet, watchedMovieSet);
 }
 
@@ -169,6 +189,8 @@ export async function getWatchlist(
   userId: string,
   query: WatchlistQuery,
 ): Promise<PaginatedResponse<WatchlistItemResponse>> {
+  const language = LOCALE_TO_TMDB_LANG[query.locale];
+
   const where = {
     userId,
     ...(query.type !== "all" ? { mediaType: query.type } : {}),
@@ -215,7 +237,9 @@ export async function getWatchlist(
   const watchedMovieSet = new Set(watchedMovies.map((w) => w.tmdbId));
 
   const results = await Promise.all(
-    rows.map((row) => enrichRow(row, userId, subscribedSet, watchedMovieSet)),
+    rows.map((row) =>
+      enrichRow(row, userId, subscribedSet, watchedMovieSet, language),
+    ),
   );
 
   return {
@@ -235,7 +259,11 @@ export async function addToWatchlist(
   userId: string,
   input: AddWatchlistInput,
 ): Promise<WatchlistItemResponse> {
-  const raw = await fetchRawTmdb(input.tmdbId, input.mediaType);
+  const raw = await fetchRawTmdb(
+    input.tmdbId,
+    input.mediaType,
+    STORED_TITLE_LANGUAGE,
+  );
   const title = extractTitle(input.mediaType, raw);
   const year = extractYear(input.mediaType, raw);
 

@@ -29,6 +29,7 @@ import {
   type HistorySeriesItemResponse,
   type HistoryType,
   type PaginatedResponse,
+  type SupportedLocale,
 } from "@foundit/types";
 import {
   extractTitle,
@@ -39,10 +40,9 @@ import { PAGE_SIZE } from "@/config/constants";
 import prisma from "@/lib/prisma";
 import type { TmdbSeries } from "@/types/tmdb.types";
 
-const LANGUAGE = LOCALE_TO_TMDB_LANG.en; // no ?lang= support in either ticket
-
 export interface HistoryQuery {
   type: HistoryType;
+  locale: SupportedLocale;
   page: number;
 }
 
@@ -78,8 +78,9 @@ async function fetchRatingsMap(
 async function enrichMovieRow(
   row: { tmdbId: number; createdAt: Date },
   ratingsMap: Map<number, number>,
+  language: string,
 ): Promise<HistoryMovieItemResponse> {
-  const tmdb = await fetchBasicMediaInfo(row.tmdbId, "movie", LANGUAGE);
+  const tmdb = await fetchBasicMediaInfo(row.tmdbId, "movie", language);
 
   return {
     tmdbId: row.tmdbId,
@@ -92,6 +93,7 @@ async function enrichMovieRow(
 async function getMovieHistory(
   userId: string,
   page: number,
+  language: string,
 ): Promise<PaginatedResponse<HistoryMovieItemResponse>> {
   const where = { userId, mediaType: "movie", seasonNumber: null };
 
@@ -111,7 +113,7 @@ async function getMovieHistory(
     rows.map((r) => r.tmdbId),
   );
   const results = await Promise.all(
-    rows.map((row) => enrichMovieRow(row, ratingsMap)),
+    rows.map((row) => enrichMovieRow(row, ratingsMap, language)),
   );
 
   return {
@@ -137,6 +139,7 @@ async function getMovieHistory(
 export async function markMovieWatched(
   userId: string,
   input: MarkMovieWatchedInput,
+  locale: SupportedLocale,
 ): Promise<HistoryMovieItemResponse> {
   const existing = await prisma.watchedItem.findFirst({
     where: {
@@ -162,7 +165,7 @@ export async function markMovieWatched(
       });
 
   const ratingsMap = await fetchRatingsMap(userId, "movie", [input.tmdbId]);
-  return enrichMovieRow(row, ratingsMap);
+  return enrichMovieRow(row, ratingsMap, LOCALE_TO_TMDB_LANG[locale]);
 }
 
 export async function unmarkMovieWatched(
@@ -183,9 +186,10 @@ async function enrichSeriesGroup(
   lastWatchedAt: Date,
   watchedSeasons: number[],
   ratingsMap: Map<number, number>,
+  language: string,
 ): Promise<HistorySeriesItemResponse> {
   const raw = (await fetchMediaRaw(tmdbId, "series", {
-    language: LANGUAGE,
+    language,
   })) as TmdbSeries;
 
   return {
@@ -204,6 +208,7 @@ async function enrichSeriesGroup(
 async function getSeriesHistory(
   userId: string,
   page: number,
+  language: string,
 ): Promise<PaginatedResponse<HistorySeriesItemResponse>> {
   const where = { userId, mediaType: "series" };
 
@@ -254,6 +259,7 @@ async function getSeriesHistory(
         g._max.createdAt!,
         seasonsByShow.get(g.tmdbId) ?? [],
         ratingsMap,
+        language,
       ),
     ),
   );
@@ -273,6 +279,7 @@ async function getSeriesHistory(
 export async function markSeasonWatched(
   userId: string,
   input: MarkSeasonWatchedInput,
+  locale: SupportedLocale,
 ): Promise<HistorySeriesItemResponse> {
   await prisma.watchedItem.upsert({
     where: {
@@ -311,6 +318,7 @@ export async function markSeasonWatched(
     lastWatchedAt,
     watchedSeasons,
     ratingsMap,
+    LOCALE_TO_TMDB_LANG[locale],
   );
 }
 
@@ -335,7 +343,8 @@ export async function getHistory(
   | PaginatedResponse<HistoryMovieItemResponse>
   | PaginatedResponse<HistorySeriesItemResponse>
 > {
+  const language = LOCALE_TO_TMDB_LANG[query.locale];
   return query.type === "movie"
-    ? getMovieHistory(userId, query.page)
-    : getSeriesHistory(userId, query.page);
+    ? getMovieHistory(userId, query.page, language)
+    : getSeriesHistory(userId, query.page, language);
 }
