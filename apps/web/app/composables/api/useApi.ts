@@ -33,10 +33,20 @@ export function useApi() {
   const queryClient = useQueryClient();
 
   // Read here, in the composable body, and closed over — not inside apiFetch.
-  // useRequestHeaders reaches the incoming request through the Nuxt instance,
-  // and calling it after an await doesn't throw: it returns nothing useful and
-  // the request goes out anonymous, which is indistinguishable from a
-  // logged-out user. See #211.
+  //
+  // The rule, and why it is a rule: a composable that reads the Nuxt instance
+  // must be called from a setup body or another composable's body. Called
+  // from an event handler, a watcher, a catch block or a query callback, it
+  // does not throw — it returns something useless, quietly. `navigateTo` in
+  // this file's own 401 handler resolved without navigating (#174); a toast
+  // in ServiceSelector's catch block was very likely never shown (#135).
+  //
+  // useRequestHeaders is the sharpest version: it reads the incoming SSR
+  // request, so a late call sends the request anonymous, which is
+  // indistinguishable from a logged-out user. Hence the capture here and the
+  // close-over below.
+  //
+  // Full note in CLAUDE.md, "Composables and the Nuxt instance" (#211).
   const forwardedCookie = import.meta.server
     ? useRequestHeaders(["cookie"]).cookie
     : undefined;
