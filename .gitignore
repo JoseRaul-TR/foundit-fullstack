@@ -56,8 +56,12 @@ coverage/
 Thumbs.db
 
 # ─── Project-specific ─────────────────────────────────────────────────────
-CLAUDE.md
 cookies.txt
+
+# Personal notes and local agent config — the project-level CLAUDE.md is
+# versioned on purpose (#211's rule lives there).
+CLAUDE.local.md
+.claude/
 
 #GitHub Commit Messages
 commit-msg.txt
