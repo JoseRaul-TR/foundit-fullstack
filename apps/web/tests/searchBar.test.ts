@@ -8,10 +8,10 @@
 // and `clear()` only call `navigateTo`, and index.vue is what fetches in
 // response to the route change.
 //
-// So the observable is the route. That works for navigations the test makes
-// itself and for `clear()`, and not — yet — for `search()`: three cases are
-// `it.todo` because the navigation the component performs does not land under
-// the test environment. fullPath stays "/". See #85 for the diagnosis so far.
+// So the observable is the route, and it works — for navigations the test
+// makes itself and for those the component makes. The one exception is a
+// route the test sets up for the component to read: those do not reach the
+// router `useSearch` holds. See the note above the remaining `it.todo`.
 //
 // Fake timers are switched on per test rather than in beforeEach, and always
 // AFTER any navigateTo and after mountSuspended. Both await promises that a
@@ -72,7 +72,21 @@ describe("SearchBar", () => {
     expect(wrapper.get("input").element.value).toBe("dune");
   });
 
-  it.todo("navigates once, after the debounce and not before");
+  it("navigates once, after the debounce and not before", async () => {
+    const wrapper = await mountBar();
+    vi.useFakeTimers();
+
+    await wrapper.get("input").setValue("dune");
+
+    // Half way through: nothing has happened yet.
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS - 1);
+    expect(currentQuery().q).toBeUndefined();
+
+    // The remaining millisecond fires the debounce; the extra time is for
+    // navigateTo, which is async and does not complete within the same tick.
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS);
+    expect(currentQuery()).toMatchObject({ q: "dune", type: "multi" });
+  });
 
   it("does not navigate for fewer than three characters, however long", async () => {
     const wrapper = await mountBar();
@@ -118,6 +132,19 @@ describe("SearchBar", () => {
 
   // `tab` belongs to Discover, not to search. Dropping it is what made leaving
   // and re-entering search land on the wrong tab (#206).
+  //
+  // Not testable through SearchBar. Measured 21 Aug: a navigateTo made by the
+  // test is visible to `useNuxtApp().$router` but not to the `useRouter()`
+  // that `useSearch` holds inside the mounted component — it reads fullPath
+  // "/" while the test reads "/?tab=series". Navigations made by the component
+  // do propagate the other way, which is why every other route assertion in
+  // this file works.
+  //
+  // So the precondition this case needs — a route already carrying `tab` that
+  // the component can read — cannot be set up from here. Testing `useSearch`
+  // directly is the shape that fits: `tab` is its logic, and SearchBar only
+  // delegates. That is a composable test rather than a component one, and it
+  // belongs in its own ticket rather than here.
   it.todo("carries tab through, in both directions");
 
   describe("the clear button", () => {
@@ -133,7 +160,26 @@ describe("SearchBar", () => {
     // the document. `document.activeElement` reads <body> here: mountSuspended
     // does not attach to the document, so inputRef.focus() has nothing to
     // focus. `attachTo: document.body` is the likely fix and is untried.
-    it.todo("empties the field, clears the search and returns focus");
+    it("empties the field, clears the search and returns focus", async () => {
+      useSearchStore().query = "dune";
+      await navigateTo({ path: "/", query: { q: "dune", type: "multi" } });
+
+      // attachTo so inputRef.focus() has a document to focus into —
+      // mountSuspended does not attach by default, and document.activeElement
+      // stays on <body>. enableAutoUnmount in tests/setup.ts cleans it up.
+      const wrapper = await mountSuspended(SearchBar, {
+        attachTo: document.body,
+      });
+      vi.useFakeTimers();
+
+      await wrapper.get("button").trigger("click");
+      await vi.advanceTimersByTimeAsync(DEBOUNCE_MS);
+
+      expect(wrapper.get("input").element.value).toBe("");
+      expect(currentQuery().q).toBeUndefined();
+      // Focus goes back where the user was, not to the top of the document.
+      expect(document.activeElement).toBe(wrapper.get("input").element);
+    });
   });
 
   it("follows the store when the query changes underneath it", async () => {
