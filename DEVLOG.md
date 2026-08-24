@@ -1145,3 +1145,7 @@ hemlighet) noterat som framtida arkitekturbeslut när apps/web byggs
 | **Nästa steg**            | **Lördag: #201**, komponent- och mutationstester för MediaCard. Det är det av de fem testticketen som använder mest av #200:s uppsättning — riktig Pinia, sådd cache, mutation med rollback och `useApi` mockad i just den filen — och därmed det som mest sannolikt stöter på nya egenheter i testmiljön. <br><br> Höstens kö: #86, #87, #88, #201 (tester), #234, #238, #239, #240, #241, #246. Av dem är **#239 den enda med en användarsynlig defekt**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 ---
+
+## Höst – Isolerad arbete (24 augusti – 28 november 2026)
+
+### Måndag 24/8
