@@ -65,6 +65,7 @@ export function useApi() {
       return await $fetch<T>(path, {
         baseURL: apiBase,
         credentials: "include",
+        retry: import.meta.server ? false : undefined,
         ...options,
         headers,
         query: {
