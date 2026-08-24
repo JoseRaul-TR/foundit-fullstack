@@ -18,6 +18,19 @@ export const pool = new Pool({
   // verified against the system CA bundle — the Dockerfile installs
   // ca-certificates for exactly this.
   ssl: requiresTls ? { rejectUnauthorized: true } : false,
+  // Neon's compute starts in 375–546 ms and a cold connection that works
+  // completes in ~835 ms (measured 24 Aug, #238). One did not: it sat for 12.8 s
+  // before reporting ETIMEDOUT, and because /history awaits its prefetch during
+  // SSR, that was 12.8 s of blank page before the skeleton appeared.
+  //
+  // pg defaults this to 0 — wait forever — so nothing bounded it. 3 s is three
+  // and a half times the measured cold connect: a healthy wake is never
+  // interrupted, and the pathological case fails fast enough for the client to
+  // render its skeleton and refetch.
+  //
+  // Why that one connection hung when the wake was half a second is unexplained.
+  // This bounds it; it does not fix it.
+  connectionTimeoutMillis: 3_000,
 });
 
 const adapter = new PrismaPg(pool);
