@@ -320,15 +320,27 @@ const shortServicesLabel = computed(() => {
   return `${shown} ${t("mediaDetail.andMore", { count: list.length - MOBILE_SERVICE_LIMIT })}`;
 });
 
-const {
-  inWatchlist,
-  pending: watchlistPending,
-  toggle: toggleWatchlist,
-} = useWatchlistAction(
-  props.id,
-  "movie",
-  movie.value?.user?.inWatchlist ?? false,
-);
+// The bookmark on a card and the button in here are now the same mutation
+// reading the same cache, so a toggle in one is visible in the other (#231).
+// isInWatchlist answers false while media-state is still loading. Today that
+// window never opens — the modal is only reachable from a card, and every card
+// mounts this query. #219 changes that: a shareable URL can open the modal with
+// no card on screen, and this will need a seed from `movie.user.inWatchlist`.
+const mediaState = useMediaState();
+const watchlistMutation = useToggleWatchlistMutation();
+
+const inWatchlist = computed(() => mediaState.isInWatchlist(props.id, "movie"));
+const watchlistPending = watchlistMutation.isPending;
+
+function toggleWatchlist() {
+  if (watchlistMutation.isPending.value) return;
+  watchlistMutation.mutate({
+    tmdbId: props.id,
+    mediaType: "movie",
+    add: !inWatchlist.value,
+  });
+}
+
 const {
   watched,
   pending: watchedPending,
