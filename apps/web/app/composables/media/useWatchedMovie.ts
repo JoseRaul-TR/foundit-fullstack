@@ -1,6 +1,7 @@
 // apps/web/app/composables/media/useWatchedMovie.ts
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { HISTORY_QUERY_KEY } from "~/composables/history/useHistoryQuery";
+import { MEDIA_STATE_QUERY_KEY } from "~/composables/profile/useMediaState";
 import { isUnauthorized } from "../api/useApi";
 
 export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
@@ -34,8 +35,13 @@ export function useWatchedMovieAction(tmdbId: number, initialWatched: boolean) {
         ),
       );
     },
+    // media-state as well as history: the card's watched marker reads from it,
+    // so invalidating only history left every card behind the modal stale (#231).
     onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY }),
+        queryClient.invalidateQueries({ queryKey: MEDIA_STATE_QUERY_KEY }),
+      ]);
     },
   });
 

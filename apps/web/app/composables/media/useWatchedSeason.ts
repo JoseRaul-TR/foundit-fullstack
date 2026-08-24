@@ -1,6 +1,7 @@
 // apps/web/app/composables/media/useWatchedSeason.ts
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { HISTORY_QUERY_KEY } from "../history/useHistoryQuery";
+import { MEDIA_STATE_QUERY_KEY } from "../profile/useMediaState";
 import { isUnauthorized } from "../api/useApi";
 
 interface ToggleSeasonInput {
@@ -34,8 +35,11 @@ export function useSeasonWatchedAction(
     // callers below invalidate once, when they're done.
   });
 
-  function invalidateHistory() {
-    return queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+  function invalidateWatchedState() {
+    return Promise.all([
+      queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: MEDIA_STATE_QUERY_KEY }),
+    ]);
   }
 
   function isWatched(seasonNumber: number) {
@@ -84,7 +88,7 @@ export function useSeasonWatchedAction(
       const donePending = new Set(pendingSeasons.value);
       donePending.delete(seasonNumber);
       pendingSeasons.value = donePending;
-      if (completed) await invalidateHistory();
+      if (completed) await invalidateWatchedState();
     }
   }
 
@@ -143,7 +147,7 @@ export function useSeasonWatchedAction(
       const donePending = new Set(pendingSeasons.value);
       for (const n of target) donePending.delete(n);
       pendingSeasons.value = donePending;
-      if (completed.size > 0) await invalidateHistory();
+      if (completed.size > 0) await invalidateWatchedState();
     }
   }
 

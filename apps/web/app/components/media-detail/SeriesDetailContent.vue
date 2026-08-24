@@ -336,15 +336,22 @@ const shortServicesLabel = computed(() => {
   return `${shown} ${t("mediaDetail.andMore", { count: list.length - MOBILE_SERVICE_LIMIT })}`;
 });
 
-const {
-  inWatchlist,
-  pending: watchlistPending,
-  toggle: toggleWatchlist,
-} = useWatchlistAction(
-  props.id,
-  "series",
-  series.value?.user?.inWatchlist ?? false,
+const mediaState = useMediaState();
+const watchlistMutation = useToggleWatchlistMutation();
+
+const inWatchlist = computed(() =>
+  mediaState.isInWatchlist(props.id, "series"),
 );
+const watchlistPending = watchlistMutation.isPending;
+
+function toggleWatchlist() {
+  if (watchlistMutation.isPending.value) return;
+  watchlistMutation.mutate({
+    tmdbId: props.id,
+    mediaType: "series",
+    add: !inWatchlist.value,
+  });
+}
 
 const initialWatchedSeasons = new Set(
   (series.value?.seasons ?? [])
