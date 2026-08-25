@@ -29,6 +29,11 @@ vi.mock("@/lib/tmdb", () => ({
 const mockedFetchTmdb = vi.mocked(fetchTmdb);
 const WATCHLIST_BASE = "/api/v1/watchlist";
 
+/** The one provider block the highlight and newSeasonsAvailable tests share. */
+const NETFLIX_US = watchProviders("US", [
+  { providerId: 8, name: "Netflix", logoPath: "/netflix.jpg" },
+]);
+
 let ipCounter = 0;
 function uniqueIp(): string {
   ipCounter += 1;
@@ -143,6 +148,82 @@ describe("watchlist integration (#53)", () => {
     });
   });
 
+  /**
+   * Years and createdAt deliberately disagree, so each assertion below can
+   * only pass if that specific sort is actually being applied and not just
+   * DB insertion order. createdAt is set explicitly rather than relying on
+   * three back-to-back creates landing in distinct milliseconds — they do
+   * not: items landing in the same millisecond flaked this test before the
+   * `id` tie-break existed.
+   */
+  async function seedSortFixture(userId: string) {
+    await prisma.watchlistItem.createMany({
+      data: [
+        {
+          userId,
+          tmdbId: 1,
+          mediaType: "movie",
+          year: 2020,
+          createdAt: new Date("2024-01-01T00:00:00Z"), // added 1st (oldest)
+        },
+        {
+          userId,
+          tmdbId: 2,
+          mediaType: "movie",
+          year: 1990,
+          createdAt: new Date("2024-01-02T00:00:00Z"), // added 2nd
+        },
+        {
+          userId,
+          tmdbId: 3,
+          mediaType: "movie",
+          year: 2010,
+          createdAt: new Date("2024-01-03T00:00:00Z"), // added 3rd (newest)
+        },
+      ],
+    });
+  }
+
+  function ids(res: { body: { data: { results: { tmdbId: number }[] } } }) {
+    return res.body.data.results.map((r) => r.tmdbId);
+  }
+
+  /**
+   * One series on the watchlist, some of its seasons watched, and optionally
+   * a Netflix US subscription — the three pieces newSeasonsAvailable reads.
+   * The fourth (whether the show is still returning) comes from the TMDB
+   * fixture each test declares for itself.
+   */
+  async function seedSeries(
+    userId: string,
+    watchedSeasons: number[],
+    { subscribed = true } = {},
+  ) {
+    await prisma.watchlistItem.create({
+      data: { userId, tmdbId: 1396, mediaType: "series", year: 2008 },
+    });
+    if (watchedSeasons.length > 0) {
+      await prisma.watchedItem.createMany({
+        data: watchedSeasons.map((seasonNumber) => ({
+          userId,
+          tmdbId: 1396,
+          mediaType: "series",
+          seasonNumber,
+        })),
+      });
+    }
+    if (subscribed) {
+      await prisma.userStreamingService.create({
+        data: { userId, providerId: 8, countryCode: "US" },
+      });
+    }
+  }
+
+  async function newSeasonsFlag(testUser: TestUser): Promise<boolean> {
+    const res = await (await authed(testUser)).get(WATCHLIST_BASE);
+    return res.body.data.results[0].newSeasonsAvailable;
+  }
+
   describe("GET /watchlist", () => {
     it("returns paginated items with TMDB data", async () => {
       const testUser = await createTestUser();
@@ -205,67 +286,65 @@ describe("watchlist integration (#53)", () => {
       expect(all.body.data.results).toHaveLength(2);
     });
 
-    it("sorts by year and added (default), and rejects the removed title sort", async () => {
-      // Deliberately chosen so added and year give different orders, so each
-      // assertion below can only pass if that specific sort mode is actually
-      // being applied (not just DB insertion order).
-      // createdAt is set explicitly (overriding @default(now())) rather
-      // than relying on three back-to-back create() calls landing in
-      // distinct milliseconds — they don't reliably: on a fast machine
-      // items 1 and 2 above landed in the same millisecond, and Postgres
-      // doesn't guarantee tie-break order for equal createdAt values
-      // without a secondary sort key, which flaked this test.
+    it("sorts by year and added (default)", async () => {
       const testUser = await createTestUser();
-      await prisma.watchlistItem.create({
-        data: {
-          userId: testUser.id,
-          tmdbId: 1,
-          mediaType: "movie",
-          year: 2020,
-          createdAt: new Date("2024-01-01T00:00:00Z"), // added 1st (oldest)
-        },
-      });
-      await prisma.watchlistItem.create({
-        data: {
-          userId: testUser.id,
-          tmdbId: 2,
-          mediaType: "movie",
-          year: 1990,
-          createdAt: new Date("2024-01-02T00:00:00Z"), // added 2nd
-        },
-      });
-      await prisma.watchlistItem.create({
-        data: {
-          userId: testUser.id,
-          tmdbId: 3,
-          mediaType: "movie",
-          year: 2010,
-          createdAt: new Date("2024-01-03T00:00:00Z"), // added 3rd (newest)
-        },
+      await seedSortFixture(testUser.id);
+      mockedFetchTmdb.mockResolvedValue(movieFixture());
+      const client = await authed(testUser);
+
+      expect(ids(await client.get(`${WATCHLIST_BASE}?sort=added`))).toEqual([
+        3, 2, 1,
+      ]); // most recently added first
+      expect(ids(await client.get(`${WATCHLIST_BASE}?sort=year`))).toEqual([
+        1, 3, 2,
+      ]); // 2020, 2010, 1990
+    });
+
+    it("reverses either sort with order=asc", async () => {
+      const testUser = await createTestUser();
+      await seedSortFixture(testUser.id);
+      mockedFetchTmdb.mockResolvedValue(movieFixture());
+      const client = await authed(testUser);
+
+      expect(
+        ids(await client.get(`${WATCHLIST_BASE}?sort=added&order=asc`)),
+      ).toEqual([1, 2, 3]);
+      expect(
+        ids(await client.get(`${WATCHLIST_BASE}?sort=year&order=asc`)),
+      ).toEqual([2, 3, 1]); // 1990, 2010, 2020
+    });
+
+    it("keeps items with no year last in both directions", async () => {
+      // nulls: "last" is fixed rather than following the direction — an item
+      // whose year is unknown belongs at the bottom either way, not at the
+      // top of an ascending list.
+      const testUser = await createTestUser();
+      await prisma.watchlistItem.createMany({
+        data: [
+          { userId: testUser.id, tmdbId: 1, mediaType: "movie", year: 2020 },
+          { userId: testUser.id, tmdbId: 2, mediaType: "movie", year: null },
+        ],
       });
       mockedFetchTmdb.mockResolvedValue(movieFixture());
+      const client = await authed(testUser);
 
-      const byAdded = await (
-        await authed(testUser)
-      ).get(`${WATCHLIST_BASE}?sort=added`);
+      expect(ids(await client.get(`${WATCHLIST_BASE}?sort=year`))).toEqual([
+        1, 2,
+      ]);
       expect(
-        byAdded.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
-      ).toEqual([3, 2, 1]); // most recently added first
+        ids(await client.get(`${WATCHLIST_BASE}?sort=year&order=asc`)),
+      ).toEqual([1, 2]);
+    });
 
-      const byYear = await (
-        await authed(testUser)
-      ).get(`${WATCHLIST_BASE}?sort=year`);
-      expect(
-        byYear.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
-      ).toEqual([1, 3, 2]); // 2020, 2010, 1990
-
-      // Removed in #234. z.enum(...).default() covers an absent parameter,
-      // not an invalid one, so the old value is rejected rather than
-      // silently falling back to "added".
-      const byTitle = await (
+    it("rejects the removed title sort", async () => {
+      // z.enum(...).default() covers an absent parameter, not an invalid
+      // one, so a retired value is rejected rather than silently falling
+      // back to "added".
+      const testUser = await createTestUser();
+      const res = await (
         await authed(testUser)
       ).get(`${WATCHLIST_BASE}?sort=title`);
-      expect(byTitle.status).toBe(400);
+      expect(res.status).toBe(400);
     });
 
     it("highlights a subscribed service when the user has that provider", async () => {
@@ -282,11 +361,7 @@ describe("watchlist integration (#53)", () => {
         data: { userId: testUser.id, providerId: 8, countryCode: "US" },
       });
       mockedFetchTmdb.mockResolvedValue(
-        movieFixture({
-          "watch/providers": watchProviders("US", [
-            { providerId: 8, name: "Netflix", logoPath: "/netflix.jpg" },
-          ]),
-        }),
+        movieFixture({ "watch/providers": NETFLIX_US }),
       );
 
       const res = await (await authed(testUser)).get(WATCHLIST_BASE);
@@ -313,11 +388,7 @@ describe("watchlist integration (#53)", () => {
         data: { userId: testUser.id, providerId: 337, countryCode: "US" },
       });
       mockedFetchTmdb.mockResolvedValue(
-        movieFixture({
-          "watch/providers": watchProviders("US", [
-            { providerId: 8, name: "Netflix", logoPath: "/netflix.jpg" },
-          ]),
-        }),
+        movieFixture({ "watch/providers": NETFLIX_US }),
       );
 
       const res = await (await authed(testUser)).get(WATCHLIST_BASE);
@@ -325,6 +396,63 @@ describe("watchlist integration (#53)", () => {
 
       expect(item.highlight.available).toBe(false);
       expect(item.highlight.services).toEqual([]);
+    });
+
+    // newSeasonsAvailable had no coverage at all before #234 batched the
+    // season lookup out of the per-row path. All four conditions are
+    // asserted here so the compound condition cannot lose one silently.
+
+    it("flags a returning series with an unwatched season on a subscribed service", async () => {
+      const testUser = await createTestUser();
+      await seedSeries(testUser.id, [1, 2]);
+      mockedFetchTmdb.mockResolvedValue(
+        seriesFixture({
+          status: "Returning Series",
+          "watch/providers": NETFLIX_US,
+        }),
+      );
+
+      expect(await newSeasonsFlag(testUser)).toBe(true);
+    });
+
+    it("does not flag a series the user has never started", async () => {
+      // The branch that changed shape: an absent map key, where it used to
+      // be an empty array of watched seasons. A lookup defaulting to zero
+      // instead of undefined would announce a new season to someone who has
+      // watched nothing.
+      const testUser = await createTestUser();
+      await seedSeries(testUser.id, []);
+      mockedFetchTmdb.mockResolvedValue(
+        seriesFixture({
+          status: "Returning Series",
+          "watch/providers": NETFLIX_US,
+        }),
+      );
+
+      expect(await newSeasonsFlag(testUser)).toBe(false);
+    });
+
+    it("does not flag a series that has ended", async () => {
+      const testUser = await createTestUser();
+      await seedSeries(testUser.id, [1, 2]);
+      mockedFetchTmdb.mockResolvedValue(
+        seriesFixture({ "watch/providers": NETFLIX_US }), // status: "Ended"
+      );
+
+      expect(await newSeasonsFlag(testUser)).toBe(false);
+    });
+
+    it("does not flag a new season the user cannot watch anywhere", async () => {
+      const testUser = await createTestUser();
+      await seedSeries(testUser.id, [1, 2], { subscribed: false });
+      mockedFetchTmdb.mockResolvedValue(
+        seriesFixture({
+          status: "Returning Series",
+          "watch/providers": NETFLIX_US,
+        }),
+      );
+
+      expect(await newSeasonsFlag(testUser)).toBe(false);
     });
   });
 });

@@ -26,6 +26,7 @@ import {
 const getQuerySchema = z.object({
   type: z.enum(["all", "movie", "series"]).default("all"),
   sort: z.enum(["added", "year"]).default("added"),
+  order: z.enum(["asc", "desc"]).default("desc"),
   lang: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
