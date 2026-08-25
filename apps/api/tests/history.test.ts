@@ -248,4 +248,143 @@ describe("history integration (#49 + #50)", () => {
       expect(byId[66732].watchedSeasons).toEqual([1]);
     });
   });
+
+  describe("GET /history (mixed)", () => {
+    /** Both media types, so /movie/… and /tv/… have to be told apart. */
+    function mockBothTypes() {
+      mockedFetchTmdb.mockImplementation(async (path: string) =>
+        path.startsWith("/tv/") ? seriesFixture() : movieFixture(),
+      );
+    }
+
+    it("returns movies and series in one list, most recently watched first", async () => {
+      const testUser = await createTestUser();
+      await prisma.watchedItem.createMany({
+        data: [
+          {
+            userId: testUser.id,
+            tmdbId: 550,
+            mediaType: "movie",
+            seasonNumber: null,
+            createdAt: new Date("2024-01-01T00:00:00Z"),
+          },
+          {
+            userId: testUser.id,
+            tmdbId: 1396,
+            mediaType: "series",
+            seasonNumber: 1,
+            createdAt: new Date("2024-01-02T00:00:00Z"),
+          },
+        ],
+      });
+      mockBothTypes();
+
+      // No type parameter at all: it used to be required.
+      const res = await (await authed(testUser)).get(HISTORY_BASE);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.totalResults).toBe(2);
+      expect(
+        res.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
+      ).toEqual([1396, 550]);
+      expect(res.body.data.results[0].mediaType).toBe("series");
+      expect(res.body.data.results[1].mediaType).toBe("movie");
+      // Series carry a year now; they used to be enriched with null.
+      expect(res.body.data.results[0].tmdb.year).toBe(2008);
+    });
+
+    it("reverses the list with order=asc", async () => {
+      const testUser = await createTestUser();
+      await prisma.watchedItem.createMany({
+        data: [
+          {
+            userId: testUser.id,
+            tmdbId: 550,
+            mediaType: "movie",
+            seasonNumber: null,
+            createdAt: new Date("2024-01-01T00:00:00Z"),
+          },
+          {
+            userId: testUser.id,
+            tmdbId: 1396,
+            mediaType: "series",
+            seasonNumber: 1,
+            createdAt: new Date("2024-01-02T00:00:00Z"),
+          },
+        ],
+      });
+      mockBothTypes();
+
+      const res = await (
+        await authed(testUser)
+      ).get(`${HISTORY_BASE}?order=asc`);
+
+      expect(
+        res.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
+      ).toEqual([550, 1396]);
+    });
+
+    it("counts a multi-season show as one entry, not one per season", async () => {
+      // The reason pagination groups instead of counting rows.
+      const testUser = await createTestUser();
+      await prisma.watchedItem.createMany({
+        data: [1, 2, 3, 4, 5].map((seasonNumber) => ({
+          userId: testUser.id,
+          tmdbId: 1396,
+          mediaType: "series",
+          seasonNumber,
+        })),
+      });
+      mockBothTypes();
+
+      const res = await (await authed(testUser)).get(HISTORY_BASE);
+
+      expect(res.body.data.totalResults).toBe(1);
+      expect(res.body.data.results).toHaveLength(1);
+      expect(res.body.data.results[0].watchedSeasons).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it("keeps a movie's rating apart from a series with the same TMDB id", async () => {
+      // TMDB ids are namespaced per media type, so both 550s exist. Keyed by
+      // tmdbId alone, whichever came second overwrote the first and a card
+      // displayed a score belonging to something else.
+      const testUser = await createTestUser();
+      await prisma.watchedItem.createMany({
+        data: [
+          {
+            userId: testUser.id,
+            tmdbId: 550,
+            mediaType: "movie",
+            seasonNumber: null,
+            createdAt: new Date("2024-01-01T00:00:00Z"),
+          },
+          {
+            userId: testUser.id,
+            tmdbId: 550,
+            mediaType: "series",
+            seasonNumber: 1,
+            createdAt: new Date("2024-01-02T00:00:00Z"),
+          },
+        ],
+      });
+      await prisma.userRating.createMany({
+        data: [
+          { userId: testUser.id, tmdbId: 550, mediaType: "movie", rating: 9 },
+          { userId: testUser.id, tmdbId: 550, mediaType: "series", rating: 3 },
+        ],
+      });
+      mockBothTypes();
+
+      const res = await (await authed(testUser)).get(HISTORY_BASE);
+
+      const byType: Record<string, { rating: number }> = Object.fromEntries(
+        res.body.data.results.map((r: { mediaType: string }) => [
+          r.mediaType,
+          r,
+        ]),
+      );
+      expect(byType.movie.rating).toBe(9);
+      expect(byType.series.rating).toBe(3);
+    });
+  });
 });

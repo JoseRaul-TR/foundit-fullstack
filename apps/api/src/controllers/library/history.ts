@@ -1,7 +1,15 @@
 // apps/api/src/controllers/library/history.ts
+
 /**
- * `type` is required (no default) on GET, since "movie" and "series" have
- * incompatible response shapes. seasonNumber allows 0 (TMDB "Specials").
+ * `type` is a filter defaulting to "all". It used to be required and had no
+ * default, because the two per-type response shapes were incompatible and
+ * the endpoint had to make the caller choose; #234 replaced them with one
+ * discriminated union, so there is nothing left to choose between.
+ *
+ * `order` applies to the only sort this list has — when something was last
+ * watched — which is why there is no `sort` parameter to hang it on.
+ *
+ * seasonNumber allows 0 (TMDB "Specials").
  */
 
 import type { Request, Response } from "express";
@@ -17,7 +25,8 @@ import {
 } from "@/services/library/history";
 
 const getQuerySchema = z.object({
-  type: z.enum(["movie", "series"]),
+  type: z.enum(["all", "movie", "series"]).default("all"),
+  order: z.enum(["asc", "desc"]).default("desc"),
   lang: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
@@ -46,6 +55,7 @@ const seasonParamsSchema = z.object({
 function toLocale(lang: string | undefined): SupportedLocale {
   return lang && isLocale(lang) ? lang : "en";
 }
+
 export async function getHistoryController(req: Request, res: Response) {
   const userId = getUserId(req);
   const { lang, ...query } = getQuerySchema.parse(req.query);
