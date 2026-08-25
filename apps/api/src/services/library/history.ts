@@ -25,14 +25,16 @@
 
 import {
   LOCALE_TO_TMDB_LANG,
+  type HistoryItemResponse,
   type HistoryMovieItemResponse,
   type HistorySeriesItemResponse,
-  type HistoryType,
+  type MediaType,
   type PaginatedResponse,
   type SupportedLocale,
 } from "@foundit/types";
 import {
   extractTitle,
+  extractYear,
   fetchBasicMediaInfo,
   fetchMediaRaw,
 } from "@/helpers/tmdbMedia";
@@ -41,8 +43,14 @@ import prisma from "@/lib/prisma";
 import type { TmdbSeries } from "@/types/tmdb.types";
 
 export interface HistoryQuery {
-  type: HistoryType;
   locale: SupportedLocale;
+  /**
+   * Still the media type, not the filter. #234 widens this to
+   * HistoryTypeFilter when the unified groupBy lands — until then the service
+   * genuinely cannot serve "all", and a type that says it can is worse than
+   * one that admits it cannot.
+   */
+  type: MediaType;
   page: number;
 }
 
@@ -61,7 +69,7 @@ export interface MarkSeasonWatchedInput {
 
 async function fetchRatingsMap(
   userId: string,
-  mediaType: HistoryType,
+  mediaType: MediaType,
   tmdbIds: number[],
 ): Promise<Map<number, number>> {
   if (tmdbIds.length === 0) return new Map();
@@ -84,7 +92,8 @@ async function enrichMovieRow(
 
   return {
     tmdbId: row.tmdbId,
-    watchedAt: row.createdAt,
+    mediaType: "movie",
+    lastWatchedAt: row.createdAt,
     tmdb,
     rating: ratingsMap.get(row.tmdbId) ?? null,
   };
@@ -194,9 +203,11 @@ async function enrichSeriesGroup(
 
   return {
     tmdbId,
+    mediaType: "series",
     tmdb: {
       title: extractTitle("series", raw),
       posterPath: raw.poster_path,
+      year: extractYear("series", raw),
       numberOfSeasons: raw.number_of_seasons,
     },
     watchedSeasons: [...watchedSeasons].sort((a, b) => a - b),
@@ -339,10 +350,7 @@ export async function unmarkSeasonWatched(
 export async function getHistory(
   userId: string,
   query: HistoryQuery,
-): Promise<
-  | PaginatedResponse<HistoryMovieItemResponse>
-  | PaginatedResponse<HistorySeriesItemResponse>
-> {
+): Promise<PaginatedResponse<HistoryItemResponse>> {
   const language = LOCALE_TO_TMDB_LANG[query.locale];
   return query.type === "movie"
     ? getMovieHistory(userId, query.page, language)

@@ -211,17 +211,17 @@ describe("watchlist integration (#53)", () => {
       expect(all.body.data.results).toHaveLength(2);
     });
 
-    it("sorts by title, year, and added (default)", async () => {
-      const testUser = await createTestUser();
-      // Deliberately chosen so added/title/year orders are all pairwise
-      // different, so each assertion below can only pass if that specific
-      // sort mode is actually being applied (not just DB insertion order).
+    it("sorts by year and added (default), and rejects the removed title sort", async () => {
+      // Deliberately chosen so added and year give different orders, so each
+      // assertion below can only pass if that specific sort mode is actually
+      // being applied (not just DB insertion order).
       // createdAt is set explicitly (overriding @default(now())) rather
       // than relying on three back-to-back create() calls landing in
       // distinct milliseconds — they don't reliably: on a fast machine
       // items 1 and 2 above landed in the same millisecond, and Postgres
       // doesn't guarantee tie-break order for equal createdAt values
       // without a secondary sort key, which flaked this test.
+      const testUser = await createTestUser();
       await prisma.watchlistItem.create({
         data: {
           userId: testUser.id,
@@ -261,19 +261,21 @@ describe("watchlist integration (#53)", () => {
         byAdded.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
       ).toEqual([3, 2, 1]); // most recently added first
 
-      const byTitle = await (
-        await authed(testUser)
-      ).get(`${WATCHLIST_BASE}?sort=title`);
-      expect(
-        byTitle.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
-      ).toEqual([2, 3, 1]); // Alpha, Mango, Zeta
-
       const byYear = await (
         await authed(testUser)
       ).get(`${WATCHLIST_BASE}?sort=year`);
       expect(
         byYear.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
       ).toEqual([1, 3, 2]); // 2020, 2010, 1990
+
+      // #234 removed sort=title. A caller that still sends it gets a 400
+      // rather than a silent fallback: Zod's .default() only covers an absent
+      // parameter, and an ordering the API no longer supports should say so
+      // instead of quietly answering with a different one.
+      const byTitle = await (
+        await authed(testUser)
+      ).get(`${WATCHLIST_BASE}?sort=title`);
+      expect(byTitle.status).toBe(400);
     });
 
     it("highlights a subscribed service when the user has that provider", async () => {

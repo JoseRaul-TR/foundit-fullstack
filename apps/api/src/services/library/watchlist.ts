@@ -197,11 +197,9 @@ export async function getWatchlist(
   };
 
   const orderBy =
-    query.sort === "title"
-      ? { title: { sort: "asc" as const, nulls: "last" as const } }
-      : query.sort === "year"
-        ? { year: { sort: "desc" as const, nulls: "last" as const } }
-        : { createdAt: "desc" as const };
+    query.sort === "year"
+      ? { year: { sort: "desc" as const, nulls: "last" as const } }
+      : { createdAt: "desc" as const };
 
   const [rows, totalResults, userServices] = await Promise.all([
     prisma.watchlistItem.findMany({
