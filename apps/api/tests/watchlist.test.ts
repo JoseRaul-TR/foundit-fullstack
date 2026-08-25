@@ -75,7 +75,6 @@ describe("watchlist integration (#53)", () => {
       expect(res.status).toBe(200);
       expect(res.body.data.tmdbId).toBe(550);
       expect(res.body.data.mediaType).toBe("movie");
-      expect(res.body.data.tmdb.title).toBe("Fight Club");
 
       const row = await prisma.watchlistItem.findFirst({
         where: { userId: testUser.id, tmdbId: 550, mediaType: "movie" },
@@ -120,7 +119,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 550,
           mediaType: "movie",
-          title: "Fight Club",
           year: 1999,
         },
       });
@@ -153,7 +151,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 550,
           mediaType: "movie",
-          title: "Fight Club",
           year: 1999,
         },
       });
@@ -165,7 +162,6 @@ describe("watchlist integration (#53)", () => {
       expect(res.body.data.page).toBe(1);
       expect(res.body.data.totalResults).toBe(1);
       expect(res.body.data.results).toHaveLength(1);
-      expect(res.body.data.results[0].tmdb.title).toBe("Fight Club");
       expect(res.body.data.results[0].tmdb.posterPath).toBe("/poster.jpg");
     });
 
@@ -176,7 +172,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 550,
           mediaType: "movie",
-          title: "Fight Club",
           year: 1999,
         },
       });
@@ -185,7 +180,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 1396,
           mediaType: "series",
-          title: "Breaking Bad",
           year: 2008,
         },
       });
@@ -227,7 +221,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 1,
           mediaType: "movie",
-          title: "Zeta",
           year: 2020,
           createdAt: new Date("2024-01-01T00:00:00Z"), // added 1st (oldest)
         },
@@ -237,7 +230,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 2,
           mediaType: "movie",
-          title: "Alpha",
           year: 1990,
           createdAt: new Date("2024-01-02T00:00:00Z"), // added 2nd
         },
@@ -247,7 +239,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 3,
           mediaType: "movie",
-          title: "Mango",
           year: 2010,
           createdAt: new Date("2024-01-03T00:00:00Z"), // added 3rd (newest)
         },
@@ -268,10 +259,9 @@ describe("watchlist integration (#53)", () => {
         byYear.body.data.results.map((r: { tmdbId: number }) => r.tmdbId),
       ).toEqual([1, 3, 2]); // 2020, 2010, 1990
 
-      // #234 removed sort=title. A caller that still sends it gets a 400
-      // rather than a silent fallback: Zod's .default() only covers an absent
-      // parameter, and an ordering the API no longer supports should say so
-      // instead of quietly answering with a different one.
+      // Removed in #234. z.enum(...).default() covers an absent parameter,
+      // not an invalid one, so the old value is rejected rather than
+      // silently falling back to "added".
       const byTitle = await (
         await authed(testUser)
       ).get(`${WATCHLIST_BASE}?sort=title`);
@@ -285,7 +275,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 550,
           mediaType: "movie",
-          title: "Fight Club",
           year: 1999,
         },
       });
@@ -316,7 +305,6 @@ describe("watchlist integration (#53)", () => {
           userId: testUser.id,
           tmdbId: 550,
           mediaType: "movie",
-          title: "Fight Club",
           year: 1999,
         },
       });

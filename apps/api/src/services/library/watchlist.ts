@@ -1,20 +1,18 @@
 //apps/api/src/services/library/watchlist.ts
 
 /**
- * title/year are cached on WatchlistItem at add-time (see migration adding
- * those two nullable columns). The original reason was that the DB can only
- * ORDER BY + LIMIT/OFFSET on columns it has, so caching them meant GET could
- * paginate and sort entirely at the DB level.
+ * `year` is cached on WatchlistItem at add-time so the DB can ORDER BY a
+ * column it has. `title` was cached for the same reason and removed in #234:
+ * the displayed titles are localised (#189) while the stored one was English
+ * by construction, so ordering by it ordered by something the user cannot
+ * see — and ordering by the localised title needs the whole list in memory,
+ * which is the cost pagination exists to avoid. `year` survives because it is
+ * the same number in every language.
  *
- * That is no longer what happens. The web client requests every page with
- * sort=added and does its filtering and sorting in the browser over the
- * enriched TMDB titles, so `orderBy: { title }` below is never reached from
- * the app and a GET enriches the whole list rather than one page of 20. The
- * columns are still written and no longer read. #234 is where that gets
- * resolved; this comment is here so it doesn't keep claiming otherwise.
- *
- * The write still uses one fixed language on purpose — see the note on
- * addToWatchlistController.
+ * The client still requests every page and flattens the result, so a render
+ * still enriches the whole list rather than one page of 20. That is the other
+ * half of #234 and it lands with the client change; this note is here so the
+ * `skip`/`take` below is not read as something already in use.
  *
  * newSeasonsAvailable reuses the exact same compound condition as #39's
  * series detail (status must be "returning", user must have watched at
@@ -46,15 +44,6 @@ import prisma from "@/lib/prisma";
 import { toSeriesStatus } from "@/services/catalog/series";
 import type { TmdbMovie, TmdbSeries } from "@/types/tmdb.types";
 import { AppError } from "@/middleware/errorHandler";
-
-/**
- * The language the cached title is written in. Fixed, not the caller's:
- * nothing sorts on this column today (see the note at the top of this file),
- * but it exists to be an ordering key, and an ordering key in whichever
- * language the user happened to be reading is worse than one in a language
- * that is at least known. #234 decides what replaces it.
- */
-const STORED_TITLE_LANGUAGE = LOCALE_TO_TMDB_LANG.en;
 
 export interface WatchlistQuery {
   type: WatchlistTypeFilter;
@@ -250,19 +239,19 @@ export async function getWatchlist(
 
 /**
  * Upsert, not create: re-adding an item already on the watchlist is a
- * no-op (200), per the acceptance criteria — title/year stay as originally
+ * no-op (200), per the acceptance criteria — `year` stays as originally
  * cached from the first add rather than being overwritten.
  */
 export async function addToWatchlist(
   userId: string,
   input: AddWatchlistInput,
+  locale: SupportedLocale,
 ): Promise<WatchlistItemResponse> {
   const raw = await fetchRawTmdb(
     input.tmdbId,
     input.mediaType,
-    STORED_TITLE_LANGUAGE,
+    LOCALE_TO_TMDB_LANG[locale],
   );
-  const title = extractTitle(input.mediaType, raw);
   const year = extractYear(input.mediaType, raw);
 
   const row = await prisma.watchlistItem.upsert({
@@ -277,7 +266,6 @@ export async function addToWatchlist(
       userId,
       tmdbId: input.tmdbId,
       mediaType: input.mediaType,
-      title,
       year,
     },
     update: {},

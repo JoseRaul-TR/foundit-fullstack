@@ -30,6 +30,9 @@ const getQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
 });
 
+/** The add endpoint returns an enriched item, so it needs the language too. */
+const langQuerySchema = z.object({ lang: z.string().optional() });
+
 const addBodySchema = z.object({
   tmdbId: z.coerce.number().int().positive(),
   mediaType: z.enum(["movie", "series"]),
@@ -40,11 +43,14 @@ const removeParamsSchema = z.object({
   mediaType: z.enum(["movie", "series"]),
 });
 
+function toLocale(lang: string | undefined): SupportedLocale {
+  return lang && isLocale(lang) ? lang : "en";
+}
+
 export async function getWatchlistController(req: Request, res: Response) {
   const userId = getUserId(req);
   const { lang, ...query } = getQuerySchema.parse(req.query);
-  const locale: SupportedLocale = lang && isLocale(lang) ? lang : "en";
-  const data = await getWatchlist(userId, { ...query, locale });
+  const data = await getWatchlist(userId, { ...query, locale: toLocale(lang) });
   res.json({ success: true, data });
 }
 
@@ -53,18 +59,23 @@ export async function getWatchlistController(req: Request, res: Response) {
  * page — recomputing the page would mean re-fetching TMDB for items the
  * client already has rendered, just to report what changed.
  *
- * Takes no `lang`, deliberately. This is the one write that caches a title,
- * and the cached title is what a future ORDER BY would sort on — so it stays
- * in one language rather than becoming whatever the user happened to be
- * reading. Nothing on the client consumes this response body (both watchlist
- * mutations invalidate and refetch), so there is no visible cost. See #234,
- * where the fact that every stored title is English is the difference between
- * a migration that knows what it has and one that has to guess.
+ * Takes `lang`, like the history mark endpoints already do. It used to take
+ * none on purpose: this was the one write that cached a title, that title was
+ * a future ORDER BY key, and a key in whichever language the user happened to
+ * be reading is worse than one in a language that is at least known. #234
+ * removed the column, so there is no key left to protect — the only thing the
+ * language decides now is the item this returns, and returning it in the
+ * caller's language costs nothing.
  */
 export async function addToWatchlistController(req: Request, res: Response) {
   const userId = getUserId(req);
   const { tmdbId, mediaType } = addBodySchema.parse(req.body);
-  const item = await addToWatchlist(userId, { tmdbId, mediaType });
+  const { lang } = langQuerySchema.parse(req.query);
+  const item = await addToWatchlist(
+    userId,
+    { tmdbId, mediaType },
+    toLocale(lang),
+  );
   res.json({ success: true, data: item });
 }
 
