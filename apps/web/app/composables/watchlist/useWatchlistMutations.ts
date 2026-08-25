@@ -1,11 +1,15 @@
 // apps/web/app/composables/watchlist/useWatchlistMutations.ts
-import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import {
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/vue-query";
 import type {
   MediaStateResponse,
   MediaType,
   WatchlistItemResponse,
 } from "@foundit/types";
-import { WATCHLIST_QUERY_KEY } from "./useWatchlistQuery";
+import { WATCHLIST_QUERY_KEY, type WatchlistPage } from "./useWatchlistQuery";
 import { MEDIA_STATE_QUERY_KEY } from "../profile/useMediaState";
 import { isUnauthorized } from "../api/useApi";
 
@@ -15,12 +19,21 @@ interface ToggleVariables {
   add: boolean;
 }
 
+/**
+ * The cached watchlist is `{ pages, pageParams }` since #234, not a flat
+ * array. The distinction matters more than it looks: a filter callback written
+ * for the old shape still type-checks against `unknown[]`, finds nothing to
+ * remove, and returns an empty list — a write that lands nowhere, with no
+ * error. That is the defect #196 was, in a different file.
+ */
+type WatchlistCache = InfiniteData<WatchlistPage, number>;
+
 interface ToggleContext {
   previousState: MediaStateResponse | undefined;
-  // Every cached language, not just the active one. The key gained a locale
-  // segment in #218, so there can be several watchlists in the cache at once
-  // and a removal has to reach all of them.
-  previousLists: [readonly unknown[], WatchlistItemResponse[] | undefined][];
+  // Every cached variant, not just the one on screen. The key gained a locale
+  // segment in #218 and a parameters segment in #234, so there can be several
+  // watchlists in the cache at once and a removal has to reach all of them.
+  previousLists: [readonly unknown[], WatchlistCache | undefined][];
 }
 
 /**
@@ -61,9 +74,9 @@ export function useToggleWatchlistMutation() {
       // it stopped finding anything the moment the locale joined the key
       // (#218). It would have failed silently — the optimistic removal just
       // wouldn't happen, with no error anywhere.
-      const previousLists = queryClient.getQueriesData<WatchlistItemResponse[]>(
-        { queryKey: WATCHLIST_QUERY_KEY },
-      );
+      const previousLists = queryClient.getQueriesData<WatchlistCache>({
+        queryKey: WATCHLIST_QUERY_KEY,
+      });
 
       queryClient.setQueryData<MediaStateResponse>(
         MEDIA_STATE_QUERY_KEY,
@@ -85,16 +98,29 @@ export function useToggleWatchlistMutation() {
       // in an ids-only payload: the icon flips instantly either way, and only
       // the watchlist page waits for a refetch.
       //
-      // setQueriesData applies it to every cached language, since an item
-      // leaving the list leaves it in all of them.
+      // setQueriesData applies it to every cached variant, since an item
+      // leaving the list leaves it in all of them — and the filter runs inside
+      // each page, because the cache is paginated.
+      //
+      // totalResults and totalPages are left alone. They are the server's
+      // count, the removal here is a local prediction, and offset pagination
+      // shifts under any removal anyway: the page boundaries are correct again
+      // after the next fetch of this query, and until then the only visible
+      // consequence is that the last page may be one item short.
       if (!add) {
-        queryClient.setQueriesData<WatchlistItemResponse[]>(
+        queryClient.setQueriesData<WatchlistCache>(
           { queryKey: WATCHLIST_QUERY_KEY },
           (old) =>
-            (old ?? []).filter(
-              (item) =>
-                !(item.tmdbId === tmdbId && item.mediaType === mediaType),
-            ),
+            old && {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                results: page.results.filter(
+                  (item: WatchlistItemResponse) =>
+                    !(item.tmdbId === tmdbId && item.mediaType === mediaType),
+                ),
+              })),
+            },
         );
       }
 
@@ -121,8 +147,13 @@ export function useToggleWatchlistMutation() {
       );
     },
 
-    // Prefix match, so every language's list is invalidated, not only the one
-    // on screen.
+    // Prefix match, so every cached variant is invalidated, not only the one
+    // on screen. Only on add, and only ever from somewhere that is not the
+    // watchlist page — the card there offers removal, not addition. So the
+    // query being invalidated is inactive, which means it is marked stale and
+    // refetched on the next mount rather than immediately: an invalidated
+    // infinite query refetches every page it has loaded, and paying for that
+    // while nobody is looking at it would undo the point of this ticket.
     onSettled: (_data, _error, variables) => {
       if (variables.add) {
         void queryClient.invalidateQueries({ queryKey: WATCHLIST_QUERY_KEY });

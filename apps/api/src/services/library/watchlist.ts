@@ -9,10 +9,10 @@
  * which is the cost pagination exists to avoid. `year` survives because it is
  * the same number in every language.
  *
- * The client still requests every page and flattens the result, so a render
- * still enriches the whole list rather than one page of 20. That is the other
- * half of #234 and it lands with the client change; this note is here so the
- * `skip`/`take` below is not read as something already in use.
+ * The `skip`/`take` below is what the client rides: since #234's client half,
+ * both list pages request one page at a time as the user scrolls. A render
+ * enriches twenty items from TMDB rather than the whole list, which is what
+ * took /es/history from fourteen concurrent requests to one.
  *
  * newSeasonsAvailable reuses the exact same compound condition as #39's
  * series detail (status must be "returning", user must have watched at

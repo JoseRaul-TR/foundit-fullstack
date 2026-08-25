@@ -5,19 +5,25 @@
 
     <div class="flex flex-wrap items-center justify-between gap-3">
       <SegmentedControl
-        v-model="filterType"
+        :model-value="params.type"
         :options="tabs"
         size="sm"
         :aria-label="$t('common.filterByType')"
+        @update:model-value="setParams({ type: $event })"
       />
 
       <label
         class="flex w-full flex-col gap-1 text-xs font-medium text-secondary sm:w-auto sm:flex-row sm:items-center sm:gap-2"
       >
-        {{ $t("watchlist.sortBy.label") }}
-        <SelectControl v-model="sortBy">
-          <option value="watched">{{ $t("history.sortBy.watched") }}</option>
-          <option value="title">{{ $t("watchlist.sortBy.title") }}</option>
+        {{ $t("history.sortBy.label") }}
+        <SelectControl v-model="sortValue">
+          <option
+            v-for="option in sortOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
         </SelectControl>
       </label>
     </div>
@@ -41,7 +47,7 @@
     </p>
 
     <div
-      v-else-if="filteredSorted.length === 0"
+      v-else-if="items.length === 0"
       class="flex flex-col items-center gap-3 rounded-2xl bg-surface-elevated px-4 py-14 text-center"
     >
       <svg
@@ -66,20 +72,28 @@
       </NuxtLink>
     </div>
 
-    <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-      <MediaCard
-        v-for="(item, i) in filteredSorted"
-        :key="`${item.mediaType}-${item.tmdbId}`"
-        :eager="i < 4"
-        :priority="i === 0"
-        :id="item.tmdbId"
-        :media-type="item.mediaType"
-        :title="item.title"
-        :poster-path="item.posterPath"
-        :year="item.year"
-        :tmdb-rating="null"
+    <template v-else>
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <MediaCard
+          v-for="(item, i) in items"
+          :key="`${item.mediaType}-${item.tmdbId}`"
+          :eager="i < 4"
+          :priority="i === 0"
+          :id="item.tmdbId"
+          :media-type="item.mediaType"
+          :title="item.title"
+          :poster-path="item.posterPath"
+          :year="item.year"
+          :tmdb-rating="null"
+        />
+      </div>
+
+      <ScrollSentinel
+        :has-more="query.hasNextPage.value"
+        :loading="query.isFetchingNextPage.value"
+        @load-more="query.fetchNextPage()"
       />
-    </div>
+    </template>
   </div>
 </template>
 
@@ -93,13 +107,25 @@ const queryClient = useQueryClient();
 
 // Before the await — see the note in watchlist.vue (#211, #192).
 const { locale } = useLocale();
+const { params, setParams, sortValue } = useListParams(
+  HISTORY_SORTS,
+  DEFAULT_HISTORY_SORT,
+);
 
+// prefetchInfiniteQuery fetches the first page only. This page used to fetch
+// every page of movies and every page of series and merge them here, which
+// meant fourteen requests and 265 TMDB calls before the first byte — and, on
+// the deployed build, a pool of ten connections exhausted at the auth
+// middleware, a prefetch that failed, and eight skeleton cards (#234, #254).
+//
 // media-state comes along because every MediaCard reads it, and because it
 // runs during SSR regardless — see the note in useMediaState.ts. Awaiting it
 // is what makes the rendered HTML and the serialized payload agree.
 if (import.meta.server) {
   await Promise.all([
-    queryClient.prefetchQuery(historyQueryOptions(apiFetch, locale.value)),
+    queryClient.prefetchInfiniteQuery(
+      historyQueryOptions(apiFetch, locale.value, params.value),
+    ),
     queryClient.prefetchQuery(mediaStateQueryOptions(apiFetch)),
   ]);
 }
@@ -107,37 +133,30 @@ if (import.meta.server) {
 const { t } = useI18n();
 const localePath = useLocalePath();
 
-const query = useHistoryQuery();
+const query = useHistoryQuery(params);
 
-const filterType = ref<"all" | "movie" | "series">("all");
-const sortBy = ref<"watched" | "title">("watched");
+const items = computed(
+  () => query.data.value?.pages.flatMap((page) => page.results) ?? [],
+);
 
 const tabs = computed(() => [
-  { value: "all" as const, label: t("watchlist.typeFilter.all") },
-  { value: "movie" as const, label: t("watchlist.typeFilter.movie") },
-  { value: "series" as const, label: t("watchlist.typeFilter.series") },
+  { value: "all" as const, label: t("common.typeFilter.all") },
+  { value: "movie" as const, label: t("common.typeFilter.movie") },
+  { value: "series" as const, label: t("common.typeFilter.series") },
 ]);
 
-const filteredSorted = computed(() => {
-  const items = query.data.value ?? [];
-  const filtered =
-    filterType.value === "all"
-      ? items
-      : items.filter((i) => i.mediaType === filterType.value);
+// One field and two directions, in the same control the watchlist uses. The
+// history has one date worth sorting by, so the difference between the two
+// pages is two options rather than a different mechanism.
+const sortOptions = computed(() => [
+  { value: "watched:desc", label: t("history.sortBy.watchedDesc") },
+  { value: "watched:asc", label: t("history.sortBy.watchedAsc") },
+]);
 
-  const sorted = [...filtered];
-  // The locale explicitly, not Node's or the browser's default — #184 fixed
-  // the same defect server-side, where Å and Ä landed in the wrong place in
-  // Swedish. Since #192 the list is server-rendered too, so a disagreement
-  // between the two collators is a hydration mismatch, not just a wrong order.
-  if (sortBy.value === "title") {
-    sorted.sort((a, b) => a.title.localeCompare(b.title, locale.value));
-  } else {
-    sorted.sort(
-      (a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime(),
-    );
-  }
-
-  return sorted;
+// See watchlist.vue: a new filter is a new query at page one, and staying
+// scrolled where the old list reached lands the user mid-way down a list they
+// have not seen the top of.
+watch(params, () => {
+  if (import.meta.client) window.scrollTo({ top: 0, behavior: "instant" });
 });
 </script>
