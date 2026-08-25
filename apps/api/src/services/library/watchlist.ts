@@ -1,31 +1,31 @@
 //apps/api/src/services/library/watchlist.ts
 
 /**
- * title/year are cached on WatchlistItem at add-time (see migration adding
- * those two nullable columns). The original reason was that the DB can only
- * ORDER BY + LIMIT/OFFSET on columns it has, so caching them meant GET could
- * paginate and sort entirely at the DB level.
+ * `year` is cached on WatchlistItem at add-time so the DB can ORDER BY a
+ * column it has. `title` was cached for the same reason and removed in #234:
+ * the displayed titles are localised (#189) while the stored one was English
+ * by construction, so ordering by it ordered by something the user cannot
+ * see — and ordering by the localised title needs the whole list in memory,
+ * which is the cost pagination exists to avoid. `year` survives because it is
+ * the same number in every language.
  *
- * That is no longer what happens. The web client requests every page with
- * sort=added and does its filtering and sorting in the browser over the
- * enriched TMDB titles, so `orderBy: { title }` below is never reached from
- * the app and a GET enriches the whole list rather than one page of 20. The
- * columns are still written and no longer read. #234 is where that gets
- * resolved; this comment is here so it doesn't keep claiming otherwise.
- *
- * The write still uses one fixed language on purpose — see the note on
- * addToWatchlistController.
+ * The client still requests every page and flattens the result, so a render
+ * still enriches the whole list rather than one page of 20. That is the other
+ * half of #234 and it lands with the client change; this note is here so the
+ * `skip`/`take` below is not read as something already in use.
  *
  * newSeasonsAvailable reuses the exact same compound condition as #39's
  * series detail (status must be "returning", user must have watched at
  * least one season already, and the new season must be available on a
  * subscribed service) — same feature, same semantics, just surfaced here
- * too.
+ * too. It reads a map built once per page rather than querying per row:
+ * that per-row query was the pool amplifier found while investigating #238.
  */
 import {
   LOCALE_TO_TMDB_LANG,
   type MediaType,
   type PaginatedResponse,
+  type SortDirection,
   type SupportedLocale,
   type WatchlistHighlightService,
   type WatchlistItemHighlight,
@@ -47,18 +47,10 @@ import { toSeriesStatus } from "@/services/catalog/series";
 import type { TmdbMovie, TmdbSeries } from "@/types/tmdb.types";
 import { AppError } from "@/middleware/errorHandler";
 
-/**
- * The language the cached title is written in. Fixed, not the caller's:
- * nothing sorts on this column today (see the note at the top of this file),
- * but it exists to be an ordering key, and an ordering key in whichever
- * language the user happened to be reading is worse than one in a language
- * that is at least known. #234 decides what replaces it.
- */
-const STORED_TITLE_LANGUAGE = LOCALE_TO_TMDB_LANG.en;
-
 export interface WatchlistQuery {
   type: WatchlistTypeFilter;
   sort: WatchlistSort;
+  order: SortDirection;
   locale: SupportedLocale;
   page: number;
 }
@@ -113,33 +105,65 @@ function buildTmdbInfoAndHighlight(
   };
 }
 
-async function computeNewSeasonsAvailable(
+/**
+ * One query for the whole page instead of one per series row. All
+ * computeNewSeasonsAvailable ever needed from WatchedItem was the highest
+ * season number, so `_max` in the database replaces `Math.max` in memory and
+ * the per-row round trip disappears with it.
+ *
+ * An absent key means the user has watched no season of that series, which
+ * is different from having watched season 0 — hence a Map lookup returning
+ * undefined rather than a number defaulting to zero.
+ *
+ * Season 0 is TMDB's specials bucket and is counted here, as it always has
+ * been: someone who has watched only specials has a max of 0, so any real
+ * season counts as new. mediaState.ts deliberately excludes it from its
+ * *count* for a different reason (number_of_seasons does not include it).
+ * The two are consistent with their own purposes, not with each other.
+ */
+async function fetchMaxWatchedSeasonMap(
   userId: string,
-  tmdbId: number,
+  seriesTmdbIds: number[],
+): Promise<Map<number, number>> {
+  if (seriesTmdbIds.length === 0) return new Map();
+
+  const groups = await prisma.watchedItem.groupBy({
+    by: ["tmdbId"],
+    where: {
+      userId,
+      mediaType: "series",
+      tmdbId: { in: seriesTmdbIds },
+      seasonNumber: { not: null },
+    },
+    _max: { seasonNumber: true },
+  });
+
+  const map = new Map<number, number>();
+  for (const group of groups) {
+    if (group._max.seasonNumber !== null) {
+      map.set(group.tmdbId, group._max.seasonNumber);
+    }
+  }
+  return map;
+}
+
+function computeNewSeasonsAvailable(
   series: TmdbSeries,
   services: WatchlistHighlightService[],
-): Promise<boolean> {
-  const watchedSeasons = await prisma.watchedItem.findMany({
-    where: { userId, tmdbId, mediaType: "series" },
-  });
-  const watchedSeasonNumbers = watchedSeasons
-    .map((w) => w.seasonNumber)
-    .filter((n): n is number => n !== null);
-
-  if (watchedSeasonNumbers.length === 0) return false;
+  maxWatchedSeason: number | undefined,
+): boolean {
+  if (maxWatchedSeason === undefined) return false;
   if (toSeriesStatus(series.status) !== "returning") return false;
-
-  const maxWatchedSeason = Math.max(...watchedSeasonNumbers);
   return series.number_of_seasons > maxWatchedSeason && services.length > 0;
 }
 
-async function buildResponse(
+function buildResponse(
   row: WatchlistRow,
-  userId: string,
   raw: TmdbMovie | TmdbSeries,
   subscribedSet: Set<string>,
   watchedMovieSet: Set<number>,
-): Promise<WatchlistItemResponse> {
+  maxWatchedSeasonMap: Map<number, number>,
+): WatchlistItemResponse {
   const mediaType = row.mediaType as MediaType;
   const { tmdb, highlight } = buildTmdbInfoAndHighlight(
     mediaType,
@@ -160,21 +184,21 @@ async function buildResponse(
     return { ...base, watched: watchedMovieSet.has(row.tmdbId) };
   }
 
-  const newSeasonsAvailable = await computeNewSeasonsAvailable(
-    userId,
-    row.tmdbId,
-    raw as TmdbSeries,
-    highlight.services,
-  );
-
-  return { ...base, newSeasonsAvailable };
+  return {
+    ...base,
+    newSeasonsAvailable: computeNewSeasonsAvailable(
+      raw as TmdbSeries,
+      highlight.services,
+      maxWatchedSeasonMap.get(row.tmdbId),
+    ),
+  };
 }
 
 async function enrichRow(
   row: WatchlistRow,
-  userId: string,
   subscribedSet: Set<string>,
   watchedMovieSet: Set<number>,
+  maxWatchedSeasonMap: Map<number, number>,
   language: string,
 ): Promise<WatchlistItemResponse> {
   const raw = await fetchRawTmdb(
@@ -182,7 +206,13 @@ async function enrichRow(
     row.mediaType as MediaType,
     language,
   );
-  return buildResponse(row, userId, raw, subscribedSet, watchedMovieSet);
+  return buildResponse(
+    row,
+    raw,
+    subscribedSet,
+    watchedMovieSet,
+    maxWatchedSeasonMap,
+  );
 }
 
 export async function getWatchlist(
@@ -196,12 +226,26 @@ export async function getWatchlist(
     ...(query.type !== "all" ? { mediaType: query.type } : {}),
   };
 
+  /**
+   * Every sort ends in `id` because none of the others is unique. Without a
+   * total order, `ORDER BY year DESC LIMIT 20 OFFSET 20` may return
+   * differently-ordered rows on each call, so an item whose year is shared
+   * with another can land on two consecutive pages or on neither. Harmless
+   * while the client fetched every page and flattened them; a visible bug
+   * the moment the pages are requested separately, which is what #234 does.
+   *
+   * `nulls: "last"` stays fixed rather than following the direction: items
+   * with no year belong at the bottom either way, not at the top of an
+   * ascending list.
+   */
   const orderBy =
-    query.sort === "title"
-      ? { title: { sort: "asc" as const, nulls: "last" as const } }
-      : query.sort === "year"
-        ? { year: { sort: "desc" as const, nulls: "last" as const } }
-        : { createdAt: "desc" as const };
+    query.sort === "year"
+      ? [
+          { year: { sort: query.order, nulls: "last" as const } },
+          { createdAt: "desc" as const },
+          { id: "asc" as const },
+        ]
+      : [{ createdAt: query.order }, { id: "asc" as const }];
 
   const [rows, totalResults, userServices] = await Promise.all([
     prisma.watchlistItem.findMany({
@@ -218,27 +262,42 @@ export async function getWatchlist(
     userServices.map((s) => `${s.countryCode}:${s.providerId}`),
   );
 
-  // Batched, not per-row: one extra query covering every movie on this
-  // page, instead of a WatchedItem lookup per item.
+  // Both lookups are batched and run together: one query covering every
+  // movie on this page, one covering every series. Enrichment below is then
+  // pure TMDB — a page costs five database queries whatever its size, where
+  // it used to cost five plus one per series.
   const movieTmdbIds = rows
     .filter((r) => r.mediaType === "movie")
     .map((r) => r.tmdbId);
-  const watchedMovies = movieTmdbIds.length
-    ? await prisma.watchedItem.findMany({
-        where: {
-          userId,
-          mediaType: "movie",
-          seasonNumber: null,
-          tmdbId: { in: movieTmdbIds },
-        },
-        select: { tmdbId: true },
-      })
-    : [];
+  const seriesTmdbIds = rows
+    .filter((r) => r.mediaType === "series")
+    .map((r) => r.tmdbId);
+
+  const [watchedMovies, maxWatchedSeasonMap] = await Promise.all([
+    movieTmdbIds.length
+      ? prisma.watchedItem.findMany({
+          where: {
+            userId,
+            mediaType: "movie",
+            seasonNumber: null,
+            tmdbId: { in: movieTmdbIds },
+          },
+          select: { tmdbId: true },
+        })
+      : Promise.resolve([]),
+    fetchMaxWatchedSeasonMap(userId, seriesTmdbIds),
+  ]);
   const watchedMovieSet = new Set(watchedMovies.map((w) => w.tmdbId));
 
   const results = await Promise.all(
     rows.map((row) =>
-      enrichRow(row, userId, subscribedSet, watchedMovieSet, language),
+      enrichRow(
+        row,
+        subscribedSet,
+        watchedMovieSet,
+        maxWatchedSeasonMap,
+        language,
+      ),
     ),
   );
 
@@ -252,19 +311,19 @@ export async function getWatchlist(
 
 /**
  * Upsert, not create: re-adding an item already on the watchlist is a
- * no-op (200), per the acceptance criteria — title/year stay as originally
+ * no-op (200), per the acceptance criteria — `year` stays as originally
  * cached from the first add rather than being overwritten.
  */
 export async function addToWatchlist(
   userId: string,
   input: AddWatchlistInput,
+  locale: SupportedLocale,
 ): Promise<WatchlistItemResponse> {
   const raw = await fetchRawTmdb(
     input.tmdbId,
     input.mediaType,
-    STORED_TITLE_LANGUAGE,
+    LOCALE_TO_TMDB_LANG[locale],
   );
-  const title = extractTitle(input.mediaType, raw);
   const year = extractYear(input.mediaType, raw);
 
   const row = await prisma.watchlistItem.upsert({
@@ -279,13 +338,12 @@ export async function addToWatchlist(
       userId,
       tmdbId: input.tmdbId,
       mediaType: input.mediaType,
-      title,
       year,
     },
     update: {},
   });
 
-  const [userServices, watchedMovie] = await Promise.all([
+  const [userServices, watchedMovie, maxWatchedSeasonMap] = await Promise.all([
     prisma.userStreamingService.findMany({ where: { userId } }),
     input.mediaType === "movie"
       ? prisma.watchedItem.findFirst({
@@ -298,13 +356,22 @@ export async function addToWatchlist(
           select: { tmdbId: true },
         })
       : Promise.resolve(null),
+    input.mediaType === "series"
+      ? fetchMaxWatchedSeasonMap(userId, [input.tmdbId])
+      : Promise.resolve(new Map<number, number>()),
   ]);
   const subscribedSet = new Set(
     userServices.map((s) => `${s.countryCode}:${s.providerId}`),
   );
   const watchedMovieSet = new Set(watchedMovie ? [watchedMovie.tmdbId] : []);
 
-  return buildResponse(row, userId, raw, subscribedSet, watchedMovieSet);
+  return buildResponse(
+    row,
+    raw,
+    subscribedSet,
+    watchedMovieSet,
+    maxWatchedSeasonMap,
+  );
 }
 
 export async function removeFromWatchlist(

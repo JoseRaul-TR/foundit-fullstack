@@ -2,7 +2,18 @@
 import type { MediaType } from "./media";
 
 export type WatchlistTypeFilter = "all" | "movie" | "series";
-export type WatchlistSort = "added" | "title" | "year";
+
+/**
+ * `title` was removed in #234. It could never be paginated: the displayed
+ * titles are localised (#189) while the stored one was English by
+ * construction, so ordering by it ordered by something the user cannot see —
+ * and ordering by the localised one requires holding the whole list, which is
+ * the cost pagination exists to avoid.
+ *
+ * `year` survives because it is language-independent, already stored, and
+ * already had a working `orderBy` that nothing reached.
+ */
+export type WatchlistSort = "added" | "year";
 
 export interface WatchlistItemTmdbInfo {
   title: string;

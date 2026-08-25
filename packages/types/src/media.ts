@@ -71,3 +71,11 @@ export interface NormalizedCrewMember {
   jobs: string[];
   profilePath: string | null;
 }
+
+/**
+ * Sort direction, shared by every paginated list. Separate from the sort
+ * field so a page can offer one control for what to sort by and another for
+ * which way — and so an endpoint with a single sort field takes a direction
+ * without inventing a one-value `sort` enum to hang it on.
+ */
+export type SortDirection = "asc" | "desc";

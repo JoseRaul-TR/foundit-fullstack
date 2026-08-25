@@ -74,7 +74,6 @@ describe("profile media state", () => {
         userId: testUser.id,
         tmdbId: 550,
         mediaType: "movie",
-        title: "Fight Club",
         year: 1999,
       },
     });

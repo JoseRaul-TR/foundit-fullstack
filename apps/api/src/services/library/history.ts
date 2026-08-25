@@ -1,38 +1,42 @@
 // apps/api/src/services/library/history.ts
 /**
- * Single service file backing GET /api/history (shared, discriminated by
- * `type: "movie" | "series"`), since #50 confirmed the same GET is reused
- * across both. POST/DELETE stay fully separate per-type functions, matching
- * the fully separate routes each ticket defines.
+ * Single service file backing GET /api/history and the four mark/unmark
+ * endpoints, since #50 confirmed the same GET is reused across both media
+ * types.
  *
- * Movie history is a flat, unpaginated-by-TMDB-call list: each row already
- * carries createdAt (== watchedAt) and tmdbId, so GET paginates directly at
- * the DB level and only enriches the current page's rows with TMDB data.
+ * GET returns one mixed, paginated list. It used to return two incompatible
+ * shapes chosen by a required `type` parameter, so the client fetched both
+ * sequences in full and merged them in the browser — which is what made the
+ * page impossible to paginate (#234). `type` is now a filter defaulting to
+ * "all", and paging happens where it has to: over distinct
+ * (tmdbId, mediaType) pairs in the database rather than over rows. A movie
+ * has one row and a show has one per season, so paging rows would count a
+ * five-season show as five entries.
  *
- * Series/season history groups WatchedItem rows by tmdbId (one entry per
- * show, with a watchedSeasons array). Pagination has to operate on the
- * *distinct show* count, not the row count, so it uses groupBy (by tmdbId,
- * with _max(createdAt) doubling as lastWatchedAt) instead of a plain
- * findMany+skip/take — same class of problem #48 solved for title/year
- * sorting: correctness has to live at the DB level, not be faked in memory
- * after the fact.
+ * groupBy is what makes that possible: one group per watched thing, with
+ * _max(createdAt) serving as both lastWatchedAt and the sort key.
  *
- * UserRating is looked up with a single batched findMany per page (all
- * tmdbIds in one IN query) rather than one query per item, since the rating
- * join has no reason to cost an extra round trip per row the way the TMDB
- * enrichment unavoidably does.
+ * Everything the page needs beyond TMDB is fetched in two batched queries
+ * covering the whole page — the season numbers of its series, and its
+ * ratings — rather than one query per row. The TMDB enrichment stays one
+ * call per item; that one is unavoidable here, and #234's second half cuts
+ * it by asking for twenty items instead of all of them.
  */
 
 import {
   LOCALE_TO_TMDB_LANG,
+  type HistoryItemResponse,
   type HistoryMovieItemResponse,
   type HistorySeriesItemResponse,
-  type HistoryType,
+  type HistoryTypeFilter,
+  type MediaType,
   type PaginatedResponse,
+  type SortDirection,
   type SupportedLocale,
 } from "@foundit/types";
 import {
   extractTitle,
+  extractYear,
   fetchBasicMediaInfo,
   fetchMediaRaw,
 } from "@/helpers/tmdbMedia";
@@ -41,8 +45,10 @@ import prisma from "@/lib/prisma";
 import type { TmdbSeries } from "@/types/tmdb.types";
 
 export interface HistoryQuery {
-  type: HistoryType;
   locale: SupportedLocale;
+  type: HistoryTypeFilter;
+  /** Applies to the only sort this list has: when it was last watched. */
+  order: SortDirection;
   page: number;
 }
 
@@ -55,72 +61,71 @@ export interface MarkSeasonWatchedInput {
   seasonNumber: number;
 }
 
+/** One watched thing, before TMDB knows anything about it. */
+interface HistoryEntry {
+  tmdbId: number;
+  mediaType: MediaType;
+  lastWatchedAt: Date;
+}
+
 // ---------------------------------------------------------------------------
 // shared
 // ---------------------------------------------------------------------------
 
+/**
+ * TMDB ids are namespaced per media type, so movie 550 and series 550 are
+ * different things that both exist. Keying ratings by tmdbId alone was
+ * correct only while a page held a single media type; on a mixed page the
+ * second one would overwrite the first and a card would quietly display
+ * someone else's score. Same class of silent overwrite as #196.
+ */
+function ratingKey(mediaType: MediaType, tmdbId: number): string {
+  return `${mediaType}:${tmdbId}`;
+}
+
+/**
+ * One IN query for the page. It matches on tmdbId only, so it can return a
+ * rating for movie 550 while the page holds series 550 — that extra row
+ * lands under a key nobody looks up, which is precisely what the composite
+ * key buys.
+ */
 async function fetchRatingsMap(
   userId: string,
-  mediaType: HistoryType,
-  tmdbIds: number[],
-): Promise<Map<number, number>> {
-  if (tmdbIds.length === 0) return new Map();
+  entries: { tmdbId: number; mediaType: MediaType }[],
+): Promise<Map<string, number>> {
+  if (entries.length === 0) return new Map();
+
   const ratings = await prisma.userRating.findMany({
-    where: { userId, mediaType, tmdbId: { in: tmdbIds } },
+    where: { userId, tmdbId: { in: entries.map((e) => e.tmdbId) } },
+    select: { tmdbId: true, mediaType: true, rating: true },
   });
-  return new Map(ratings.map((r) => [r.tmdbId, r.rating]));
+
+  return new Map(
+    ratings.map((r) => [
+      ratingKey(r.mediaType as MediaType, r.tmdbId),
+      r.rating,
+    ]),
+  );
 }
 
 // ---------------------------------------------------------------------------
 // movie history (#49)
 // ---------------------------------------------------------------------------
 
-async function enrichMovieRow(
-  row: { tmdbId: number; createdAt: Date },
-  ratingsMap: Map<number, number>,
+async function enrichMovieEntry(
+  tmdbId: number,
+  lastWatchedAt: Date,
+  ratingsMap: Map<string, number>,
   language: string,
 ): Promise<HistoryMovieItemResponse> {
-  const tmdb = await fetchBasicMediaInfo(row.tmdbId, "movie", language);
+  const tmdb = await fetchBasicMediaInfo(tmdbId, "movie", language);
 
   return {
-    tmdbId: row.tmdbId,
-    watchedAt: row.createdAt,
+    tmdbId,
+    mediaType: "movie",
+    lastWatchedAt,
     tmdb,
-    rating: ratingsMap.get(row.tmdbId) ?? null,
-  };
-}
-
-async function getMovieHistory(
-  userId: string,
-  page: number,
-  language: string,
-): Promise<PaginatedResponse<HistoryMovieItemResponse>> {
-  const where = { userId, mediaType: "movie", seasonNumber: null };
-
-  const [rows, totalResults] = await Promise.all([
-    prisma.watchedItem.findMany({
-      where,
-      orderBy: { createdAt: "desc" as const },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    prisma.watchedItem.count({ where }),
-  ]);
-
-  const ratingsMap = await fetchRatingsMap(
-    userId,
-    "movie",
-    rows.map((r) => r.tmdbId),
-  );
-  const results = await Promise.all(
-    rows.map((row) => enrichMovieRow(row, ratingsMap, language)),
-  );
-
-  return {
-    results,
-    totalResults,
-    totalPages: Math.ceil(totalResults / PAGE_SIZE),
-    page,
+    rating: ratingsMap.get(ratingKey("movie", tmdbId)) ?? null,
   };
 }
 
@@ -164,8 +169,15 @@ export async function markMovieWatched(
         },
       });
 
-  const ratingsMap = await fetchRatingsMap(userId, "movie", [input.tmdbId]);
-  return enrichMovieRow(row, ratingsMap, LOCALE_TO_TMDB_LANG[locale]);
+  const ratingsMap = await fetchRatingsMap(userId, [
+    { tmdbId: input.tmdbId, mediaType: "movie" },
+  ]);
+  return enrichMovieEntry(
+    row.tmdbId,
+    row.createdAt,
+    ratingsMap,
+    LOCALE_TO_TMDB_LANG[locale],
+  );
 }
 
 export async function unmarkMovieWatched(
@@ -181,11 +193,11 @@ export async function unmarkMovieWatched(
 // series / season history (#50)
 // ---------------------------------------------------------------------------
 
-async function enrichSeriesGroup(
+async function enrichSeriesEntry(
   tmdbId: number,
   lastWatchedAt: Date,
   watchedSeasons: number[],
-  ratingsMap: Map<number, number>,
+  ratingsMap: Map<string, number>,
   language: string,
 ): Promise<HistorySeriesItemResponse> {
   const raw = (await fetchMediaRaw(tmdbId, "series", {
@@ -194,81 +206,16 @@ async function enrichSeriesGroup(
 
   return {
     tmdbId,
+    mediaType: "series",
     tmdb: {
       title: extractTitle("series", raw),
       posterPath: raw.poster_path,
+      year: extractYear("series", raw),
       numberOfSeasons: raw.number_of_seasons,
     },
     watchedSeasons: [...watchedSeasons].sort((a, b) => a - b),
-    rating: ratingsMap.get(tmdbId) ?? null,
+    rating: ratingsMap.get(ratingKey("series", tmdbId)) ?? null,
     lastWatchedAt,
-  };
-}
-
-async function getSeriesHistory(
-  userId: string,
-  page: number,
-  language: string,
-): Promise<PaginatedResponse<HistorySeriesItemResponse>> {
-  const where = { userId, mediaType: "series" };
-
-  // Pagination has to happen over distinct shows, not rows: groupBy gives us
-  // the page's shows + their lastWatchedAt (_max.createdAt) in one query.
-  // A second, minimal-projection query counts the total distinct shows for
-  // totalResults/totalPages.
-  const [grouped, allShows] = await Promise.all([
-    prisma.watchedItem.groupBy({
-      by: ["tmdbId"],
-      where,
-      _max: { createdAt: true },
-      orderBy: { _max: { createdAt: "desc" as const } },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    prisma.watchedItem.findMany({
-      where,
-      distinct: ["tmdbId"],
-      select: { tmdbId: true },
-    }),
-  ]);
-
-  const totalResults = allShows.length;
-  const pageTmdbIds = grouped.map((g) => g.tmdbId);
-
-  const [seasonRows, ratingsMap] = await Promise.all([
-    prisma.watchedItem.findMany({
-      where: { userId, mediaType: "series", tmdbId: { in: pageTmdbIds } },
-    }),
-    fetchRatingsMap(userId, "series", pageTmdbIds),
-  ]);
-
-  const seasonsByShow = new Map<number, number[]>();
-  for (const row of seasonRows) {
-    if (row.seasonNumber === null) continue;
-    const list = seasonsByShow.get(row.tmdbId) ?? [];
-    list.push(row.seasonNumber);
-    seasonsByShow.set(row.tmdbId, list);
-  }
-
-  const results = await Promise.all(
-    grouped.map((g) =>
-      // createdAt is NOT NULL on WatchedItem and groupBy only returns
-      // non-empty groups, so _max.createdAt is guaranteed present here.
-      enrichSeriesGroup(
-        g.tmdbId,
-        g._max.createdAt!,
-        seasonsByShow.get(g.tmdbId) ?? [],
-        ratingsMap,
-        language,
-      ),
-    ),
-  );
-
-  return {
-    results,
-    totalResults,
-    totalPages: Math.ceil(totalResults / PAGE_SIZE),
-    page,
   };
 }
 
@@ -310,10 +257,10 @@ export async function markSeasonWatched(
     Math.max(...seasonRows.map((r) => r.createdAt.getTime())),
   );
 
-  const ratingsMap = await fetchRatingsMap(userId, "series", [
-    input.tmdbShowId,
+  const ratingsMap = await fetchRatingsMap(userId, [
+    { tmdbId: input.tmdbShowId, mediaType: "series" },
   ]);
-  return enrichSeriesGroup(
+  return enrichSeriesEntry(
     input.tmdbShowId,
     lastWatchedAt,
     watchedSeasons,
@@ -333,18 +280,111 @@ export async function unmarkSeasonWatched(
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/history dispatcher
+// GET /api/history
 // ---------------------------------------------------------------------------
+
+async function fetchSeasonsByShow(
+  userId: string,
+  seriesTmdbIds: number[],
+): Promise<Map<number, number[]>> {
+  const map = new Map<number, number[]>();
+  if (seriesTmdbIds.length === 0) return map;
+
+  const rows = await prisma.watchedItem.findMany({
+    where: { userId, mediaType: "series", tmdbId: { in: seriesTmdbIds } },
+    select: { tmdbId: true, seasonNumber: true },
+  });
+
+  for (const row of rows) {
+    if (row.seasonNumber === null) continue;
+    const list = map.get(row.tmdbId) ?? [];
+    list.push(row.seasonNumber);
+    map.set(row.tmdbId, list);
+  }
+  return map;
+}
 
 export async function getHistory(
   userId: string,
   query: HistoryQuery,
-): Promise<
-  | PaginatedResponse<HistoryMovieItemResponse>
-  | PaginatedResponse<HistorySeriesItemResponse>
-> {
+): Promise<PaginatedResponse<HistoryItemResponse>> {
   const language = LOCALE_TO_TMDB_LANG[query.locale];
-  return query.type === "movie"
-    ? getMovieHistory(userId, query.page, language)
-    : getSeriesHistory(userId, query.page, language);
+
+  const where = {
+    userId,
+    ...(query.type !== "all" ? { mediaType: query.type } : {}),
+  };
+
+  /**
+   * The order ends in tmdbId because _max(createdAt) is not unique — marking
+   * several things in the same second is normal, not an edge case, and
+   * without a total order Postgres may return tied groups differently on
+   * each call, so with LIMIT/OFFSET an entry can appear on two consecutive
+   * pages or on neither. Same defect fixed on the watchlist in #234.
+   *
+   * The second query counts distinct (tmdbId, mediaType) pairs. Prisma has
+   * no clean count-distinct over several fields, so it reads the pairs and
+   * measures the array: two small columns for the whole history, which is
+   * what this file already did for series alone. It would stop being cheap
+   * at tens of thousands of watched items.
+   */
+  const [groups, distinctPairs] = await Promise.all([
+    prisma.watchedItem.groupBy({
+      by: ["tmdbId", "mediaType"],
+      where,
+      _max: { createdAt: true },
+      orderBy: [{ _max: { createdAt: query.order } }, { tmdbId: "asc" }],
+      skip: (query.page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.watchedItem.findMany({
+      where,
+      distinct: ["tmdbId", "mediaType"],
+      select: { tmdbId: true, mediaType: true },
+    }),
+  ]);
+
+  const entries: HistoryEntry[] = groups.map((g) => ({
+    tmdbId: g.tmdbId,
+    mediaType: g.mediaType as MediaType,
+    // createdAt is NOT NULL on WatchedItem and groupBy only returns
+    // non-empty groups, so _max.createdAt is guaranteed present here.
+    lastWatchedAt: g._max.createdAt!,
+  }));
+
+  const [seasonsByShow, ratingsMap] = await Promise.all([
+    fetchSeasonsByShow(
+      userId,
+      entries.filter((e) => e.mediaType === "series").map((e) => e.tmdbId),
+    ),
+    fetchRatingsMap(userId, entries),
+  ]);
+
+  const results = await Promise.all(
+    entries.map((entry) =>
+      entry.mediaType === "movie"
+        ? enrichMovieEntry(
+            entry.tmdbId,
+            entry.lastWatchedAt,
+            ratingsMap,
+            language,
+          )
+        : enrichSeriesEntry(
+            entry.tmdbId,
+            entry.lastWatchedAt,
+            seasonsByShow.get(entry.tmdbId) ?? [],
+            ratingsMap,
+            language,
+          ),
+    ),
+  );
+
+  const totalResults = distinctPairs.length;
+
+  return {
+    results,
+    totalResults,
+    totalPages: Math.ceil(totalResults / PAGE_SIZE),
+    page: query.page,
+  };
 }
