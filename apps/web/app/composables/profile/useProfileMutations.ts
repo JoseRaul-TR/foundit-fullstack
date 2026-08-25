@@ -7,6 +7,16 @@ import type {
 } from "@foundit/types";
 import { PROFILE_QUERY_KEY } from "./useProfile";
 
+// Every mutation here writes profileStore. Every one of them must also write the
+// ["profile"] cache, and this is not a style preference — useProfile.ts watches
+// query.data with { immediate: true }, so the next component that mounts
+// useProfileQuery re-broadcasts whatever the cache holds straight over the store.
+// A mutation that updates only the store is correct until the user navigates, and
+// then silently loses (#196: services vanished from Discover's filters because the
+// two service mutations never touched the cache while the other four did).
+//
+// setQueryData when the response carries the complete new value; invalidateQueries
+// when it carries only a slice and the rest has to be refetched.
 export function useUpdateNameMutation() {
   const { apiFetch } = useApi();
   const queryClient = useQueryClient();
@@ -72,6 +82,7 @@ export function useRemoveCountryMutation() {
 
 export function useAddServiceMutation() {
   const { apiFetch } = useApi();
+  const queryClient = useQueryClient();
   const profileStore = useProfileStore();
 
   return useMutation({
@@ -80,12 +91,21 @@ export function useAddServiceMutation() {
         "/api/v1/profile/services",
         { method: "POST", body: input },
       ).then((res) => res.data),
-    onSuccess: (services) => profileStore.setServices(services),
+    onSuccess: (services) => {
+      profileStore.setServices(services);
+      // setQueryData, not invalidateQueries: the response is the complete new
+      // services list, so there is nothing to go and fetch. Invalidating would
+      // cost a round trip per toggle on a page built out of toggles.
+      queryClient.setQueryData<ProfileResponse>(PROFILE_QUERY_KEY, (old) =>
+        old ? { ...old, services } : old,
+      );
+    },
   });
 }
 
 export function useRemoveServiceMutation() {
   const { apiFetch } = useApi();
+  const queryClient = useQueryClient();
   const profileStore = useProfileStore();
 
   return useMutation({
@@ -94,7 +114,12 @@ export function useRemoveServiceMutation() {
         `/api/v1/profile/services/${input.providerId}/${input.countryCode}`,
         { method: "DELETE" },
       ).then((res) => res.data),
-    onSuccess: (services) => profileStore.setServices(services),
+    onSuccess: (services) => {
+      profileStore.setServices(services);
+      queryClient.setQueryData<ProfileResponse>(PROFILE_QUERY_KEY, (old) =>
+        old ? { ...old, services } : old,
+      );
+    },
   });
 }
 

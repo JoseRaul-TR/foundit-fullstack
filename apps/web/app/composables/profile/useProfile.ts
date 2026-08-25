@@ -47,6 +47,11 @@ export function useProfileQuery() {
   // Fires on the server too, once the data is prefetched — which is how the
   // country pills reach the initial HTML without any new code: the watcher
   // fills profileStore, and Pinia serializes it into the payload.
+  //
+  // { immediate: true } also means this fires on every fresh mount with whatever
+  // the cache holds — so the cache, not the store, is authoritative. Any mutation
+  // that writes profileStore without writing the cache is undone here the next
+  // time a component mounts (#196).
   watch(
     query.data,
     (profile) => {
