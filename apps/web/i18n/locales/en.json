@@ -109,6 +109,11 @@
       "person": "Person"
     },
     "filterByType": "Filter by type",
+    "typeFilter": {
+      "all": "All",
+      "movie": "Movies",
+      "series": "Series"
+    },
     "language": "Language",
     "search": "Search",
     "clearSearch": "Clear search",
@@ -213,16 +218,12 @@
     "remove": "Remove",
     "newSeasonsAvailable": "New season available",
     "availableOn": "Available on",
-    "typeFilter": {
-      "all": "All",
-      "movie": "Movies",
-      "series": "Series"
-    },
     "sortBy": {
       "label": "Sort by",
-      "added": "Recently added",
-      "title": "Title",
-      "year": "Year"
+      "addedDesc": "Recently added",
+      "addedAsc": "Oldest added",
+      "yearDesc": "Newest release",
+      "yearAsc": "Oldest release"
     },
     "loadError": "Something went wrong loading your watchlist.",
     "emptyCta": "Search movies & shows",
@@ -236,7 +237,11 @@
     "watchedSeasons": "Watched seasons",
     "lastWatchedAt": "Last watched",
     "markUnwatched": "Remove from history",
-    "sortBy": { "watched": "Date Watched", "title": "Title" },
+    "sortBy": {
+      "label": "Sort by",
+      "watchedDesc": "Recently watched",
+      "watchedAsc": "Oldest watched"
+    },
     "loadError": "Something went wrong loading your history.",
     "emptyDescription": "Movies and shows you mark as watched will show up here.",
     "emptyCta": "Search movies & shows"

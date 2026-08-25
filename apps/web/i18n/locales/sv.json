@@ -109,6 +109,11 @@
       "person": "Person"
     },
     "filterByType": "Filtrera efter typ",
+    "typeFilter": {
+      "all": "Alla",
+      "movie": "Filmer",
+      "series": "Serier"
+    },
     "language": "Språk",
     "search": "Sök",
     "clearSearch": "Rensa sökningen",
@@ -213,16 +218,12 @@
     "remove": "Ta bort",
     "newSeasonsAvailable": "Ny säsong tillgänglig",
     "availableOn": "Tillgänglig på",
-    "typeFilter": {
-      "all": "Alla",
-      "movie": "Filmer",
-      "series": "Serier"
-    },
     "sortBy": {
       "label": "Sortera efter",
-      "added": "Nyligen tillagd",
-      "title": "Titel",
-      "year": "År"
+      "addedDesc": "Nyligen tillagd",
+      "addedAsc": "Först tillagd",
+      "yearDesc": "Nyaste premiär",
+      "yearAsc": "Äldsta premiär"
     },
     "loadError": "Något gick fel när din lista skulle läsas in.",
     "emptyCta": "Sök filmer och serier",
@@ -236,7 +237,11 @@
     "watchedSeasons": "Sedda säsonger",
     "lastWatchedAt": "Senast sedd",
     "markUnwatched": "Ta bort från historiken",
-    "sortBy": { "watched": "Visningsdatum", "title": "Titel" },
+    "sortBy": {
+      "label": "Sortera efter",
+      "watchedDesc": "Nyligen sedd",
+      "watchedAsc": "Först sedd"
+    },
     "loadError": "Något gick fel när din historik skulle läsas in.",
     "emptyDescription": "Filmer och serier du markerar som sedda visas här.",
     "emptyCta": "Sök filmer och serier"

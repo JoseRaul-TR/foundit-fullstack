@@ -109,6 +109,11 @@
       "person": "Persona"
     },
     "filterByType": "Filtrar por tipo",
+    "typeFilter": {
+      "all": "Todos",
+      "movie": "Películas",
+      "series": "Series"
+    },
     "language": "Idioma",
     "search": "Buscar",
     "clearSearch": "Borrar búsqueda",
@@ -213,16 +218,12 @@
     "remove": "Quitar",
     "newSeasonsAvailable": "Nueva temporada disponible",
     "availableOn": "Disponible en",
-    "typeFilter": {
-      "all": "Todos",
-      "movie": "Películas",
-      "series": "Series"
-    },
     "sortBy": {
       "label": "Ordenar por",
-      "added": "Añadido recientemente",
-      "title": "Título",
-      "year": "Año"
+      "addedDesc": "Añadido recientemente",
+      "addedAsc": "Añadido hace más tiempo",
+      "yearDesc": "Estreno más reciente",
+      "yearAsc": "Estreno más antiguo"
     },
     "loadError": "Ha ocurrido un error al cargar tu lista.",
     "emptyCta": "Buscar películas y series",
@@ -236,7 +237,11 @@
     "watchedSeasons": "Temporadas vistas",
     "lastWatchedAt": "Última vez visto",
     "markUnwatched": "Quitar del historial",
-    "sortBy": { "watched": "Fecha de visionado", "title": "Título" },
+    "sortBy": {
+      "label": "Ordenar por",
+      "watchedDesc": "Visto recientemente",
+      "watchedAsc": "Visto hace más tiempo"
+    },
     "loadError": "Ha ocurrido un error al cargar tu historial.",
     "emptyDescription": "Las películas y series que marques como vistas aparecerán aquí.",
     "emptyCta": "Buscar películas y series"
