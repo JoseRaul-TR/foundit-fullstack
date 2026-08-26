@@ -411,7 +411,7 @@
       },
       "account": {
         "heading": "Tu cuenta",
-        "body": "Si creas una cuenta, la aplicación guarda tu correo, tu nombre y —si entras con Google— la identidad que devuelve Google. También guarda lo que pones en la aplicación: tu lista de pendientes, los títulos y temporadas que marcas como vistos, tus valoraciones, tu país y los servicios de streaming a los que estás suscrito. Estos son los datos sobre los que está construida la aplicación, y solo se usan para mostrarte tus propias listas. No se comparten con nadie ni se usan para publicidad. Iniciar sesión también coloca una cookie, que es lo que mantiene tu sesión abierta al cambiar de página; no se usa para rastrear nada."
+        "body": "Si creas una cuenta, la aplicación guarda tu correo, tu nombre y —si entras con Google— la identidad que devuelve Google. También guarda lo que pones en la aplicación: tu lista de pendientes, los títulos y temporadas que marcas como vistos, tus valoraciones, tu país y los servicios de streaming a los que estás suscrito. Estos son los datos sobre los que está construida la aplicación, y solo se usan para mostrarte tus propias listas. No se comparten con nadie ni se usan para publicidad. Iniciar sesión también coloca una cookie, que es lo que mantiene tu sesión abierta al cambiar de página; no se usa para rastrear nada. La dirección no se verifica nunca y nunca se envía nada a ella: ni confirmación, ni notificaciones, nada."
       },
       "retention": {
         "heading": "Cuánto tiempo se conserva",
