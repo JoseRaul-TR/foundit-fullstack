@@ -348,6 +348,8 @@
     "dataSource": { "title": "Fuente de datos" }
   },
   "feedback": {
+    "label": "Feedback",
+    "aria": "Enviar comentarios sobre FoundIt: abre un formulario breve en una pestaña nueva",
     "watchlist": {
       "addError": "No se pudo añadir a tu lista. Inténtalo de nuevo.",
       "removeError": "No se pudo quitar de tu lista. Inténtalo de nuevo."
