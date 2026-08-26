@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: General feedback — 3 minutes, no GitHub account needed
+    url: https://forms.gle/URwj1YuMEk9Ru8Ar8
+    about: Opinions, confusion, or anything that is not a specific defect. This is the right door for most feedback.
