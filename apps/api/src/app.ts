@@ -79,9 +79,13 @@ app.set("trust proxy", 3);
  *   cloud.umami.is for the analytics script added in #264. Umami is the first
  *   third-party script this app loads, which is why this directive had never
  *   needed widening before.
- * - connect-src: cloud.umami.is again — the script beacons page views to
- *   /api/send on that host. Without this the script loads silently and
- *   reports nothing.
+ * - connect-src: gateway.umami.is, where the Umami script posts page views
+ *   (/api/send). The script is served from cloud.umami.is but does NOT beacon
+ *   there — the host was read from the network tab on 26 Aug 2026, after an
+ *   earlier deploy that assumed it from the script URL and blocked every POST.
+ *   cloud.umami.is is deliberately NOT listed here: nothing has been observed
+ *   connecting to it, and if that ever changes the browser says so in the
+ *   console rather than failing quietly.
  * - img-src: TMDB posters and YouTube thumbnails.
  * - frame-src: the YouTube no-cookie embed for trailers.
  *
@@ -94,18 +98,14 @@ app.use(
       useDefaults: true,
       directives: {
         "script-src": ["'self'", "'unsafe-inline'", "https://cloud.umami.is"],
-        // image.tmdb.org: posters, backdrops, profile photos, provider logos.
-        // i.ytimg.com: the trailer thumbnails TrailerEmbed shows before the
-        // iframe is mounted.
+        "connect-src": ["'self'", "https://gateway.umami.is"],
         "img-src": [
           "'self'",
           "data:",
           "https://image.tmdb.org",
           "https://i.ytimg.com",
         ],
-        // TrailerEmbed embeds via youtube-nocookie only.
         "frame-src": ["'self'", "https://www.youtube-nocookie.com"],
-        "connect-src": ["'self'", "https://cloud.umami.is"],
       },
     },
   }),
