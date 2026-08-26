@@ -69,29 +69,31 @@ export const app = express();
  */
 app.set("trust proxy", 3);
 
-/** ——— Security Middleware ———
+/**
+ * Content Security Policy.
  *
- * Helmet's default CSP is written for an API that only returns JSON. Now that
- * this same app serves Nuxt's HTML, the defaults break the frontend, so three
- * directives are widened — each for a specific, identifiable reason:
+ * helmet's defaults apply; four directives are widened, each for a specific,
+ * identifiable reason:
  *
- *  - script-src 'unsafe-inline': Nuxt SSR emits an inline <script> carrying the
- *    hydration payload. Without this the page renders but never becomes
- *    interactive. The strict alternative is per-request nonces, which Nuxt
- *    supports but which needs coordinated config on both sides — worth
- *    revisiting, deliberately not done here.
- *  - img-src image.tmdb.org: every poster, backdrop, profile photo and provider
- *    logo is served from TMDB's CDN.
- *  - frame-src youtube: the trailer embeds.
+ * - script-src: 'unsafe-inline' for Nuxt's hydration payload, and
+ *   cloud.umami.is for the analytics script added in #264. Umami is the first
+ *   third-party script this app loads, which is why this directive had never
+ *   needed widening before.
+ * - connect-src: cloud.umami.is again — the script beacons page views to
+ *   /api/send on that host. Without this the script loads silently and
+ *   reports nothing.
+ * - img-src: TMDB posters and YouTube thumbnails.
+ * - frame-src: the YouTube no-cookie embed for trailers.
  *
- * Everything else keeps Helmet's defaults via useDefaults.
+ * This header covers the frontend too: in production Express serves Nuxt's
+ * build from this same app.
  */
 app.use(
   helmet({
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "script-src": ["'self'", "'unsafe-inline'"],
+        "script-src": ["'self'", "'unsafe-inline'", "https://cloud.umami.is"],
         // image.tmdb.org: posters, backdrops, profile photos, provider logos.
         // i.ytimg.com: the trailer thumbnails TrailerEmbed shows before the
         // iframe is mounted.
@@ -103,7 +105,7 @@ app.use(
         ],
         // TrailerEmbed embeds via youtube-nocookie only.
         "frame-src": ["'self'", "https://www.youtube-nocookie.com"],
-        "connect-src": ["'self'"],
+        "connect-src": ["'self'", "https://cloud.umami.is"],
       },
     },
   }),
