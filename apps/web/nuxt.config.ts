@@ -34,12 +34,16 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     // No server-only keys yet — the API base is public because the
-    // browser calls it directly, nothing secret involved.
+    // browser calls it directly, nothing secret involved. The Umami id is
+    // public by construction: it travels in the script tag.
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3001",
       appName: process.env.NUXT_PUBLIC_APP_NAME || "FoundIt",
+      umamiScriptUrl: process.env.NUXT_PUBLIC_UMAMI_SCRIPT_URL || "",
+      umamiWebsiteId: process.env.NUXT_PUBLIC_UMAMI_WEBSITE_ID || "",
     },
   },
+
   app: {
     head: {
       title: "FoundIt",
