@@ -99,12 +99,16 @@ app.use(
       directives: {
         "script-src": ["'self'", "'unsafe-inline'", "https://cloud.umami.is"],
         "connect-src": ["'self'", "https://gateway.umami.is"],
+        // image.tmdb.org: posters, backdrops, profile photos, provider logos.
+        // i.ytimg.com: the trailer thumbnails TrailerEmbed shows before the
+        // iframe is mounted.
         "img-src": [
           "'self'",
           "data:",
           "https://image.tmdb.org",
           "https://i.ytimg.com",
         ],
+        // TrailerEmbed embeds via youtube-nocookie only.
         "frame-src": ["'self'", "https://www.youtube-nocookie.com"],
       },
     },
