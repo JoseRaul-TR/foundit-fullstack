@@ -10,5 +10,6 @@
     </main>
 
     <AppFooter />
+    <FeedbackButton />
   </div>
 </template>

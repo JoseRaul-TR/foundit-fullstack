@@ -348,6 +348,8 @@
     "dataSource": { "title": "Data source" }
   },
   "feedback": {
+    "label": "Feedback",
+    "aria": "Give feedback about FoundIt — opens a short form in a new tab",
     "watchlist": {
       "addError": "Couldn't add to your watchlist. Please try again.",
       "removeError": "Couldn't remove from your watchlist. Please try again."

@@ -348,6 +348,8 @@
     "dataSource": { "title": "Datakälla" }
   },
   "feedback": {
+    "label": "Feedback",
+    "aria": "Ge feedback om FoundIt – öppnar ett kort formulär i en ny flik",
     "watchlist": {
       "addError": "Kunde inte lägga till i din lista. Försök igen.",
       "removeError": "Kunde inte ta bort från din lista. Försök igen."
