@@ -394,6 +394,34 @@
   "legal": {
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
-    "underConstruction": "This page is under construction. The document will be published before launch."
+    "underConstruction": "This page is under construction. The document will be published before launch.",
+    "privacyNote": {
+      "intro": "FoundIt is a student project — an examensarbete for a Yrkeshögskola programme in frontend development. It is currently in a closed test round with invited testers and has not been launched. This page describes what the app collects and what happens to it. It is short on purpose, and a full policy will replace it before any public launch.",
+      "analytics": {
+        "heading": "Anonymous usage statistics",
+        "body": "The app counts page views with Umami, a cookieless analytics tool. It records which pages were opened, the site you arrived from, your browser, your operating system, your device type and your country. It sets no cookies and stores nothing that identifies you, so these figures cannot be traced back to a person. They exist to show which parts of the app were used at all."
+      },
+      "form": {
+        "heading": "The feedback form",
+        "body": "If you fill in the feedback form, it collects your answers along with the language, device and browser you used, and whether you use an ad blocker. It does not ask for your name or your email address. The last question is optional and lets you leave a contact if you want to take part in a short session — if you fill it in, that one answer is no longer anonymous. Leaving it blank is a complete answer."
+      },
+      "github": {
+        "heading": "Bug reports on GitHub",
+        "body": "Reports filed through the GitHub template are public and carry your GitHub username, like any issue in an open repository. Anything written there can be read by anyone. If you would rather report something privately, use the form instead."
+      },
+      "account": {
+        "heading": "Your account",
+        "body": "If you create an account, the app stores your email address, your name and — if you sign in with Google — the identity Google returns. It also stores what you put into the app: your watchlist, the titles and seasons you mark as watched, your ratings, your country and the streaming services you subscribe to. This is the data the app is built around, and it is used only to show you your own lists. It is not shared with anyone and it is not used for advertising. Signing in also sets one cookie, which is what keeps you signed in from page to page; it is not used to track anything."
+      },
+      "retention": {
+        "heading": "How long it is kept",
+        "body": "The feedback answers and the usage statistics exist for one purpose: to improve the app and to write the thesis report. They are deleted once that work is finished. Account data stays as long as the account does — say the word and it is deleted."
+      },
+      "contact": {
+        "heading": "Questions, or removing your data",
+        "body": "Ask the person who invited you to the test round, or open an issue in the repository. Anything you want removed will be removed."
+      },
+      "updated": "Last updated 26 August 2026."
+    }
   }
 }
