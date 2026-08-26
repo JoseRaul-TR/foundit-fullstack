@@ -392,8 +392,36 @@
     }
   },
   "legal": {
-    "terms": "Términos de Servicio",
-    "privacy": "Política de Privacidad",
-    "underConstruction": "Esta página está en construcción. El documento se publicará antes del lanzamiento."
+    "terms": "Términos del servicio",
+    "privacy": "Política de privacidad",
+    "underConstruction": "Esta página está en construcción. El documento se publicará antes del lanzamiento.",
+    "privacyNote": {
+      "intro": "FoundIt es un proyecto de estudiante: un examensarbete de un programa de Yrkeshögskola en desarrollo frontend. Ahora mismo está en una ronda de pruebas cerrada con testers invitados y no está lanzada. Esta página describe qué recoge la aplicación y qué pasa con ello. Es breve a propósito, y una política completa la sustituirá antes de cualquier lanzamiento público.",
+      "analytics": {
+        "heading": "Estadísticas de uso anónimas",
+        "body": "La aplicación cuenta las visitas con Umami, una herramienta de analítica sin cookies. Registra qué páginas se abrieron, desde qué sitio llegaste, tu navegador, tu sistema operativo, el tipo de dispositivo y el país. No coloca cookies ni guarda nada que te identifique, así que esas cifras no se pueden rastrear hasta una persona. Existen para ver qué partes de la aplicación se usaron."
+      },
+      "form": {
+        "heading": "El formulario de opinión",
+        "body": "Si rellenas el formulario, se recogen tus respuestas junto con el idioma, el dispositivo y el navegador que usaste, y si usas un bloqueador de anuncios. No pide tu nombre ni tu correo. La última pregunta es opcional y te permite dejar un contacto si quieres participar en una sesión corta; si la rellenas, esa respuesta deja de ser anónima. Dejarla en blanco es una respuesta completa."
+      },
+      "github": {
+        "heading": "Informes de errores en GitHub",
+        "body": "Los informes enviados con la plantilla de GitHub son públicos y llevan tu nombre de usuario de GitHub, como cualquier issue de un repositorio abierto. Cualquiera puede leer lo que escribas ahí. Si prefieres informar de algo en privado, usa el formulario."
+      },
+      "account": {
+        "heading": "Tu cuenta",
+        "body": "Si creas una cuenta, la aplicación guarda tu correo, tu nombre y —si entras con Google— la identidad que devuelve Google. También guarda lo que pones en la aplicación: tu lista de pendientes, los títulos y temporadas que marcas como vistos, tus valoraciones, tu país y los servicios de streaming a los que estás suscrito. Estos son los datos sobre los que está construida la aplicación, y solo se usan para mostrarte tus propias listas. No se comparten con nadie ni se usan para publicidad. Iniciar sesión también coloca una cookie, que es lo que mantiene tu sesión abierta al cambiar de página; no se usa para rastrear nada."
+      },
+      "retention": {
+        "heading": "Cuánto tiempo se conserva",
+        "body": "Las respuestas del formulario y las estadísticas de uso existen para un único fin: mejorar la aplicación y escribir la memoria del examensarbete. Se borran cuando ese trabajo termina. Los datos de la cuenta se conservan mientras exista la cuenta; dilo y se borran."
+      },
+      "contact": {
+        "heading": "Dudas, o borrar tus datos",
+        "body": "Pregunta a quien te invitó a la ronda de pruebas, o abre un issue en el repositorio. Todo lo que quieras que se borre, se borra."
+      },
+      "updated": "Última actualización: 26 de agosto de 2026."
+    }
   }
 }

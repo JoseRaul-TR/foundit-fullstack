@@ -8,7 +8,11 @@
        viewport and nobody ever sees it.
      - One copyright string, not the wireframe's shortened mobile variant.
        That would mean a second key in three languages to save four words that
-       wrap onto a second line and cost nothing. -->
+       wrap onto a second line and cost nothing.
+     - Two legal links beside the copyright, which the wireframe does not have.
+       /privacy stopped being a placeholder in #265 and the registration form
+       was the only way to reach either page. A notice reachable from one form
+       is not reachable. -->
 <template>
   <footer class="border-t border-border bg-surface">
     <div
@@ -83,9 +87,27 @@
       </div>
 
       <div class="h-px w-full bg-border" />
-      <p class="w-full text-center text-[11px] text-secondary lg:text-xs">
-        {{ $t("footer.copyright", { year }) }}
-      </p>
+      <div
+        class="flex w-full flex-col items-center gap-2 text-[11px] text-secondary lg:flex-row lg:justify-between lg:text-xs"
+      >
+        <p>{{ $t("footer.copyright", { year }) }}</p>
+        <!-- Privacy before Terms: it is the one that says something, and the
+             one a tester in #249's round has a reason to open. -->
+        <div class="flex items-center gap-4">
+          <NuxtLink
+            :to="localePath('/privacy')"
+            class="py-1 font-medium transition-colors hover:text-primary"
+          >
+            {{ $t("legal.privacy") }}
+          </NuxtLink>
+          <NuxtLink
+            :to="localePath('/terms')"
+            class="py-1 font-medium transition-colors hover:text-primary"
+          >
+            {{ $t("legal.terms") }}
+          </NuxtLink>
+        </div>
+      </div>
     </div>
   </footer>
 </template>
