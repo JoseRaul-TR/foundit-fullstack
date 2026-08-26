@@ -411,7 +411,7 @@
       },
       "account": {
         "heading": "Your account",
-        "body": "If you create an account, the app stores your email address, your name and — if you sign in with Google — the identity Google returns. It also stores what you put into the app: your watchlist, the titles and seasons you mark as watched, your ratings, your country and the streaming services you subscribe to. This is the data the app is built around, and it is used only to show you your own lists. It is not shared with anyone and it is not used for advertising. Signing in also sets one cookie, which is what keeps you signed in from page to page; it is not used to track anything."
+        "body": "If you create an account, the app stores your email address, your name and — if you sign in with Google — the identity Google returns. It also stores what you put into the app: your watchlist, the titles and seasons you mark as watched, your ratings, your country and the streaming services you subscribe to. This is the data the app is built around, and it is used only to show you your own lists. It is not shared with anyone and it is not used for advertising. Signing in also sets one cookie, which is what keeps you signed in from page to page; it is not used to track anything. The address is never verified and nothing is ever sent to it — no confirmation mail, no notifications, nothing."
       },
       "retention": {
         "heading": "How long it is kept",

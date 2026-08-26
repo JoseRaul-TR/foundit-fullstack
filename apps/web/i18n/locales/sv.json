@@ -411,11 +411,11 @@
       },
       "account": {
         "heading": "Ditt konto",
-        "body": "Om du skapar ett konto lagrar appen din e-postadress, ditt namn och — om du loggar in med Google — den identitet Google returnerar. Den lagrar också det du lägger in i appen: din bevakningslista, de titlar och säsonger du markerar som sedda, dina betyg, ditt land och de streamingtjänster du prenumererar på. Det är den här datan appen är byggd kring, och den används bara för att visa dig dina egna listor. Den delas inte med någon och används inte för annonsering. Att logga in sätter också en kaka, som är det som håller dig inloggad mellan sidor; den används inte för att spåra något."
+        "body": "Om du skapar ett konto lagrar appen din e-postadress, ditt namn och — om du loggar in med Google — den identitet Google returnerar. Den lagrar också det du lägger in i appen: din bevakningslista, de titlar och säsonger du markerar som sedda, dina betyg, ditt land och de streamingtjänster du prenumererar på. Det är den här datan appen är byggd kring, och den används bara för att visa dig dina egna listor. Den delas inte med någon och används inte för annonsering. Att logga in sätter också en kaka, som är det som håller dig inloggad mellan sidor; den används inte för att spåra något. Adressen verifieras aldrig och det skickas aldrig något till den — ingen bekräftelse, inga aviseringar, ingenting."
       },
       "retention": {
         "heading": "Hur länge det sparas",
-        "body": "Svaren från formuläret och användningsstatistiken finns för ett enda syfte: att förbättra appen och att skriva examensarbetets rapport. De raderas när det arbetet är klart. Kontodata finns kvar så länge kontot gör det — säg till, så raderas det. "
+        "body": "Svaren från formuläret och användningsstatistiken finns för ett enda syfte: att förbättra appen och att skriva examensarbetets rapport. De raderas när det arbetet är klart. Kontodata finns kvar så länge kontot gör det — säg till, så raderas det."
       },
       "contact": {
         "heading": "Frågor, eller att få dina uppgifter borttagna",
