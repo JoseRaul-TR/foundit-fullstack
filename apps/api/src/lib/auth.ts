@@ -2,7 +2,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import type { NextFunction, Request, Response } from "express";
-import { env } from "../config/env";
+import { env } from "@/config/env";
 import prisma from "./prisma";
 import { AppError } from "@/middleware/errorHandler";
 
@@ -38,6 +38,11 @@ export const auth = betterAuth({
       maxAge: 5 * 60, // 5 min cookie cache
     },
   },
+  // Better Auth logs a failed sign-in at WARN, and two of our tests assert a
+  // 401 on purpose — so the suite printed two warnings about working code every
+  // run. Cosmetic only: the distinction it logs, wrong password versus unknown
+  // user, correctly never reaches the response, which answers 401 to both.
+  logger: { level: env.NODE_ENV === "test" ? "error" : "warn" },
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   // Must match the path app.ts mounts the Better Auth handler at

@@ -11,6 +11,11 @@ dist/
 .cache/
 *.tsbuildinfo
 
+# Prisma's generator wrote here under an earlier config (`prisma-client`, with
+# an explicit output). The schema uses `prisma-client-js` now, which writes into
+# node_modules on postinstall. Ignored so a stray generate cannot re-commit it.
+apps/api/generated/
+
 # Vite (used by Nuxt)
 .vite/
 vite.config.js.timestamp-*
@@ -63,14 +68,8 @@ cookies.txt
 CLAUDE.local.md
 .claude/
 
-#GitHub Commit Messages
+# GitHub commit messages
 commit-msg.txt
-
-# NOTE: apps/api/.gitignore used to carry `/src/generated/prisma`, which never
-# matched anything — the committed generated client actually lives in
-# apps/api/generated/prisma. Deliberately not adding a rule for it here: see
-# #146, which decides whether that directory is dead code to delete or output
-# that should be generated rather than versioned.
 
 # ─── Re-included on purpose ───────────────────────────────────────────────
 # Must stay last: the .env* rules above are broad, and the last matching rule
