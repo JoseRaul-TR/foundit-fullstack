@@ -20,7 +20,7 @@
  *
  * "No regions" is now a deliberate, valid state meaning "no country or
  * platform constraint", expressed as a single buffer that constrains nothing.
- * Same merge, same dedupe, same sort, same post-filters, one code path. The
+ * Same merge, same dedupe, same ordering rule, same post-filters, one code path. The
  * only thing a region-less buffer does differently is omit two TMDB params.
  *
  * TMDB only accepts ONE watch_region per /discover call, but multiple
@@ -162,6 +162,22 @@ const STATUS_TO_TMDB_CODE: Record<SeriesStatusFilter, string> = {
 };
 
 /**
+ * Our sort names mapped to the parameter TMDB pages by. Both are native, which
+ * is why #279 kept these two: `rating` needed a vote_count floor to mean
+ * anything and `title` had no equivalent at all.
+ */
+const TMDB_SORT_BY: Record<"movie" | "series", Record<DiscoverSort, string>> = {
+  movie: {
+    popularity: "popularity.desc",
+    release_date: "primary_release_date.desc",
+  },
+  series: {
+    popularity: "popularity.desc",
+    release_date: "first_air_date.desc",
+  },
+};
+
+/**
  * TMDB's `adult` flag does not catch soft-core or erotic titles. Verified
  * against live data (2026-08-04): tv/233643, an explicit hentai series,
  * arrives with `adult: false` and ranks SECOND on page 1 for watch_region=SE.
@@ -197,12 +213,41 @@ function voteFloor(params: DiscoverParams): number {
 }
 
 /**
- * A factory rather than a constant map so the caller resolves the comparator
- * once per request instead of branching on every comparison.
+ * The date ceiling, and why it depends on the sort.
+ *
+ * `release_date` puts unreleased titles at the top by construction: every
+ * announced film outranks every released one. Page 1 opened with Spider-Man:
+ * Brand New Day, The Odyssey, Toy Story 5 and Moana — none watchable anywhere,
+ * in an app whose question is where to watch something.
+ *
+ * Under `popularity` an upcoming title is not a defect. People want to know
+ * Spider-Man is coming, and it earns its place on the same axis as everything
+ * else. Saying that it is not out yet is a different problem — #284.
+ *
+ * Only ever tightens: an explicit yearTo in the past keeps its own ceiling, one
+ * in the future is capped at today rather than honoured.
+ */
+function releaseCeiling(params: DiscoverParams): string | undefined {
+  const explicit = params.yearTo ? `${params.yearTo}-12-31` : undefined;
+  if (params.sort !== "release_date") return explicit;
+  const today = new Date().toISOString().slice(0, 10);
+  return explicit && explicit < today ? explicit : today;
+}
+
+/**
+ * Only used to interleave buffers. Since #280 TMDB pages each buffer in the
+ * requested order, so a single buffer needs no comparator at all — see
+ * collectPage.
  *
  * It took a `locale` until #279: sorting by title needed one, because
- * `localeCompare` without it uses Node's default and puts Å and Ä in the
- * wrong place in Swedish. The title sort is gone, and the parameter with it.
+ * `localeCompare` without it puts Å and Ä in the wrong place in Swedish. The
+ * title sort is gone and the parameter with it.
+ *
+ * The merge is approximate, deliberately. `release_date` compares year rather
+ * than the full date, which the normalized shape does not carry; `popularity`
+ * compares a field TMDB does not itself page by (#239). Within a buffer TMDB's
+ * order wins because nothing touches it; across buffers this is the best key
+ * available.
  */
 function sortComparator(
   sort: DiscoverSort,
@@ -283,9 +328,7 @@ function fetchMoviePage(
       "primary_release_date.gte": params.yearFrom
         ? `${params.yearFrom}-01-01`
         : undefined,
-      "primary_release_date.lte": params.yearTo
-        ? `${params.yearTo}-12-31`
-        : undefined,
+      "primary_release_date.lte": releaseCeiling(params),
       "vote_average.gte": params.minRating,
       "vote_count.gte": voteFloor(params),
       ...(params.ageRatingMax && params.ageRatingCountry
@@ -294,12 +337,12 @@ function fetchMoviePage(
             certification_country: params.ageRatingCountry,
           }
         : {}),
-      // Always fetched in TMDB popularity order, whatever the caller asked
-      // for; the requested sort is then applied in memory after merging.
-      // That is the mechanism behind #239 — sorting on a key TMDB did not
-      // page by slides the offset window between requests. #280 replaces
-      // this with a sort_by derived from the request.
-      sort_by: "popularity.desc",
+      // Derived from the request since #280. Until then this was always
+      // popularity.desc and the requested order was applied in memory
+      // afterwards, over a candidate set TMDB had already chosen by
+      // popularity — correct within the pool, wrong with respect to the
+      // catalogue.
+      sort_by: TMDB_SORT_BY.movie[params.sort],
       language: LOCALE_TO_TMDB_LANG[params.locale],
       page,
     },
@@ -320,15 +363,13 @@ function fetchSeriesPage(
       "first_air_date.gte": params.yearFrom
         ? `${params.yearFrom}-01-01`
         : undefined,
-      "first_air_date.lte": params.yearTo
-        ? `${params.yearTo}-12-31`
-        : undefined,
+      "first_air_date.lte": releaseCeiling(params),
       "vote_average.gte": params.minRating,
       "vote_count.gte": voteFloor(params),
       with_status: params.status
         ? STATUS_TO_TMDB_CODE[params.status]
         : undefined,
-      sort_by: "popularity.desc",
+      sort_by: TMDB_SORT_BY.series[params.sort],
       language: LOCALE_TO_TMDB_LANG[params.locale],
       page,
     },
@@ -353,7 +394,7 @@ interface CollectOptions {
 
 /**
  * One loop instead of the nested pair this replaces. Each turn fetches one page
- * per open buffer, merges, sorts and filters, and stops when the round budget
+ * per open buffer, merges, orders and filters, and stops when the round budget
  * is spent or every buffer is exhausted — never on anything to do with the
  * requested page, which is the whole of #239.
  *
@@ -371,7 +412,21 @@ async function collectPage({
 }: CollectOptions): Promise<PaginatedResponse<NormalizedSearchResult>> {
   const compare = sortComparator(sort);
 
-  let survivors = await survive(dedupeAndMerge(buffers).sort(compare));
+  // One buffer is a straight passthrough: TMDB paged it in the order the caller
+  // asked for, and re-sorting would put our reading of `popularity` above
+  // TMDB's paging order. Those two disagree — TMDB returns Rage of Stars (293.0)
+  // ahead of Facing El Chapo (327.5) — so sorting here would reintroduce exactly
+  // the discrepancy #280 removes.
+  //
+  // Several buffers leave no choice: they are separate queries and have to be
+  // interleaved. Do not "simplify" this branch away.
+  const order = (bs: RegionBuffer[]) => {
+    const merged = dedupeAndMerge(bs);
+    return bs.length === 1 ? merged : merged.sort(compare);
+  };
+
+  let survivors = await survive(order(buffers));
+
   let rounds = 0;
 
   // survive() stays inside the loop although the stop condition no longer needs
@@ -394,7 +449,7 @@ async function collectPage({
         }),
     );
     rounds += 1;
-    survivors = await survive(dedupeAndMerge(buffers).sort(compare));
+    survivors = await survive(order(buffers));
   }
 
   const start = (page - 1) * PAGE_SIZE;
