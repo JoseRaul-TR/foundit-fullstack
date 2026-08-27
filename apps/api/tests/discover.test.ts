@@ -11,6 +11,11 @@
  * after it. #184's own tests, for the no-regions case that is currently broken,
  * come after and are marked as such.
  *
+ * The file has grown by ticket since. #184's block below holds its own tests
+ * plus the ones #227 and #239 added to the same no-regions path; #280 has a
+ * block of its own. The paragraphs above describe how the file started, not
+ * everything it now covers.
+ *
  * clearCache() in beforeEach is not optional: getCertifications caches per
  * mediaType and country in a module-level map that survives between cases.
  *
@@ -138,31 +143,6 @@ describe("discover — multi-region path, as it behaves today", () => {
 
       const es = discoverCalls.find((c) => c[1]?.watch_region === "ES");
       expect(es?.[1]?.with_watch_providers).toBe("8|337");
-    });
-
-    it("orders by release date when asked, not by TMDB's fetch order", async () => {
-      const testUser = await createTestUser();
-      // Fetched in id order; released in the opposite order. If the response
-      // comes back 3,2,1 the requested order was applied; if 1,2,3, TMDB's
-      // fetch order won.
-      mockedFetchTmdb.mockResolvedValue(
-        discoverPage([
-          listItem(1, { release_date: "2001-01-01" }),
-          listItem(2, { release_date: "2011-01-01" }),
-          listItem(3, { release_date: "2021-01-01" }),
-        ]),
-      );
-
-      const res = await (
-        await authed(testUser)
-      ).get(discoverUrl("movies", { sort: "release_date" }));
-
-      expect(res.body.data.results.map((r: { id: number }) => r.id)).toEqual([
-        3, 2, 1,
-      ]);
-      // And the fetch itself still asked for popularity. That is deliberate
-      // today and it is the defect #280 removes — see fetchMoviePage.
-      expect(callParamsFor("/discover/movie")?.sort_by).toBe("popularity.desc");
     });
 
     it("falls back to the default order for a sort it no longer offers", async () => {
@@ -420,6 +400,10 @@ describe("discover — multi-region path, as it behaves today", () => {
  * #184's own tests. Everything above characterises the path that survives;
  * these exercise the one that was broken — no regions at all — and each maps to
  * a line in the ticket's acceptance list.
+ *
+ * #227 and #239 added to this block rather than starting their own: both are
+ * about the same offset-into-a-pool arithmetic, and it is easiest to see on the
+ * single-buffer path.
  */
 describe("discover — no regions selected (#184)", () => {
   beforeEach(async () => {
@@ -702,6 +686,84 @@ describe("discover — no regions selected (#184)", () => {
     // The same bound, not one more. The client's hasMore is page < totalPages,
     // so it stops on its own.
     expect(beyond.body.data.totalPages).toBe(5);
+  });
+});
+
+/**
+ * #280's own tests. The requested order now comes from TMDB rather than from a
+ * comparator applied afterwards, which changes what the comparator is for: with
+ * one buffer there is nothing left to order.
+ *
+ * All three use the no-regions URL deliberately. One buffer is the case where
+ * the passthrough is observable — with several, the merge runs and the
+ * comparator is back in play.
+ */
+describe("discover — the requested order comes from TMDB (#280)", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+    clearCache();
+    mockedFetchTmdb.mockReset();
+  });
+
+  it("does not re-order a single buffer: TMDB's paging is the order", async () => {
+    // The popularity values here are deliberately at odds with the order TMDB
+    // returned — which is not hypothetical, it is what TMDB does (#239) — and
+    // the assertion is that TMDB wins.
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(
+      discoverPage([
+        listItem(1, { popularity: 10 }),
+        listItem(2, { popularity: 30 }),
+        listItem(3, { popularity: 20 }),
+      ]),
+    );
+
+    const res = await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies"));
+
+    expect(res.body.data.results.map((r: { id: number }) => r.id)).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  it("caps release_date at today, and leaves popularity alone", async () => {
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
+    const today = new Date().toISOString().slice(0, 10);
+
+    await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies", { sort: "release_date" }));
+    expect(callParamsFor("/discover/movie")?.["primary_release_date.lte"]).toBe(
+      today,
+    );
+
+    mockedFetchTmdb.mockClear();
+
+    await (
+      await authed(testUser)
+    ).get(discoverUrlNoRegions("movies", { sort: "popularity" }));
+    // An upcoming blockbuster belongs in the popularity feed. Saying it is not
+    // out yet is #284, not a filter.
+    expect(callParamsFor("/discover/movie")?.["primary_release_date.lte"]).toBe(
+      undefined,
+    );
+  });
+
+  it("keeps an explicit past yearTo rather than replacing it with today", async () => {
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
+
+    await (
+      await authed(testUser)
+    ).get(
+      discoverUrlNoRegions("movies", { sort: "release_date", yearTo: 1999 }),
+    );
+
+    expect(callParamsFor("/discover/movie")?.["primary_release_date.lte"]).toBe(
+      "1999-12-31",
+    );
   });
 });
 
