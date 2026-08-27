@@ -428,6 +428,38 @@ describe("discover — no regions selected (#184)", () => {
     mockedFetchTmdb.mockReset();
   });
 
+  it("partitions the pool: paging 1..N repeats nothing and drops nothing", async () => {
+    // The defect: the pool grew with the requested page, so every request
+    // sorted a different list and the offset window slid. Five rounds of twenty
+    // distinct titles is one hundred candidates whatever page is asked for, so
+    // the pages are slices of one list.
+    const testUser = await createTestUser();
+    mockedFetchTmdb.mockImplementation(async (_path, params) => {
+      const tmdbPage = Number(params?.page ?? 1);
+      return discoverPage(
+        Array.from({ length: 20 }, (_, i) => {
+          const id = tmdbPage * 100 + i;
+          return listItem(id, { popularity: 1000 - id });
+        }),
+        { page: tmdbPage, totalPages: 500 },
+      );
+    });
+
+    const seen: number[] = [];
+    let bound = 0;
+    for (let page = 1; page <= 5; page += 1) {
+      const res = await (
+        await authed(testUser)
+      ).get(discoverUrlNoRegions("movies", { page }));
+      bound = res.body.data.totalPages;
+      seen.push(...res.body.data.results.map((r: { id: number }) => r.id));
+    }
+
+    expect(bound).toBe(5);
+    expect(seen).toHaveLength(100);
+    expect(new Set(seen).size).toBe(100);
+  });
+
   it("constrains neither country nor platform", async () => {
     const testUser = await createTestUser();
     mockedFetchTmdb.mockResolvedValue(discoverPage([listItem(1)]));
@@ -607,7 +639,7 @@ describe("discover — no regions selected (#184)", () => {
     expect(calledPaths()).not.toContain("/discover/tv");
   });
 
-  it("stops after ten rounds instead of walking the catalogue", async () => {
+  it("stops at the round budget instead of walking the catalogue", async () => {
     // Every page returns the same watched title, so nothing ever survives and
     // the buffer never exhausts — 500 pages of it. Without the cap this walks
     // all of them inside one request, which is the scenario in the ticket's
@@ -636,17 +668,16 @@ describe("discover — no regions selected (#184)", () => {
     expect(res.body.data.results).toEqual([]);
     expect(
       mockedFetchTmdb.mock.calls.filter((c) => c[0] === "/discover/movie"),
-    ).toHaveLength(10);
-    // Answered with what survived — and, because the budget ran out before
-    // even the first page could be filled, without inviting another request.
-    // Reporting more here is #227.
-    expect(res.body.data.totalPages).toBe(res.body.data.page);
+    ).toHaveLength(5);
+    // Nothing survived, so there is no page to offer — but the response still
+    // names the page it was asked for rather than reporting zero.
+    expect(res.body.data.totalPages).toBe(1);
   });
 
-  it("stops offering more once the budget cannot fill the requested page", async () => {
-    // Twenty distinct titles per TMDB page and a catalogue that never runs
-    // out: ten rounds is 200 survivors, so page 10 is the last full one and
-    // page 11 cannot exist within one request's budget.
+  it("reports a bound the client cannot page past", async () => {
+    // #227 was the mirror of this: totalPages came from the page-dependent pool,
+    // so it always promised one more and the client asked forever. The pool is
+    // fixed now, so the bound counts pages that exist.
     const testUser = await createTestUser();
     mockedFetchTmdb.mockImplementation(async (_path, params) => {
       const tmdbPage = Number(params?.page ?? 1);
@@ -656,21 +687,21 @@ describe("discover — no regions selected (#184)", () => {
       );
     });
 
-    const full = await (
+    const last = await (
       await authed(testUser)
-    ).get(discoverUrlNoRegions("movies", { page: 10 }));
+    ).get(discoverUrlNoRegions("movies", { page: 5 }));
 
-    expect(full.body.data.results).toHaveLength(20);
-    // A full page with catalogue left really does have more.
-    expect(full.body.data.totalPages).toBeGreaterThan(full.body.data.page);
+    expect(last.body.data.results).toHaveLength(20);
+    expect(last.body.data.totalPages).toBe(5);
 
     const beyond = await (
       await authed(testUser)
-    ).get(discoverUrlNoRegions("movies", { page: 11 }));
+    ).get(discoverUrlNoRegions("movies", { page: 6 }));
 
     expect(beyond.body.data.results).toEqual([]);
-    // The symptom: this reported totalPages 12 and the client asked again.
-    expect(beyond.body.data.totalPages).toBe(beyond.body.data.page);
+    // The same bound, not one more. The client's hasMore is page < totalPages,
+    // so it stops on its own.
+    expect(beyond.body.data.totalPages).toBe(5);
   });
 });
 
