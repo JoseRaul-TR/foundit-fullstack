@@ -3,8 +3,7 @@ import { defineStore } from "pinia";
 import { toRaw } from "vue";
 import type { NormalizedSearchResult } from "@foundit/types";
 
-export type DiscoverSort = "popularity" | "rating" | "release_date" | "title";
-
+export type DiscoverSort = "popularity" | "release_date";
 export interface DiscoverFiltersState {
   genres: number[];
   yearFrom: number | null;

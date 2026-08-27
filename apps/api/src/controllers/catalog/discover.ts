@@ -71,9 +71,11 @@ const baseQuerySchema = z.object({
   ageRatingMax: z.string().optional(),
   ageRatingCountry: z.string().length(2).toUpperCase().optional(),
   regions: regionsQuerySchema,
-  sort: z
-    .enum(["popularity", "rating", "release_date", "title"])
-    .default("popularity"),
+  // .catch rather than .default: `default` only covers a missing value, and
+  // `rating` and `title` were real options until #279. A client that still
+  // sends one — a stale bundle, a saved request — gets the default order
+  // instead of a 400 for a parameter it had no way to know had changed.
+  sort: z.enum(["popularity", "release_date"]).catch("popularity"),
   excludeWatched: z
     .enum(["true", "false"])
     .optional()

@@ -180,21 +180,35 @@
       >
     </p>
 
-    <label
-      class="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-secondary"
-    >
-      {{ $t("discover.filters.sortBy") }}
-      <SelectControl v-model="localFilters.sort">
-        <option value="popularity">
-          {{ $t("discover.filters.sort.popularity") }}
-        </option>
-        <option value="rating">{{ $t("discover.filters.sort.rating") }}</option>
-        <option value="release_date">
-          {{ $t("discover.filters.sort.releaseDate") }}
-        </option>
-        <option value="title">{{ $t("discover.filters.sort.title") }}</option>
-      </SelectControl>
-    </label>
+    <!-- Two orders, not four. `rating` and `title` were removed in #279:
+         both were applied in memory to a candidate set TMDB had already
+         selected by popularity, so `rating` repeated 68% of its slots
+         (#239) and `title` served no browse intent anyone could name.
+         Before re-adding either, read #280 — the order has to come from
+         TMDB, not from a comparator over whatever TMDB happened to send.
+
+         A segmented control rather than a two-option <select>: a menu you
+         have to open in order to see two things is a menu that shouldn't
+         exist. Not the bordered pills the groups above use either — those
+         toggle independently, and this is a choice between two. -->
+    <div class="flex flex-col gap-1.5">
+      <span
+        class="text-xs font-semibold uppercase tracking-wide text-secondary"
+      >
+        {{ $t("discover.filters.sortBy") }}
+      </span>
+      <!-- The wrapper is load-bearing: SegmentedControl's root is inline-flex,
+           and a flex item in this column would stretch to full width without
+           a block element between them. -->
+      <div>
+        <SegmentedControl
+          v-model="localFilters.sort"
+          size="sm"
+          :options="sortOptions"
+          :aria-label="$t('discover.filters.sortBy')"
+        />
+      </div>
+    </div>
 
     <label class="flex items-center gap-2 text-xs font-semibold text-secondary">
       <input
@@ -212,6 +226,7 @@ const store = useDiscoverStore();
 const profileStore = useProfileStore();
 const discover = useDiscover();
 const localePath = useLocalePath();
+const { t } = useI18n();
 
 const currentYear = new Date().getFullYear();
 
@@ -371,6 +386,16 @@ function clearAll() {
   Object.assign(localFilters, snapshotFilters());
   discover.applyFilters();
 }
+
+// Same shape as DiscoverPanel's tabOptions: computed so the array identity is
+// stable, and so the labels follow a locale change.
+const sortOptions = computed(
+  () =>
+    [
+      { value: "popularity", label: t("discover.filters.sort.popularity") },
+      { value: "release_date", label: t("discover.filters.sort.releaseDate") },
+    ] as const,
+);
 
 defineExpose({ apply, clearAll });
 </script>
