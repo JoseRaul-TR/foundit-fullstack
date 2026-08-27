@@ -29,11 +29,12 @@
  * means ONE call per country, not one per provider.
  *
  * No-data-loss merge: each buffer has its own page cursor. Pages are fetched
- * (in parallel, one per still-open buffer) until the combined, deduped,
- * filtered count satisfies the requested page, every buffer is exhausted, or
- * the round budget runs out. Nothing fetched is discarded before being
- * considered — only excluded by an explicit filter, never dropped by an early
- * slice.
+ * (in parallel, one per still-open buffer) for a fixed number of rounds, or
+ * until every buffer is exhausted. The pool that produces is a function of the
+ * filters and not of the requested page, which is what makes paging through it
+ * a partition rather than a guess (#239). Nothing fetched is discarded before
+ * being considered — only excluded by an explicit filter, never dropped by an
+ * early slice.
  *
  * AgeRating: /discover/movie has a native certification.lte +
  * certification_country filter — used directly, no extra calls. /discover/tv
@@ -130,13 +131,28 @@ const VOTE_FLOOR_DEFAULT = 20;
 const VOTE_FLOOR_RATING_FILTERED = 50;
 
 /**
- * A round is one page fetched per still-open buffer. Without a region the query
- * has around 500 pages rather than the handful a provider-constrained one
- * returns, so a user who has watched a lot and asks to hide it could otherwise
- * walk the catalogue sequentially inside one request. Ten rounds, then answer
- * with what survived and let the client page on.
+ * The pool is a function of the filters, not of the requested page, and that is
+ * the whole of #239.
+ *
+ * It used to fetch until `survivors.length >= page * PAGE_SIZE`, so page N was
+ * served from a pool of roughly N*20 items and the slice took its tail. A
+ * window at a fixed offset into a list rebuilt at a different length on every
+ * request cannot be stable: measured against production, paging 1..N repeated
+ * 18, 10 and 42 titles across three configurations and lost exactly as many —
+ * every repeat costs one title the user never sees.
+ *
+ * Five rounds for every request instead. The same (mediaType, filters, locale,
+ * user) produces the same sorted list whichever page is asked for, so slicing
+ * it at 0-20, 20-40, 40-60 is a partition rather than a guess.
+ *
+ * Five and not ten: every round is a sequential round trip to TMDB, and the
+ * cost is now paid on page 1 rather than accumulated across a run. Five is
+ * roughly four pages of Discover once dedupe and the post-filters have taken
+ * their share, which is deeper than a carousel gets browsed. Raising it buys
+ * depth and costs first paint; trade the two with a measurement, not a
+ * preference.
  */
-const MAX_FETCH_ROUNDS = 10;
+const POOL_ROUNDS = 5;
 
 const STATUS_TO_TMDB_CODE: Record<SeriesStatusFilter, string> = {
   returning: "0",
@@ -337,8 +353,9 @@ interface CollectOptions {
 
 /**
  * One loop instead of the nested pair this replaces. Each turn fetches one page
- * per open buffer, merges, sorts and filters, and stops when the requested page
- * is covered, every buffer is spent, or the round budget is gone.
+ * per open buffer, merges, sorts and filters, and stops when the round budget
+ * is spent or every buffer is exhausted — never on anything to do with the
+ * requested page, which is the whole of #239.
  *
  * Movies and series differ only in `fetchPage` and `survive`, which is why they
  * share this rather than each keeping their own copy of the same seventeen
@@ -352,17 +369,18 @@ async function collectPage({
   fetchPage,
   survive,
 }: CollectOptions): Promise<PaginatedResponse<NormalizedSearchResult>> {
-  const target = page * PAGE_SIZE;
   const compare = sortComparator(sort);
 
   let survivors = await survive(dedupeAndMerge(buffers).sort(compare));
   let rounds = 0;
 
-  while (
-    survivors.length < target &&
-    buffers.some((buffer) => !buffer.exhausted) &&
-    rounds < MAX_FETCH_ROUNDS
-  ) {
+  // survive() stays inside the loop although the stop condition no longer needs
+  // it. Its decisions are memoised by id, so running it per round costs only
+  // that round's new items — and it keeps the series detail calls batched at
+  // twenty. Hoisted to a single call after the loop it would fire one
+  // Promise.all over the whole pool, which for a user with an age rating set is
+  // a hundred concurrent requests to TMDB.
+  while (rounds < POOL_ROUNDS && buffers.some((buffer) => !buffer.exhausted)) {
     await Promise.all(
       buffers
         .filter((buffer) => !buffer.exhausted)
@@ -380,27 +398,23 @@ async function collectPage({
   }
 
   const start = (page - 1) * PAGE_SIZE;
-  const results = survivors.slice(start, start + PAGE_SIZE);
-
-  // A page the budget could not fill is the end of what this request can
-  // honestly offer. Every request starts with empty buffers, so a deep page
-  // has to be reached from scratch within MAX_FETCH_ROUNDS — and when that
-  // runs out, the remaining TMDB pages say nothing about whether *this*
-  // request could ever have got there. Reporting more on the strength of them
-  // handed the client an empty page and an invitation to ask again, forever
-  // (#227).
-  const hasMore =
-    results.length === PAGE_SIZE &&
-    (survivors.length > start + PAGE_SIZE ||
-      buffers.some((buffer) => !buffer.exhausted));
 
   return {
-    results,
-    // Approximate on purpose: the merged-and-filtered count so far, not a true
-    // total across regions, which TMDB cannot give for a query it never ran as
-    // one. `totalPages` is what the client paginates on.
+    results: survivors.slice(start, start + PAGE_SIZE),
+    // The size of the pool — and now the same number on every page of a run,
+    // which is the criterion #239 was opened on. Still not a catalogue total:
+    // TMDB cannot give one for a query it never ran as a single query.
     totalResults: survivors.length,
-    totalPages: hasMore ? page + 1 : page,
+    // A real bound rather than a guess. The pool is fixed for these filters, so
+    // this counts pages that exist, and every page from 1 to it is full except
+    // the last. #227 was the mirror failure — reporting one page more than the
+    // request could reach, handing the client an empty page and an invitation
+    // to ask again forever. That mode is now unreachable rather than guarded
+    // against.
+    //
+    // Floored at 1 so an empty result still reports the page it was asked for,
+    // which is what the client's empty section already assumes.
+    totalPages: Math.max(1, Math.ceil(survivors.length / PAGE_SIZE)),
     page,
   };
 }

@@ -80,8 +80,8 @@
       "clear": "Clear filters",
       "excludeWatched": "Hide what I've already watched",
       "sort": {
-        "popularity": "Popular",
-        "releaseDate": "Newest"
+        "popularity": "Popularity",
+        "releaseDate": "Release date"
       }
     },
     "typeTabs": {
