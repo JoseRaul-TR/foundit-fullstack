@@ -80,10 +80,8 @@
       "clear": "Rensa filter",
       "excludeWatched": "Dölj det jag redan sett",
       "sort": {
-        "popularity": "Popularitet",
-        "rating": "Betyg",
-        "releaseDate": "Premiärdatum",
-        "title": "Titel"
+        "popularity": "Populärt",
+        "releaseDate": "Nyast"
       }
     },
     "typeTabs": {

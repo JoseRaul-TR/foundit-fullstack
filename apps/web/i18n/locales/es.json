@@ -80,10 +80,8 @@
       "clear": "Borrar filtros",
       "excludeWatched": "Ocultar lo que ya he visto",
       "sort": {
-        "popularity": "Popularidad",
-        "rating": "Puntuación",
-        "releaseDate": "Fecha de estreno",
-        "title": "Título"
+        "popularity": "Popular",
+        "releaseDate": "Novedades"
       }
     },
     "typeTabs": {
