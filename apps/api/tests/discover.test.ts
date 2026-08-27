@@ -140,15 +140,44 @@ describe("discover — multi-region path, as it behaves today", () => {
       expect(es?.[1]?.with_watch_providers).toBe("8|337");
     });
 
-    it("orders by the user's criterion in memory, not by TMDB's fetch order", async () => {
+    it("orders by release date when asked, not by TMDB's fetch order", async () => {
       const testUser = await createTestUser();
-      // Fetched in id order; rated in the opposite order. If the response comes
-      // back 3,2,1 then the in-memory sort ran; if 1,2,3, TMDB's order won.
+      // Fetched in id order; released in the opposite order. If the response
+      // comes back 3,2,1 the requested order was applied; if 1,2,3, TMDB's
+      // fetch order won.
       mockedFetchTmdb.mockResolvedValue(
         discoverPage([
-          listItem(1, { vote_average: 5 }),
-          listItem(2, { vote_average: 7 }),
-          listItem(3, { vote_average: 9 }),
+          listItem(1, { release_date: "2001-01-01" }),
+          listItem(2, { release_date: "2011-01-01" }),
+          listItem(3, { release_date: "2021-01-01" }),
+        ]),
+      );
+
+      const res = await (
+        await authed(testUser)
+      ).get(discoverUrl("movies", { sort: "release_date" }));
+
+      expect(res.body.data.results.map((r: { id: number }) => r.id)).toEqual([
+        3, 2, 1,
+      ]);
+      // And the fetch itself still asked for popularity. That is deliberate
+      // today and it is the defect #280 removes — see fetchMoviePage.
+      expect(callParamsFor("/discover/movie")?.sort_by).toBe("popularity.desc");
+    });
+
+    it("falls back to the default order for a sort it no longer offers", async () => {
+      const testUser = await createTestUser();
+      // `rating` and `title` were real options until #279. A stale bundle or a
+      // saved request can still send one, and it has to get the default order
+      // rather than a 400 for a parameter it had no way to know had changed.
+      //
+      // Popularity is deliberately out of id order: an assertion of 1,2,3
+      // would pass just as well if nothing had sorted at all.
+      mockedFetchTmdb.mockResolvedValue(
+        discoverPage([
+          listItem(1, { popularity: 10 }),
+          listItem(2, { popularity: 30 }),
+          listItem(3, { popularity: 20 }),
         ]),
       );
 
@@ -156,11 +185,10 @@ describe("discover — multi-region path, as it behaves today", () => {
         await authed(testUser)
       ).get(discoverUrl("movies", { sort: "rating" }));
 
+      expect(res.status).toBe(200);
       expect(res.body.data.results.map((r: { id: number }) => r.id)).toEqual([
-        3, 2, 1,
+        2, 3, 1,
       ]);
-      // And the fetch itself still asked for popularity, deliberately.
-      expect(callParamsFor("/discover/movie")?.sort_by).toBe("popularity.desc");
     });
 
     it("returns the requested page window and reports more when regions remain", async () => {
@@ -288,6 +316,11 @@ describe("discover — multi-region path, as it behaves today", () => {
       // array from inside Promise.all, so items that needed a round trip landed
       // after those that didn't — which is exactly the partially watched ones,
       // sent to the end of the list and off the first page.
+      //
+      // Ordered by popularity, the default. This test is about a position
+      // surviving an async filter, not about any particular sort — it asked for
+      // sort=rating until #279, and left behind vote_average values that
+      // ordered nothing once that sort was gone.
       await prisma.watchedItem.create({
         data: {
           userId: testUser.id,
@@ -300,17 +333,18 @@ describe("discover — multi-region path, as it behaves today", () => {
         path === "/tv/10"
           ? seriesFixture({ id: 10, number_of_seasons: 5 })
           : discoverPage([
-              listItem(10, { vote_average: 9 }),
-              listItem(20, { vote_average: 8 }),
-              listItem(30, { vote_average: 7 }),
+              listItem(10, { popularity: 90 }),
+              listItem(20, { popularity: 80 }),
+              listItem(30, { popularity: 70 }),
             ]),
       );
 
       const res = await (
         await authed(testUser)
-      ).get(discoverUrl("series", { sort: "rating", excludeWatched: "true" }));
+      ).get(discoverUrl("series", { excludeWatched: "true" }));
 
-      // 10 is the highest rated and needs a detail call. It must still be first.
+      // 10 is the most popular and the only one needing a detail call. It must
+      // still be first.
       expect(res.body.data.results.map((r: { id: number }) => r.id)).toEqual([
         10, 20, 30,
       ]);

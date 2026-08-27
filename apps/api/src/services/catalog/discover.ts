@@ -69,7 +69,7 @@ import type {
   TmdbSeries,
 } from "@/types/tmdb.types";
 
-export type DiscoverSort = "popularity" | "rating" | "release_date" | "title";
+export type DiscoverSort = "popularity" | "release_date";
 
 export interface RegionGroup {
   countryCode: string;
@@ -105,8 +105,10 @@ const PAGE_SIZE = 20;
 
 /**
  * The floor exists so `vote_average` means something: one 10/10 vote should not
- * outrank The Godfather. It only matters when the rating decides the order —
- * under popularity a three-vote film sinks on its own.
+ * outrank The Godfather. Until #279 it also covered the rating *sort*, which no
+ * longer exists — but it still covers the rating *filter*, which is the same
+ * problem wearing a different hat: a film with three votes averaging 9.7 passes
+ * `minRating >= 8` and reaches the feed on the strength of three people.
  *
  * Measured against TMDB (films by original language, #184):
  *
@@ -125,7 +127,7 @@ const PAGE_SIZE = 20;
  * still than any hard cut.
  */
 const VOTE_FLOOR_DEFAULT = 20;
-const VOTE_FLOOR_RATING_SORTED = 50;
+const VOTE_FLOOR_RATING_FILTERED = 50;
 
 /**
  * A round is one page fetched per still-open buffer. Without a region the query
@@ -173,27 +175,25 @@ const CONTENT_SAFETY_PARAMS = {
 
 function voteFloor(params: DiscoverParams): number {
   if (params.voteCountMin !== undefined) return params.voteCountMin;
-  const ratingDecidesOrder =
-    params.sort === "rating" || params.minRating !== undefined;
-  return ratingDecidesOrder ? VOTE_FLOOR_RATING_SORTED : VOTE_FLOOR_DEFAULT;
+  return params.minRating !== undefined
+    ? VOTE_FLOOR_RATING_FILTERED
+    : VOTE_FLOOR_DEFAULT;
 }
 
 /**
- * A factory rather than a constant map because sorting by title needs the
- * user's language: `localeCompare` without one uses Node's default, which puts
- * Å and Ä in the wrong place in Swedish.
+ * A factory rather than a constant map so the caller resolves the comparator
+ * once per request instead of branching on every comparison.
+ *
+ * It took a `locale` until #279: sorting by title needed one, because
+ * `localeCompare` without it uses Node's default and puts Å and Ä in the
+ * wrong place in Swedish. The title sort is gone, and the parameter with it.
  */
 function sortComparator(
   sort: DiscoverSort,
-  locale: SupportedLocale,
 ): (a: NormalizedSearchResult, b: NormalizedSearchResult) => number {
   switch (sort) {
-    case "rating":
-      return (a, b) => (b.tmdbRating ?? 0) - (a.tmdbRating ?? 0);
     case "release_date":
       return (a, b) => (b.year ?? 0) - (a.year ?? 0);
-    case "title":
-      return (a, b) => a.title.localeCompare(b.title, locale);
     case "popularity":
     default:
       return (a, b) => (b.popularity ?? 0) - (a.popularity ?? 0);
@@ -278,9 +278,11 @@ function fetchMoviePage(
             certification_country: params.ageRatingCountry,
           }
         : {}),
-      // Always fetched in TMDB popularity order; the user's chosen sort is
-      // applied in memory after merging, so fetch order stays stable and the
-      // buffers stay comparable across regions.
+      // Always fetched in TMDB popularity order, whatever the caller asked
+      // for; the requested sort is then applied in memory after merging.
+      // That is the mechanism behind #239 — sorting on a key TMDB did not
+      // page by slides the offset window between requests. #280 replaces
+      // this with a sort_by derived from the request.
       sort_by: "popularity.desc",
       language: LOCALE_TO_TMDB_LANG[params.locale],
       page,
@@ -323,7 +325,6 @@ interface CollectOptions {
   buffers: RegionBuffer[];
   page: number;
   sort: DiscoverSort;
-  locale: SupportedLocale;
   mediaType: "movie" | "series";
   fetchPage: (
     buffer: RegionBuffer,
@@ -347,13 +348,12 @@ async function collectPage({
   buffers,
   page,
   sort,
-  locale,
   mediaType,
   fetchPage,
   survive,
 }: CollectOptions): Promise<PaginatedResponse<NormalizedSearchResult>> {
   const target = page * PAGE_SIZE;
-  const compare = sortComparator(sort, locale);
+  const compare = sortComparator(sort);
 
   let survivors = await survive(dedupeAndMerge(buffers).sort(compare));
   let rounds = 0;
@@ -452,7 +452,6 @@ export async function discoverMovies(
     buffers: initBuffers(params.regions),
     page: params.page,
     sort: params.sort,
-    locale: params.locale,
     mediaType: "movie",
     fetchPage: (buffer, page) => fetchMoviePage(buffer, page, params),
     survive: (items) =>
@@ -547,7 +546,6 @@ export async function discoverSeries(
     buffers: initBuffers(params.regions),
     page: params.page,
     sort: params.sort,
-    locale: params.locale,
     mediaType: "series",
     fetchPage: (buffer, page) => fetchSeriesPage(buffer, page, params),
     // Decide in parallel, then filter in the original order. Pushing into a
