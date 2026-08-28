@@ -1,0 +1,33 @@
+# .github/workflows/keep-warm.yml
+name: keep-warm
+
+# Keeps the free Render instance awake during the test round (#276).
+# Waking hours only: 06:00–21:00 UTC = 08:00–23:00 Europe/Stockholm.
+#
+# DELETE THIS FILE when the round closes on 20 September — it is an
+# acceptance criterion of #278, not a thing to remember.
+#
+# /health touches neither the database nor TMDB (#238): it wakes Render
+# without waking Neon.
+
+on:
+  schedule:
+    - cron: "*/10 6-21 * * *"
+  workflow_dispatch:
+
+# Empty rather than reduced. This job makes one outbound request to a
+# public URL: it does not check out the repository, call the API, or
+# write anything, so it needs no GITHUB_TOKEN scopes at all. Stating it
+# explicitly also means the job keeps holding nothing if the repository
+# or organisation default is ever widened.
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        run: |
+          curl -sS -o /dev/null --max-time 120 \
+            -w 'ping: total %{time_total}  status %{http_code}\n' \
+            https://foundit-fullstack.onrender.com/health
