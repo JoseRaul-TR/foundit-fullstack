@@ -10,6 +10,7 @@
       :src="`https://www.youtube-nocookie.com/embed/${youtubeKey}?autoplay=1`"
       :title="title"
       frameborder="0"
+      referrerpolicy="strict-origin-when-cross-origin"
       allow="
         accelerometer;
         autoplay;
@@ -49,6 +50,28 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * The iframe carries its own `referrerpolicy` (#286).
+ *
+ * helmet sets `Referrer-Policy: no-referrer` for the whole application, and
+ * Express serves Nuxt's `.output` in production, so that header covers the
+ * frontend too. YouTube refuses embedded playback without a Referer it can
+ * check the embedding domain against — that is Google's own documented
+ * requirement, not a guess — and returned an undocumented "Error 153" instead
+ * of the video. It played in local dev, where Nuxt serves the app and helmet
+ * is not in the path, which is what identified the header.
+ * https://support.google.com/youtube/answer/171780
+ *
+ * The element attribute overrides the document policy for this element's
+ * requests only, so YouTube gets the origin — no path — and every other
+ * request the app makes still sends nothing at all. Relaxing the header in
+ * app.ts would have worked too and been one line, but it would have widened
+ * the policy for the whole application to fix one iframe. Same reasoning as
+ * #264 used on the CSP: open exactly as far as the thing that broke needs.
+ *
+ * This is currently the only third-party frame in the app. If another is
+ * added, that is the moment to reconsider the header instead.
+ */
 defineProps<{ youtubeKey: string | null; title: string }>();
 const loaded = ref(false); // iframe is only mounted after interaction -> "loads lazily, not on page load"
 </script>
