@@ -12,7 +12,11 @@ name: keep-warm
 
 on:
   schedule:
-    - cron: "*/10 6-21 * * *"
+    # Offset from the hour boundary on purpose — GitHub documents that the
+    # scheduler is delayed and drops runs under load, and that the start of
+    # each hour is the peak. */10 fell on it every hour and seven slots
+    # passed with no run (#276).
+    - cron: "3,13,23,33,43,53 6-21 * * *"
   workflow_dispatch:
 
 # Empty rather than reduced. This job makes one outbound request to a
