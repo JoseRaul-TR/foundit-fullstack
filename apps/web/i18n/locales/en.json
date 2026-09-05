@@ -41,11 +41,13 @@
     }
   },
   "search": {
-    "placeholder": "Search movies, series, people...",
+    "placeholder": "Search movies, series, actors…",
     "noResults": "No results found.",
     "resultsTitle": "Search Results",
     "noResultsFor": "No results found for “{query}”.",
     "tryDifferentTerm": "Try a different search term.",
+    "noResultsFilterHint": "The “{type}” filter is on — that may be why.",
+    "searchAllTypes": "Search all types",
     "backToDiscover": "Back to @:discover.title",
     "typeTabs": {
       "all": "All",

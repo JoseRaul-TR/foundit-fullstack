@@ -16,8 +16,12 @@
         <h2 class="text-lg font-bold text-primary">
           {{ $t("search.resultsTitle") }}
         </h2>
+        <!-- No session check: filtering by type needs nothing from an account.
+             The endpoint is public and defaults to `multi`, so a signed-out
+             visitor got people mixed into their results exactly like everyone
+             else — the account only unlocked the ability to remove them
+             (#316). -->
         <SegmentedControl
-          v-if="authStore.isAuthenticated"
           :model-value="searchType"
           :options="typeOptions"
           :aria-label="$t('common.filterByType')"
@@ -43,9 +47,26 @@
         <p class="text-base font-semibold text-primary">
           {{ $t("search.noResultsFor", { query: searchQuery }) }}
         </p>
-        <p class="text-sm text-secondary">
+        <!-- "Try a different term" is a lie while a filter is on: the term is
+             not the reason. Preserving the filter across edits is what makes
+             this state reachable, so it is named here rather than left to be
+             discovered. -->
+        <p v-if="isTypeFiltered" class="text-sm text-secondary">
+          {{ $t("search.noResultsFilterHint", { type: activeTypeLabel }) }}
+        </p>
+        <p v-else class="text-sm text-secondary">
           {{ $t("search.tryDifferentTerm") }}
         </p>
+
+        <button
+          v-if="isTypeFiltered"
+          type="button"
+          class="mt-2 rounded-full bg-brand px-4 py-2 text-sm font-bold text-page transition hover:brightness-110"
+          @click="changeType('multi')"
+        >
+          {{ $t("search.searchAllTypes") }}
+        </button>
+
         <!-- A way out, for the one case where the page has nothing else to
              offer. Only when signed in: Discover is what a visitor doesn't
              have, and for them AccountPrompt below is the way forward. -->
@@ -114,6 +135,13 @@ const typeOptions = computed(() => [
   { value: "series" as SearchType, label: t("search.typeTabs.series") },
   { value: "person" as SearchType, label: t("search.typeTabs.person") },
 ]);
+
+const isTypeFiltered = computed(() => searchType.value !== "multi");
+
+const activeTypeLabel = computed(
+  () =>
+    typeOptions.value.find((o) => o.value === searchType.value)?.label ?? "",
+);
 
 const router = useRouter();
 const route = useRoute();

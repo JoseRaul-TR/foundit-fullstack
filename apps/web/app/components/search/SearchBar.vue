@@ -154,8 +154,11 @@ onUnmounted(() => {
 function submit() {
   const trimmed = inputValue.value.trim();
   if (trimmed.length < 3) return;
-  // Always starts broad; index.vue's type pills narrow it down afterward.
-  search.search(trimmed, "multi");
+  // No type argument: useSearch resolves it from the URL, so editing a query
+  // refines the search you already had instead of widening it back to
+  // everything. Clearing the box is the other path, and that one does reset —
+  // `clear()` navigates to `/` without a type.
+  search.search(trimmed);
 }
 
 function clearInput() {
