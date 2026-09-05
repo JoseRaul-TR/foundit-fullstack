@@ -4,11 +4,12 @@
     class="z-50 w-56 rounded-xl border border-border bg-surface-elevated p-1.5 shadow-xl"
   >
     <div class="flex items-center gap-2.5 px-3 py-2.5">
-      <span
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-[13px] font-bold text-page"
-      >
-        {{ initials }}
-      </span>
+      <UserAvatar
+        :src="authStore.user?.avatarUrl"
+        :name="authStore.user?.name"
+        :email="authStore.user?.email"
+        class="h-9 w-9 text-[13px]"
+      />
       <div class="flex min-w-0 flex-col gap-0.5">
         <span class="truncate text-sm font-bold text-primary">
           {{ authStore.user?.name }}
@@ -85,17 +86,6 @@ const languageWrapperRef = ref<HTMLElement | null>(null);
 
 useClickOutside(languageWrapperRef, () => {
   languageMenuOpen.value = false;
-});
-
-const initials = computed(() => {
-  const name = authStore.user?.name;
-  if (!name) return "";
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
 });
 
 async function handleLogout() {

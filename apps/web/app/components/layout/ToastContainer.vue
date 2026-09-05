@@ -29,7 +29,7 @@
         <div
           v-for="toast in toastStore.toasts"
           :key="toast.id"
-          class="pointer-events-auto flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-lg"
+          class="pointer-events-auto flex items-center justify-between gap-3 rounded-full border px-4 py-3 text-sm font-medium shadow-lg"
           :class="variantClasses[toast.variant]"
         >
           <span>{{ toast.message }}</span>

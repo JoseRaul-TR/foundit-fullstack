@@ -9,18 +9,12 @@
 
     <section class="flex flex-col items-center gap-3 text-center">
       <div class="flex items-center gap-4">
-        <img
-          v-if="profile?.avatarUrl"
-          :src="profile.avatarUrl"
-          :alt="profile.name ?? ''"
-          class="h-16 w-16 shrink-0 rounded-full object-cover"
+        <UserAvatar
+          :src="profile?.avatarUrl"
+          :name="profile?.name"
+          :email="profile?.email"
+          class="h-16 w-16 text-lg"
         />
-        <span
-          v-else
-          class="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-accent text-lg font-bold text-page"
-        >
-          {{ initials }}
-        </span>
 
         <div class="flex flex-col items-start gap-0.5 text-left">
           <div v-if="editingName" class="flex flex-col gap-2">
@@ -219,17 +213,6 @@ const profile = computed(() => profileQuery.data.value);
 const isGoogleAccount = computed(
   () => profile.value?.authProviders.includes("google") ?? false,
 );
-
-const initials = computed(() => {
-  const name = profile.value?.name;
-  if (!name) return "";
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-});
 
 const editingName = ref(false);
 const nameInput = ref("");
