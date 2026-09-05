@@ -90,11 +90,17 @@ jobs:
     needs: ci
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # Two gates, not one. `needs: ci` means a push to main with failing
+    # checks never reaches production. This environment adds a manual one:
+    # the job waits for an approval in the Actions tab before it runs, so
+    # merging to main no longer implies deploying. That matters while the
+    # test round is open — a merge and a deploy are different decisions,
+    # and only the second one is visible to testers (#249).
+    environment: production
 
     steps:
-      # Render's Auto-Deploy is turned OFF so that deploys go through this
-      # gate instead: `needs: ci` means a push to main with failing checks
-      # never reaches production. -f makes curl fail the step on a non-2xx
+      # Render's Auto-Deploy is off; production is deployed only from here,
+      # through the two gates above. -f makes curl fail the step on a non-2xx
       # response, so a broken hook surfaces instead of passing silently.
       - name: Trigger Render deploy hook
         run: curl -fsS -X POST "$DEPLOY_HOOK_URL"
