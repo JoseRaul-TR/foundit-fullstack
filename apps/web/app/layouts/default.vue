@@ -7,9 +7,9 @@
       class="mx-auto w-full max-w-container flex-1 px-4 pb-6 pt-20 sm:px-6 sm:pt-24 lg:px-8"
     >
       <slot />
+      <FeedbackButton />
     </main>
 
     <AppFooter />
-    <FeedbackButton />
   </div>
 </template>
