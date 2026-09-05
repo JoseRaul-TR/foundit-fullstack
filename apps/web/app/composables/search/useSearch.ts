@@ -1,6 +1,6 @@
 // apps/web/app/composables/search/useSearch.ts
 import type { NormalizedSearchResult, PaginatedResponse } from "@foundit/types";
-import type { SearchType } from "~/stores/search";
+import { isSearchType, type SearchType } from "~/stores/search";
 
 export function useSearch() {
   const store = useSearchStore();
@@ -82,17 +82,27 @@ export function useSearch() {
   // watcher reacts to the route change and does the actual fetch, so
   // there's exactly one code path that ever calls the API.
   //
-  // `tab` is carried forward rather than rebuilt: it belongs to Discover, not
-  // to search, and dropping it is what made leaving and re-entering search
-  // land on the wrong tab (#206). It is read from the router and not from a
-  // `useRoute()` captured in setup — this runs from a debounce, long after
-  // setup, and an injected route is a snapshot. Same trap as #183.
-  async function search(query: string, type: SearchType) {
-    const { tab } = router.currentRoute.value.query;
+  // Both `tab` and `type` are carried forward from the router rather than
+  // rebuilt. `tab` belongs to Discover, and dropping it landed the user on the
+  // wrong tab (#206). `type` belongs to search, and dropping it was worse: the
+  // debounce passed "multi" on every keystroke, so choosing "Movies" and then
+  // typing one more character silently put people back in the results (#316).
+  // This function used to preserve the only filter that wasn't its own.
+  //
+  // `type` is optional so changeType() can override it — that call is the user
+  // choosing, and the choice has to win over what the URL still says. Read
+  // from the router and not from a `useRoute()` captured in setup: this runs
+  // from a debounce, long after setup, and an injected route is a snapshot.
+  // Same trap as #183.
+  async function search(query: string, type?: SearchType) {
+    const { tab, type: currentType } = router.currentRoute.value.query;
+    const resolvedType =
+      type ?? (isSearchType(currentType) ? currentType : "multi");
+
     await navigateTo(
       localePath({
         path: "/",
-        query: { q: query, type, ...(tab ? { tab } : {}) },
+        query: { q: query, type: resolvedType, ...(tab ? { tab } : {}) },
       }),
       { replace: true },
     );

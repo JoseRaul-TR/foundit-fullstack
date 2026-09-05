@@ -2,8 +2,6 @@
 import { defineStore } from "pinia";
 import type { NormalizedSearchResult } from "@foundit/types";
 
-export type SearchType = "multi" | "movie" | "series" | "person";
-
 // Annotated rather than inferred. Pinia takes the state's type from the
 // initial values, so an unannotated `type: "multi"` becomes `string` and an
 // unannotated `results: []` becomes `never[]`. The first widening travelled
@@ -19,6 +17,19 @@ interface SearchState {
   totalPages: number;
   loading: boolean;
   error: string | null;
+}
+
+const SEARCH_TYPES = ["multi", "movie", "series", "person"] as const;
+export type SearchType = (typeof SEARCH_TYPES)[number];
+
+// The URL is the source of truth for the active filter, and a query string is
+// whatever the user pasted into the address bar. Everything that reads `type`
+// from there goes through this.
+export function isSearchType(value: unknown): value is SearchType {
+  return (
+    typeof value === "string" &&
+    (SEARCH_TYPES as readonly string[]).includes(value)
+  );
 }
 
 export const useSearchStore = defineStore("search", {
@@ -44,6 +55,10 @@ export const useSearchStore = defineStore("search", {
     },
     clear() {
       this.query = "";
+      // Clearing the box navigates back to `/`, which drops `type` from the
+      // URL. Leaving it set here would keep the store announcing a filter no
+      // address carries any more.
+      this.type = "multi";
       this.reset();
     },
   },

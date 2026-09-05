@@ -41,11 +41,13 @@
     }
   },
   "search": {
-    "placeholder": "Sök filmer, serier, personer...",
+    "placeholder": "Sök filmer, serier, skådespelare…",
     "noResults": "Inga resultat hittades.",
     "resultsTitle": "Sökresultat",
     "noResultsFor": "Inga resultat hittades för “{query}”.",
     "tryDifferentTerm": "Prova en annan sökterm.",
+    "noResultsFilterHint": "Filtret “{type}” är på — det kan vara därför.",
+    "searchAllTypes": "Sök i alla typer",
     "backToDiscover": "Tillbaka till @:discover.title",
     "typeTabs": {
       "all": "Alla",
