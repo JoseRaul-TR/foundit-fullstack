@@ -103,12 +103,12 @@
     >
       <!-- Two things kept this from reading like the nav pill's halo, and it
            needed both fixed.
-           
+
            The drop shadow is dropped while active: shadows in a list paint
            front to back, so a dark one listed first sits on top of the halo
            and swallows its lower half. The pill never had that problem — its
            first shadow is an inset, which doesn't interfere.
-           
+
            And the geometry is the pill's inverted. A negative spread shrinks
            the light source before blurring it; on a 140px pill that's a minor
            trim, on a 34px circle it leaves almost nothing to spread over 26px
@@ -117,7 +117,7 @@
            radius. Same intent, opposite numbers, on purpose. -->
       <button
         type="button"
-        class="grid h-8 w-8 place-items-center rounded-full bg-accent text-xs font-bold text-page transition-transform duration-150 motion-reduce:transition-none sm:h-[34px] sm:w-[34px] sm:text-[13px]"
+        class="grid h-8 w-8 place-items-center rounded-full transition-transform duration-150 motion-reduce:transition-none sm:h-[34px] sm:w-[34px]"
         :class="
           isProfileActive
             ? 'shadow-[0_0_18px_2px_rgba(232,163,61,0.8)] sm:shadow-[0_0_26px_4px_rgba(232,163,61,0.8)]'
@@ -126,7 +126,12 @@
         :aria-current="isProfileActive ? 'page' : undefined"
         @click="avatarMenuOpen = !avatarMenuOpen"
       >
-        {{ initials }}
+        <UserAvatar
+          :src="authStore.user?.avatarUrl"
+          :name="authStore.user?.name"
+          :email="authStore.user?.email"
+          class="h-full w-full text-xs sm:text-[13px]"
+        />
       </button>
 
       <AvatarMenu
@@ -210,17 +215,6 @@ watch(
   () => authStore.isAuthenticated,
   () => void nextTick(measure),
 );
-
-const initials = computed(() => {
-  const name = authStore.user?.name;
-  if (!name) return "";
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-});
 
 // ─── Hide on scroll, mobile only ────────────────────────────────────────
 //
