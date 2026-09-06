@@ -86,7 +86,8 @@ app.set("trust proxy", 3);
  *   cloud.umami.is is deliberately NOT listed here: nothing has been observed
  *   connecting to it, and if that ever changes the browser says so in the
  *   console rather than failing quietly.
- * - img-src: TMDB posters and YouTube thumbnails.
+ * - img-src: TMDB posters, YouTube thumbnails, and the profile picture a
+ *   Google account brings with it (#305).
  * - frame-src: the YouTube no-cookie embed for trailers.
  *
  * This header covers the frontend too: in production Express serves Nuxt's
@@ -102,11 +103,19 @@ app.use(
         // image.tmdb.org: posters, backdrops, profile photos, provider logos.
         // i.ytimg.com: the trailer thumbnails TrailerEmbed shows before the
         // iframe is mounted.
+        // *.googleusercontent.com: the picture a Google account arrives with.
+        // The wildcard is deliberate. Google shards these across lh3, lh4,
+        // lh5 and others per account, so naming one host would leave some
+        // accounts silently falling back to initials — and since #313 that
+        // fallback is indistinguishable from a picture that simply failed to
+        // load, which is a defect you cannot see. The domain serves static
+        // user content and nothing executable.
         "img-src": [
           "'self'",
           "data:",
           "https://image.tmdb.org",
           "https://i.ytimg.com",
+          "https://*.googleusercontent.com",
         ],
         // TrailerEmbed embeds via youtube-nocookie only.
         "frame-src": ["'self'", "https://www.youtube-nocookie.com"],

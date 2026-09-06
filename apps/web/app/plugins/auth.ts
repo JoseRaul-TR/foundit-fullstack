@@ -5,11 +5,24 @@
 // directly via $fetch — NOT via useApi()/apiFetch, since apiFetch
 // redirects to /login on 401 and an anonymous visitor hitting this
 // endpoint is the normal case, not an error to redirect away from.
-import type { User } from "@foundit/types";
+
+// Better Auth's own session shape, which is NOT ours. `id`, `email` and
+// `name` happen to coincide, which is why declaring the response as `User`
+// went unnoticed for months: the single field that differs is `image`, and
+// nothing read it until #313 built UserAvatar. A `$fetch<T>` is an assertion
+// about a runtime payload, not a check — the type checker had no way to say
+// so (#305).
+interface SessionUser {
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+  createdAt: string;
+}
 
 interface GetSessionResponse {
   session: unknown;
-  user: User;
+  user: SessionUser;
 }
 
 export default defineNuxtPlugin(async () => {
@@ -31,7 +44,18 @@ export default defineNuxtPlugin(async () => {
       },
     );
 
-    authStore.setUser(response?.user ?? null);
+    const sessionUser = response?.user;
+    authStore.setUser(
+      sessionUser
+        ? {
+            id: sessionUser.id,
+            email: sessionUser.email,
+            name: sessionUser.name,
+            avatarUrl: sessionUser.image,
+            createdAt: new Date(sessionUser.createdAt),
+          }
+        : null,
+    );
   } catch {
     // No session, or the auth service is unreachable — either way,
     // treat as anonymous rather than blocking app boot.
