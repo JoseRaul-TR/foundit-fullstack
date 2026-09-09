@@ -67,7 +67,7 @@
     "filters": {
       "title": "Filter",
       "toggle": "Filter",
-      "activeCount": "{count} aktiva filter",
+      "activeCount": "{count} aktivt filter | {count} aktiva filter",
       "genre": "Genre",
       "year": "År",
       "minRating": "Lägsta betyg",

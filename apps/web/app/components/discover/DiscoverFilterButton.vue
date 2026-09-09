@@ -44,7 +44,7 @@ const count = computed(() => store.activeFilterCount);
 
 const label = computed(() =>
   count.value > 0
-    ? `${t("discover.filters.toggle")} — ${t("discover.filters.activeCount", { count: count.value })}`
+    ? `${t("discover.filters.toggle")} — ${t("discover.filters.activeCount", count.value)}`
     : t("discover.filters.toggle"),
 );
 </script>

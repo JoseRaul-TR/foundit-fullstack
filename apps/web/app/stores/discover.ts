@@ -68,30 +68,43 @@ export const useDiscoverStore = defineStore("discover", {
   getters: {
     moviesHasMore: (state) => state.movies.page < state.movies.totalPages,
     seriesHasMore: (state) => state.series.page < state.series.totalPages,
-    // Drives the badge on the filter button. A control that changes the
-    // results while hidden behind a button needs to say so, and a number is
-    // more useful than a dot.
+    // The badge counts what narrows, and the two kinds of control here narrow
+    // in opposite directions.
     //
-    // Grouped deliberately: from/to year is one decision to the user, not two,
-    // and the two age rating fields are one control (only the active media
-    // type's is ever shown). Country and platform count as active whenever
-    // they hold an explicit array -- null means "everything", which is the
-    // default. Toggling all of them off and on again leaves an array that is
-    // behaviorally identical to null and still counts; clearing resets it.
+    // Genres are additive: the default is none, and every pill the user turns
+    // on is an independent narrowing they asked for. Counting them one by one
+    // is what this ticket was reported for — a tester with two genres selected
+    // saw "1" and had no way to tell whether the second had been applied,
+    // ignored or dropped (#315).
+    //
+    // Countries and platforms are subtractive: the default is everything the
+    // profile carries, every pill starts lit, and the only available action is
+    // to remove. Counting what remains would make the number fall as the user
+    // restricts further — three countries down to one would read 2, then 1 —
+    // so each of those groups contributes one, meaning "you have narrowed by
+    // country" rather than "two countries are active". The number of removals
+    // would be the truer figure, and computing it needs the available set,
+    // which lives in the profile store rather than here. #332.
+    //
+    // null and [] both contribute nothing, and both mean the same thing
+    // downstream: buildRegionsParam answers either with no region filter at
+    // all. A full explicit array cannot occur — the toggles normalise it to
+    // null.
+    //
+    // `excludeWatched` still counts when it is switched OFF, which is
+    // backwards — that is the state in which it filters nothing. Left alone
+    // here on purpose: deciding it means deciding whether the filter should be
+    // on by default at all, and that is #332.
     activeFilterCount: (state): number => {
-      let count = 0;
-      if (state.filters.genres.length > 0) count += 1;
-      if (state.filters.yearFrom !== null || state.filters.yearTo !== null)
+      const f = state.filters;
+      let count = f.genres.length;
+      if (f.yearFrom !== null || f.yearTo !== null) count += 1;
+      if (f.minRating !== null) count += 1;
+      if (f.movieAgeRatingMax !== null || f.seriesAgeRatingMax !== null)
         count += 1;
-      if (state.filters.minRating !== null) count += 1;
-      if (
-        state.filters.movieAgeRatingMax !== null ||
-        state.filters.seriesAgeRatingMax !== null
-      )
-        count += 1;
-      if (state.filters.selectedCountryCodes !== null) count += 1;
-      if (state.filters.selectedProviderIds !== null) count += 1;
-      if (state.filters.excludeWatched !== DEFAULT_EXCLUDE_WATCHED) count += 1;
+      if (f.selectedCountryCodes?.length) count += 1;
+      if (f.selectedProviderIds?.length) count += 1;
+      if (f.excludeWatched !== DEFAULT_EXCLUDE_WATCHED) count += 1;
       return count;
     },
     hasActiveFilters(): boolean {
