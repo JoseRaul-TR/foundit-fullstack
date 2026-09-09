@@ -310,7 +310,12 @@ function toggleCountry(code: string) {
   const next = new Set(effectiveSelectedCountryCodes.value);
   if (next.has(code)) next.delete(code);
   else next.add(code);
-  localFilters.selectedCountryCodes = [...next];
+
+  // A set covering every available option is "everything", which is what null
+  // already means. Storing the full array instead is the same behaviour under
+  // a second representation, and the badge cannot tell them apart (#315).
+  localFilters.selectedCountryCodes =
+    next.size === availableCountries.value.length ? null : [...next];
 }
 
 const allCountriesSelected = computed(() =>
@@ -357,7 +362,8 @@ function toggleProvider(providerId: number) {
   const next = new Set(effectiveSelectedIds.value);
   if (next.has(providerId)) next.delete(providerId);
   else next.add(providerId);
-  localFilters.selectedProviderIds = [...next];
+  localFilters.selectedProviderIds =
+    next.size === allSubscribedProviders.value.length ? null : [...next];
 }
 
 const allProvidersSelected = computed(() =>

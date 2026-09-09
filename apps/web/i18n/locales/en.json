@@ -67,7 +67,7 @@
     "filters": {
       "title": "Filters",
       "toggle": "Filters",
-      "activeCount": "{count} active filters",
+      "activeCount": "{count} active filter | {count} active filters",
       "genre": "Genre",
       "year": "Year",
       "minRating": "Minimum rating",
