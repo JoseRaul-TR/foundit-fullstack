@@ -82,6 +82,14 @@
       </div>
 
       <template v-else>
+        <!-- Discover's filters have nowhere to go here: the search endpoint
+           takes q, type, lang and page, and nothing else. They are not
+           dropped on the way — there is no parameter to drop them into. A
+           tester set filters, searched, and reasonably read the unfiltered
+           results as an answer to the question she had asked (#318). -->
+        <p v-if="discoverFiltersActive" class="mb-4 text-sm text-secondary">
+          {{ $t("search.discoverFiltersNotApplied") }}
+        </p>
         <div
           class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6"
         >
@@ -123,6 +131,9 @@ import type { SearchType } from "~/stores/search";
 const { apiFetch } = useApi();
 const queryClient = useQueryClient();
 const discover = useDiscover();
+// A plain property of the object useDiscover() returns, so it would not
+// auto-unwrap in the template — only top-level bindings do.
+const discoverFiltersActive = computed(() => discover.hasActiveFilters.value);
 
 const { public: publicConfig } = useRuntimeConfig();
 const appName = publicConfig.appName;

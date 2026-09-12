@@ -42,6 +42,7 @@
   },
   "search": {
     "placeholder": "Sök filmer, serier, skådespelare…",
+    "discoverFiltersNotApplied": "Textsökningen omfattar allt — dina Upptäck-filter gäller inte här.",
     "noResults": "Inga resultat hittades.",
     "resultsTitle": "Sökresultat",
     "noResultsFor": "Inga resultat hittades för “{query}”.",
