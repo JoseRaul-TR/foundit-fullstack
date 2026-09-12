@@ -42,6 +42,7 @@
   },
   "search": {
     "placeholder": "Buscar películas, series, actores…",
+    "discoverFiltersNotApplied": "La búsqueda de texto abarca todo. Tus filtros de Descubrir no se aplican aquí.",
     "noResults": "No se encontraron resultados.",
     "resultsTitle": "Resultados de búsqueda",
     "noResultsFor": "No se encontraron resultados para “{query}”.",
