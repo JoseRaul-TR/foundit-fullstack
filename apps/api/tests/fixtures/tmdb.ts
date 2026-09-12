@@ -9,6 +9,7 @@ import type {
   TmdbPaginatedResponse,
   TmdbSearchResultItem,
   TmdbSeries,
+  TmdbSeason,
   TmdbWatchProvidersResponse,
 } from "@/types/tmdb.types";
 
@@ -30,7 +31,79 @@ export function movieFixture(overrides: Partial<TmdbMovie> = {}): TmdbMovie {
   };
 }
 
+const SPECIALS: TmdbSeason = {
+  id: 0,
+  season_number: 0,
+  name: "Specials",
+  episode_count: 3,
+  air_date: "2008-02-17",
+  poster_path: null,
+};
+
+/**
+ * A seasons array as TMDB returns one: the specials bucket at 0, then the
+ * real seasons from 1 up.
+ *
+ * `aired` seasons carry dates in the past, `announced` ones carry dates far
+ * enough in the future to stay future for the life of this project, and
+ * `undated` ones carry null — TMDB's third state, which is neither of the
+ * other two and is the one a naive date comparison gets wrong (#300).
+ *
+ * Dates are fixed rather than derived from the clock: a fixture whose meaning
+ * depends on when the suite runs is not a fixture.
+ */
+export function seasonsFixture(
+  aired: number,
+  { announced = 0, undated = 0 }: { announced?: number; undated?: number } = {},
+): TmdbSeason[] {
+  const seasons: TmdbSeason[] = [SPECIALS];
+  let seasonNumber = 0;
+
+  for (let i = 0; i < aired; i += 1) {
+    seasonNumber += 1;
+    seasons.push({
+      id: seasonNumber,
+      season_number: seasonNumber,
+      name: `Season ${seasonNumber}`,
+      episode_count: 10,
+      air_date: `${2000 + seasonNumber}-01-01`,
+      poster_path: null,
+    });
+  }
+
+  for (let i = 0; i < announced; i += 1) {
+    seasonNumber += 1;
+    seasons.push({
+      id: seasonNumber,
+      season_number: seasonNumber,
+      name: `Season ${seasonNumber}`,
+      episode_count: 0,
+      air_date: `${2090 + i}-01-01`,
+      poster_path: null,
+    });
+  }
+
+  for (let i = 0; i < undated; i += 1) {
+    seasonNumber += 1;
+    seasons.push({
+      id: seasonNumber,
+      season_number: seasonNumber,
+      name: `Season ${seasonNumber}`,
+      episode_count: 0,
+      air_date: null,
+      poster_path: null,
+    });
+  }
+
+  return seasons;
+}
+
 export function seriesFixture(overrides: Partial<TmdbSeries> = {}): TmdbSeries {
+  // Read before the spread so an override of number_of_seasons is reflected in
+  // the seasons array too. Tests that set one and not the other used to be
+  // internally consistent by accident; since #300 the two are read together.
+  const numberOfSeasons = overrides.number_of_seasons ?? 5;
+
   return {
     id: 1396,
     name: "Breaking Bad",
@@ -39,10 +112,10 @@ export function seriesFixture(overrides: Partial<TmdbSeries> = {}): TmdbSeries {
     poster_path: "/poster.jpg",
     backdrop_path: null,
     first_air_date: "2008-01-20",
-    number_of_seasons: 5,
+    number_of_seasons: numberOfSeasons,
     number_of_episodes: 62,
     status: "Ended",
-    seasons: [],
+    seasons: seasonsFixture(numberOfSeasons),
     vote_average: 9.5,
     vote_count: 2000,
     genres: [],

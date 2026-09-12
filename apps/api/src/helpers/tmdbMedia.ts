@@ -369,3 +369,61 @@ export function extractSeriesCertificationForCountry(
   );
   return entry?.rating || null;
 }
+
+export interface AiredSeasons {
+  /** How many seasons have aired. Replaces `number_of_seasons` wherever the
+   *  question is "how much is there to watch". */
+  count: number;
+  /** The highest season number that has aired. Replaces `number_of_seasons`
+   *  wherever the question is "is there something newer than what I finished". */
+  latestNumber: number;
+}
+
+/**
+ * The seasons a viewer could actually have watched, in the two shapes the
+ * application asks for.
+ *
+ * `number_of_seasons` counts the seasons TMDB knows about, and TMDB knows
+ * about a season the moment it is announced. Every place that used it to
+ * answer a question about watching inherited that: the badge announced
+ * seasons nobody could see (#300), a series with an announced season could
+ * never read as up to date, and the "hide what I've watched" filter never
+ * considered one finished.
+ *
+ * Both values come from one pass on purpose. For an ordinary series they are
+ * equal, because TMDB numbers seasons 1..N — but nothing guarantees that, and
+ * they answer different questions. Deriving one from the other is how they
+ * would drift.
+ *
+ * Season 0 is TMDB's specials bucket and `number_of_seasons` excludes it.
+ * This excludes it too, so the two stay comparable and every caller that was
+ * already reasoning about that exclusion keeps being right.
+ *
+ * A missing air date counts as not aired. TMDB leaves it empty for a season
+ * announced without a date, which is the case this exists to catch; it can
+ * also mean TMDB does not know about a season that did air. The two mistakes
+ * are not the same size: staying quiet about a watchable season costs the
+ * user a notification, while announcing one that does not exist breaks the
+ * single promise the application makes.
+ *
+ * Dates are compared as ISO strings, not as `Date` objects. Both sides are
+ * `YYYY-MM-DD`, lexicographic order is chronological order, and nothing
+ * crosses a timezone on the way.
+ */
+export function airedSeasons(series: TmdbSeries): AiredSeasons {
+  const today = new Date().toISOString().slice(0, 10);
+  let count = 0;
+  let latestNumber = 0;
+
+  for (const season of series.seasons ?? []) {
+    if (season.season_number === 0) continue;
+    if (!season.air_date || season.air_date > today) continue;
+
+    count += 1;
+    if (season.season_number > latestNumber) {
+      latestNumber = season.season_number;
+    }
+  }
+
+  return { count, latestNumber };
+}

@@ -19,7 +19,12 @@ import prisma from "@/lib/prisma";
 import { resetDatabase } from "./helpers/db";
 import { createTestUser, type TestUser } from "./helpers/auth";
 import { fetchTmdb } from "@/lib/tmdb";
-import { movieFixture, seriesFixture, watchProviders } from "./fixtures/tmdb";
+import {
+  movieFixture,
+  seasonsFixture,
+  seriesFixture,
+  watchProviders,
+} from "./fixtures/tmdb";
 
 vi.mock("@/lib/tmdb", () => ({
   fetchTmdb: vi.fn(),
@@ -453,6 +458,55 @@ describe("watchlist integration (#53)", () => {
       );
 
       expect(await newSeasonsFlag(testUser)).toBe(false);
+    });
+
+    // #300: the three states of seasons[].air_date. The third is the control —
+    // without it, the first two would also pass if the fixture were simply
+    // broken.
+
+    it("does not flag a season that has been announced but has not aired", async () => {
+      const testUser = await createTestUser();
+      await seedSeries(testUser.id, [1, 2, 3]);
+      mockedFetchTmdb.mockResolvedValue(
+        seriesFixture({
+          status: "Returning Series",
+          number_of_seasons: 4,
+          seasons: seasonsFixture(3, { announced: 1 }),
+          "watch/providers": NETFLIX_US,
+        }),
+      );
+
+      expect(await newSeasonsFlag(testUser)).toBe(false);
+    });
+
+    it("does not flag a season TMDB has no air date for", async () => {
+      const testUser = await createTestUser();
+      await seedSeries(testUser.id, [1, 2, 3]);
+      mockedFetchTmdb.mockResolvedValue(
+        seriesFixture({
+          status: "Returning Series",
+          number_of_seasons: 4,
+          seasons: seasonsFixture(3, { undated: 1 }),
+          "watch/providers": NETFLIX_US,
+        }),
+      );
+
+      expect(await newSeasonsFlag(testUser)).toBe(false);
+    });
+
+    it("flags the same season once it has aired", async () => {
+      const testUser = await createTestUser();
+      await seedSeries(testUser.id, [1, 2, 3]);
+      mockedFetchTmdb.mockResolvedValue(
+        seriesFixture({
+          status: "Returning Series",
+          number_of_seasons: 4,
+          seasons: seasonsFixture(4),
+          "watch/providers": NETFLIX_US,
+        }),
+      );
+
+      expect(await newSeasonsFlag(testUser)).toBe(true);
     });
   });
 });

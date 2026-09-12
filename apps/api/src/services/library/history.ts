@@ -35,6 +35,7 @@ import {
   type SupportedLocale,
 } from "@foundit/types";
 import {
+  airedSeasons,
   extractTitle,
   extractYear,
   fetchBasicMediaInfo,
@@ -211,7 +212,7 @@ async function enrichSeriesEntry(
       title: extractTitle("series", raw),
       posterPath: raw.poster_path,
       year: extractYear("series", raw),
-      numberOfSeasons: raw.number_of_seasons,
+      numberOfSeasons: airedSeasons(raw).count,
     },
     watchedSeasons: [...watchedSeasons].sort((a, b) => a - b),
     rating: ratingsMap.get(ratingKey("series", tmdbId)) ?? null,

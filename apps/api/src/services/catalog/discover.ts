@@ -45,14 +45,15 @@
  * certification. That asymmetry is deliberate and recorded in #184.
  *
  * excludeWatched: movies is a plain set difference over ids. Series "fully
- * watched" needs number_of_seasons, which list items don't carry, so only
- * candidates the user has already started get a detail call — reusing the same
- * call as the age-rating check when both apply.
+ * watched" needs the number of seasons that have aired, which list items
+ * don't carry, so only candidates the user has already started get a detail
+ * call — reusing the same call as the age-rating check when both apply.
  */
 
 import { fetchTmdb } from "@/lib/tmdb";
 import { AppError } from "@/middleware/errorHandler";
 import {
+  airedSeasons,
   extractRecommendations,
   extractSeriesCertificationForCountry,
 } from "@/helpers/tmdbMedia";
@@ -486,9 +487,8 @@ async function loadWatchedMovieIds(userId: string): Promise<Set<number>> {
 
 /**
  * tmdbId -> count of distinct watched seasons, for the fully-watched check.
- * Season 0 is TMDB's specials bucket and is deliberately skipped:
- * number_of_seasons doesn't include it, so counting it would mark a series as
- * finished while a real season is still unwatched.
+ * Season 0 is TMDB's specials bucket and is deliberately skipped: airedSeasons
+ * excludes it too, so the two counts compare like with like.
  */
 async function loadWatchedSeriesSeasonCounts(
   userId: string,
@@ -586,7 +586,7 @@ export async function discoverSeries(
     if (
       excludeWatched &&
       watchedSeasons > 0 &&
-      watchedSeasons >= detail.number_of_seasons
+      watchedSeasons >= airedSeasons(detail).count
     ) {
       keep = false;
     }

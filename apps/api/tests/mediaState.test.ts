@@ -13,7 +13,7 @@ import { clearCache } from "@/lib/cache";
 import { resetDatabase } from "./helpers/db";
 import { createTestUser, type TestUser } from "./helpers/auth";
 import { fetchTmdb } from "@/lib/tmdb";
-import { seriesFixture } from "./fixtures/tmdb";
+import { seasonsFixture, seriesFixture } from "./fixtures/tmdb";
 
 vi.mock("@/lib/tmdb", () => ({
   fetchTmdb: vi.fn(),
@@ -140,10 +140,35 @@ describe("profile media state", () => {
     expect(res.body.data.watchedSeries[0].state).toBe("upToDate");
   });
 
+  it("reports a series with an announced season as upToDate, not partial", async () => {
+    // #300's second effect, and the one no test covered. Before the fix
+    // totalSeasons was 4 the day TMDB listed the fourth season, so a user who
+    // had seen everything there was to see read as "partial" — and a
+    // returning series could never reach "upToDate" at all, because TMDB
+    // announces the next season before the current one finishes airing.
+    const testUser = await createTestUser();
+    await watchSeasons(testUser.id, 1396, [1, 2, 3]);
+    mockedFetchTmdb.mockResolvedValue(
+      seriesFixture({
+        id: 1396,
+        status: "Returning Series",
+        number_of_seasons: 4,
+        seasons: seasonsFixture(3, { announced: 1 }),
+      }),
+    );
+
+    const res = await (await authed(testUser)).get(MEDIA_STATE);
+
+    expect(res.body.data.watchedSeries).toEqual([
+      { tmdbId: 1396, watchedSeasons: 3, totalSeasons: 3, state: "upToDate" },
+    ]);
+  });
+
   it("does not count specials towards the watched season total", async () => {
     const testUser = await createTestUser();
-    // Season 0 is TMDB's specials bucket; number_of_seasons excludes it, so
-    // counting it would make four seasons out of three look complete.
+    // Season 0 is TMDB's specials bucket; neither number_of_seasons nor
+    // airedSeasons counts it, so counting it would make four seasons out of
+    // three look complete.
     await watchSeasons(testUser.id, 1396, [0, 1, 2]);
     mockedFetchTmdb.mockResolvedValue(
       seriesFixture({ id: 1396, status: "Ended", number_of_seasons: 3 }),
