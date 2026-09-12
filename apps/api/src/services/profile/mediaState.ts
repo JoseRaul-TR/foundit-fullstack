@@ -28,6 +28,7 @@ import { fetchTmdb } from "@/lib/tmdb";
 import { getOrSetCache, ONE_DAY_MS } from "@/lib/cache";
 import { toSeriesStatus } from "@/services/catalog/series";
 import type { TmdbSeries } from "@/types/tmdb.types";
+import { airedSeasons } from "@/helpers/tmdbMedia";
 
 // A cold cache and a large history would otherwise fire one request per
 // watched series at once.
@@ -42,6 +43,12 @@ interface SeriesFacts {
  * One day rather than a week: this is the field that decides whether a series
  * reads as "up to date" or "finished", and a week of lag in reflecting that
  * something has ended is a long time to be telling the user the wrong thing.
+ *
+ * Since #300 `totalSeasons` counts the seasons that have aired rather than
+ * the ones TMDB knows about, which makes the cached value move with the
+ * calendar and not only with TMDB's data. The day-long TTL bounds that: a
+ * season that airs is reflected within a day, the same latency already
+ * accepted for `finished`.
  */
 async function loadSeriesFacts(tmdbId: number): Promise<SeriesFacts | null> {
   try {
@@ -52,7 +59,7 @@ async function loadSeriesFacts(tmdbId: number): Promise<SeriesFacts | null> {
         const series = await fetchTmdb<TmdbSeries>(`/tv/${tmdbId}`, {});
         const status = toSeriesStatus(series.status);
         return {
-          totalSeasons: series.number_of_seasons,
+          totalSeasons: airedSeasons(series).count,
           finished: status === "ended" || status === "canceled",
         };
       },
@@ -115,8 +122,8 @@ export async function getMediaState(
       if (row.seasonNumber === null) watchedMovies.push(row.tmdbId);
       continue;
     }
-    // Season 0 is TMDB's specials bucket and number_of_seasons doesn't count
-    // it, so including it here inflates the total and marks a series as
+    // Season 0 is TMDB's specials bucket and airedSeasons doesn't count it,
+    // so including it here inflates the total and marks a series as
     // finished while a real season is still unwatched — the same fix as in
     // the discover watched filter.
     if (row.seasonNumber === null || row.seasonNumber === 0) continue;
@@ -140,10 +147,12 @@ export async function getMediaState(
       return { tmdbId, watchedSeasons, totalSeasons: null, state: "partial" };
     }
 
-    // number_of_seasons counts the seasons TMDB knows about, which can
-    // include one announced but not yet aired. A series can therefore read
-    // as "partial" for a season nobody could have watched. The same
-    // imprecision already governs newSeasonsAvailable; inherited on purpose.
+    // totalSeasons counts what has aired, not what TMDB knows about — see
+    // airedSeasons. Until #300 this read number_of_seasons, which includes a
+    // season the moment it is announced, so a series could read as "partial"
+    // for a season nobody could have watched and could never reach
+    // "upToDate" at all. That state now means what the word means: you have
+    // seen everything there is to see so far.
     const state: WatchedSeriesState =
       watchedSeasons < fact.totalSeasons
         ? "partial"

@@ -20,6 +20,7 @@ import {
   collectSubscribedNames,
   extractCrew,
   extractSeriesAgeRating,
+  airedSeasons,
 } from "@/helpers/tmdbMedia";
 import prisma from "@/lib/prisma";
 import { fetchTmdb, fetchTmdbWithFallback } from "@/lib/tmdb";
@@ -142,7 +143,7 @@ export async function getSeriesDetail(
     status === "returning"
   ) {
     const maxWatchedSeason = Math.max(...watchedSeasonNumbers);
-    if (series.number_of_seasons > maxWatchedSeason) {
+    if (airedSeasons(series).latestNumber > maxWatchedSeason) {
       const subscribedNames = collectSubscribedNames(providers);
       if (subscribedNames.length > 0) {
         newSeasonsAvailable = true;

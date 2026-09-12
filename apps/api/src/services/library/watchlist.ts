@@ -35,6 +35,7 @@ import {
   type WatchlistTypeFilter,
 } from "@foundit/types";
 import {
+  airedSeasons,
   buildProviders,
   collectSubscribedServices,
   extractTitle,
@@ -118,7 +119,7 @@ function buildTmdbInfoAndHighlight(
  * Season 0 is TMDB's specials bucket and is counted here, as it always has
  * been: someone who has watched only specials has a max of 0, so any real
  * season counts as new. mediaState.ts deliberately excludes it from its
- * *count* for a different reason (number_of_seasons does not include it).
+ * *count* for a different reason (airedSeasons does not include it either).
  * The two are consistent with their own purposes, not with each other.
  */
 async function fetchMaxWatchedSeasonMap(
@@ -154,7 +155,9 @@ function computeNewSeasonsAvailable(
 ): boolean {
   if (maxWatchedSeason === undefined) return false;
   if (toSeriesStatus(series.status) !== "returning") return false;
-  return series.number_of_seasons > maxWatchedSeason && services.length > 0;
+  return (
+    airedSeasons(series).latestNumber > maxWatchedSeason && services.length > 0
+  );
 }
 
 function buildResponse(
