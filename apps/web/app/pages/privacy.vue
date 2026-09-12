@@ -18,6 +18,18 @@
       <p>{{ $t("legal.privacyNote.analytics.body") }}</p>
     </section>
 
+    <!-- Placed after the analytics section on purpose: that one's most
+         prominent claim is that nothing identifies you, and its silence about
+         everything else the browser contacts reads as part of the claim. It
+         comes before the three sections about what you hand over knowingly
+         (#326). -->
+    <section class="flex flex-col gap-2">
+      <h2 class="text-sm font-semibold text-primary">
+        {{ $t("legal.privacyNote.thirdParties.heading") }}
+      </h2>
+      <p>{{ $t("legal.privacyNote.thirdParties.body") }}</p>
+    </section>
+
     <section class="flex flex-col gap-2">
       <h2 class="text-sm font-semibold text-primary">
         {{ $t("legal.privacyNote.form.heading") }}
