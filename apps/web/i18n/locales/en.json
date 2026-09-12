@@ -402,6 +402,10 @@
         "heading": "Anonymous usage statistics",
         "body": "The app counts page views with Umami, a cookieless analytics tool. It records which pages were opened, the site you arrived from, your browser, your operating system, your device type and your country. It sets no cookies and stores nothing that identifies you, so these figures cannot be traced back to a person. They exist to show which parts of the app were used at all."
       },
+      "thirdParties": {
+        "heading": "What your browser loads from elsewhere",
+        "body": "Some of what you see is not served by FoundIt. Posters, backdrops and service logos come from TMDB on almost every page. Trailer thumbnails come from YouTube, and the player is the no-cookie version of the embed — a deliberate choice: YouTube states that it stores nothing about a visitor who does not press play. And if you signed in with Google, your profile picture is fetched from Google's servers every time a page renders. Each of those requests tells whoever serves it your IP address and which browser you use. That is how the web works and it is true of most sites you visit. The last one differs in kind rather than in degree: it asks for one specific person's picture, on every page you open while signed in, which tells Google you are here. It is loaded rather than copied because the alternative was storing an image of your face, and neither option is free. Signing in with an email and a password avoids it entirely."
+      },
       "form": {
         "heading": "The feedback form",
         "body": "If you fill in the feedback form, it collects your answers along with the language, device and browser you used, and whether you use an ad blocker. It does not ask for your name or your email address. The last question is optional and lets you leave a contact if you want to take part in a short session — if you fill it in, that one answer is no longer anonymous. Leaving it blank is a complete answer."
@@ -422,7 +426,7 @@
         "heading": "Questions, or removing your data",
         "body": "Ask the person who invited you to the test round, or open an issue in the repository. Anything you want removed will be removed."
       },
-      "updated": "Last updated 26 August 2026."
+      "updated": "Last updated 12 September 2026."
     }
   }
 }

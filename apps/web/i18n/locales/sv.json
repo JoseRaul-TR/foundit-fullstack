@@ -402,6 +402,10 @@
         "heading": "Anonym användningsstatistik",
         "body": "Appen räknar sidvisningar med Umami, ett analysverktyg utan kakor. Det registrerar vilka sidor som öppnats, vilken webbplats du kom ifrån, din webbläsare, ditt operativsystem, din enhetstyp och ditt land. Det sätter inga kakor och lagrar ingenting som identifierar dig, så siffrorna går inte att spåra till en person. De finns för att visa vilka delar av appen som faktiskt användes."
       },
+      "thirdParties": {
+        "heading": "Vad din webbläsare hämtar från andra",
+        "body": "En del av det du ser levereras inte av FoundIt. Affischer, bakgrundsbilder och tjänsteloggor kommer från TMDB på nästan varje sida. Trailerbilder kommer från YouTube, och spelaren är inbäddningens kakfria variant — ett medvetet val: YouTube uppger att ingenting lagras om en besökare som inte trycker på play. Och om du loggade in med Google hämtas din profilbild från Googles servrar varje gång en sida ritas upp. Var och en av de förfrågningarna berättar för den som levererar innehållet vilken IP-adress och vilken webbläsare du har. Så fungerar webben, och det gäller de flesta sidor du besöker. Den sista skiljer sig i art och inte i grad: den ber om just din bild, på varje sida du öppnar när du är inloggad, vilket talar om för Google att du är här. Den hämtas i stället för att kopieras, eftersom alternativet vore att lagra ett foto av ditt ansikte, och inget av alternativen är gratis. Loggar du in med e-post och lösenord uppstår den inte alls."
+      },
       "form": {
         "heading": "Formuläret för återkoppling",
         "body": "Om du fyller i formuläret samlas dina svar in tillsammans med vilket språk, vilken enhet och vilken webbläsare du använde, och om du använder en annonsblockerare. Det frågar inte efter ditt namn eller din e-postadress. Den sista frågan är frivillig och låter dig lämna en kontaktuppgift om du vill delta i ett kort samtal — fyller du i den är just det svaret inte längre anonymt. Att lämna den tom är ett fullständigt svar."
@@ -422,7 +426,7 @@
         "heading": "Frågor, eller att få dina uppgifter borttagna",
         "body": "Fråga den som bjöd in dig till testomgången, eller öppna ett ärende i arkivet. Allt du vill ha borttaget tas bort."
       },
-      "updated": "Senast uppdaterad 26 augusti 2026."
+      "updated": "Senast uppdaterad 12 september 2026."
     }
   }
 }

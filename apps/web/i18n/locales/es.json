@@ -402,6 +402,10 @@
         "heading": "Estadísticas de uso anónimas",
         "body": "La aplicación cuenta las visitas con Umami, una herramienta de analítica sin cookies. Registra qué páginas se abrieron, desde qué sitio llegaste, tu navegador, tu sistema operativo, el tipo de dispositivo y el país. No coloca cookies ni guarda nada que te identifique, así que esas cifras no se pueden rastrear hasta una persona. Existen para ver qué partes de la aplicación se usaron."
       },
+      "thirdParties": {
+        "heading": "Lo que tu navegador pide a otros",
+        "body": "Parte de lo que ves no lo sirve FoundIt. Los carteles, los fondos y los logos de las plataformas vienen de TMDB en casi todas las páginas. Las miniaturas de los tráilers vienen de YouTube, y el reproductor es la variante sin cookies del insertado, una decisión deliberada: YouTube afirma que no guarda nada sobre quien no le da al play. Y si entraste con Google, tu foto de perfil se pide a los servidores de Google cada vez que se dibuja una página. Cada una de esas peticiones le dice a quien sirve el contenido cuál es tu IP y qué navegador usas. Así funciona la web y pasa en la mayoría de sitios que visitas. La última es distinta en naturaleza y no en grado: pide tu foto concreta, en cada página que abres con la sesión iniciada, lo que le dice a Google que estás aquí. Se carga en lugar de copiarse porque la alternativa era guardar una imagen de tu cara, y ninguna de las dos sale gratis. Entrando con correo y contraseña no ocurre en absoluto."
+      },
       "form": {
         "heading": "El formulario de opinión",
         "body": "Si rellenas el formulario, se recogen tus respuestas junto con el idioma, el dispositivo y el navegador que usaste, y si usas un bloqueador de anuncios. No pide tu nombre ni tu correo. La última pregunta es opcional y te permite dejar un contacto si quieres participar en una sesión corta; si la rellenas, esa respuesta deja de ser anónima. Dejarla en blanco es una respuesta completa."
@@ -422,7 +426,7 @@
         "heading": "Dudas, o borrar tus datos",
         "body": "Pregunta a quien te invitó a la ronda de pruebas, o abre un issue en el repositorio. Todo lo que quieras que se borre, se borra."
       },
-      "updated": "Última actualización: 26 de agosto de 2026."
+      "updated": "Última actualización: 12 de septiembre de 2026."
     }
   }
 }
