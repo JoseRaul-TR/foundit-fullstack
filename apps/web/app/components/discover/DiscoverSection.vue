@@ -3,7 +3,7 @@
   <section class="flex flex-col gap-3">
     <!-- The type pills above name the section visually; this keeps the
          document outline intact for screen readers without repeating it. -->
-    <h3 class="sr-only">{{ title }}</h3>
+    <h2 class="sr-only">{{ title }}</h2>
     <div
       v-if="loading && items.length === 0"
       class="flex gap-4 overflow-hidden"
@@ -19,13 +19,18 @@
       {{ $t("discover.noResults") }}
     </p>
 
-    <!-- The bleed matches this panel's own px-4, not the modal's px-5/px-8,
-         and stops at lg where the panel is centred with room to spare. -->
+    <!-- The bleed follows the page container's gutter, not this panel's —
+         since #323 the panel has none, so Discover and the search results
+         share one width. 16px below sm and 24px from sm, matching
+         layouts/default.vue's `px-4 sm:px-6`, so the cards run exactly to the
+         container edge instead of stopping 8px short. It ends at lg, where
+         the container reaches max-w-container and the gutter stops being a
+         gutter. -->
     <HorizontalScrollRow
       v-else
       :has-more="hasMore"
       :loading="loading"
-      scroller-class="-mx-4 px-4 lg:mx-0 lg:px-0"
+      scroller-class="-mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0"
       @load-more="$emit('load-more')"
     >
       <!-- One column of the surrounding grid, computed the way the grid does

@@ -13,24 +13,27 @@
   "home": {
     "title": "FoundIt",
     "tagline": "Find out where to watch your favorite movies and series.",
+    "heroTitle": "Find where to watch anything",
+    "heroSubtitle": "Search movies and shows across every platform. Create a free account to personalize results, build a watchlist, and track what you've watched.",
+    "searchNote": "Global results, no sign-in needed. An account unlocks Discover's filters for your platforms and country.",
     "perks": {
       "title": "What you get with a free account",
       "items": {
         "discover": {
           "title": "Personalized Discover",
-          "description": "Recommendations tailored to what you watch."
+          "description": "Recommendations based on your platforms and genres."
         },
         "watchlist": {
           "title": "Watchlist",
-          "description": "Save titles to watch later."
+          "description": "Save anything you want to watch later."
         },
         "history": {
           "title": "Watch history",
-          "description": "Keep track of what you've already seen."
+          "description": "Track what you've seen, season by season."
         },
         "filterPlatform": {
           "title": "Filter by platform",
-          "description": "Only see what's available on your services."
+          "description": "See only what's on your streaming services."
         }
       },
       "cta": "Create free account"

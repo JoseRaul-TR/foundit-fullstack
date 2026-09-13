@@ -13,24 +13,27 @@
   "home": {
     "title": "FoundIt",
     "tagline": "Descubre dónde ver tus películas y series favoritas.",
+    "heroTitle": "Encuentra dónde ver lo que quieras",
+    "heroSubtitle": "Busca películas y series en todas las plataformas. Crea una cuenta gratis para personalizar los resultados, montar tu lista y llevar el control de lo que ya has visto.",
+    "searchNote": "Resultados globales, sin necesidad de cuenta. Con una cuenta se desbloquean los filtros de Descubrir según tus plataformas y tu país.",
     "perks": {
       "title": "Lo que obtienes con una cuenta gratuita",
       "items": {
         "discover": {
           "title": "Descubre personalizado",
-          "description": "Recomendaciones adaptadas a lo que ves."
+          "description": "Recomendaciones según tus plataformas y géneros."
         },
         "watchlist": {
           "title": "Mi lista",
-          "description": "Guarda títulos para ver más tarde."
+          "description": "Guarda lo que quieras ver más tarde."
         },
         "history": {
           "title": "Historial de visualización",
-          "description": "Lleva el control de lo que ya has visto."
+          "description": "Lleva el control de lo que has visto, temporada a temporada."
         },
         "filterPlatform": {
           "title": "Filtrar por plataforma",
-          "description": "Ve solo lo disponible en tus servicios."
+          "description": "Ve solo lo que hay en tus servicios."
         }
       },
       "cta": "Crear cuenta gratis"
