@@ -13,20 +13,23 @@
   "home": {
     "title": "FoundIt",
     "tagline": "Ta reda på var du kan se dina favoritfilmer och -serier.",
+    "heroTitle": "Hitta var du kan se vad som helst",
+    "heroSubtitle": "Sök bland filmer och serier på alla plattformar. Skapa ett gratiskonto för att anpassa resultaten, bygga en lista och hålla koll på vad du har sett.",
+    "searchNote": "Globala resultat, ingen inloggning behövs. Med ett konto låser du upp filter i Upptäck för dina tjänster och ditt land.",
     "perks": {
       "title": "Det här får du med ett gratis konto",
       "items": {
         "discover": {
           "title": "Personlig Upptäck",
-          "description": "Rekommendationer anpassade efter vad du tittar på."
+          "description": "Rekommendationer utifrån dina plattformar och genrer."
         },
         "watchlist": {
           "title": "Min lista",
-          "description": "Spara titlar att titta på senare."
+          "description": "Spara allt du vill se senare."
         },
         "history": {
           "title": "Visningshistorik",
-          "description": "Håll koll på vad du redan har sett."
+          "description": "Håll koll på vad du sett, säsong för säsong."
         },
         "filterPlatform": {
           "title": "Filtrera efter plattform",

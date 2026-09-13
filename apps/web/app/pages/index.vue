@@ -1,21 +1,46 @@
 <!-- apps/web/app/pages/index.vue -->
 <template>
   <div class="flex flex-col items-center gap-10 pt-6">
-    <div class="flex flex-col items-center gap-3 text-center">
-      <h1 class="text-2xl font-bold text-primary sm:text-3xl">{{ appName }}</h1>
-      <p class="max-w-md text-sm text-secondary">{{ $t("home.tagline") }}</p>
+    <SearchBar>
+      <!-- Figma 77:248 / 124:267, reworded. The frame says "Log in to filter
+           by your platforms and country" directly under the search box, which
+           promises exactly the belief #318 was raised to correct: Discover's
+           filters never reach text search. The wireframe was drawn before we
+           knew that. -->
+      <p
+        v-if="showLanding"
+        class="max-w-[560px] text-center text-[11px] text-secondary sm:text-xs"
+      >
+        {{ $t("home.searchNote") }}
+      </p>
+    </SearchBar>
+
+    <!-- Hero: the landing only, and the landing is the signed-out idle state.
+         It used to be unconditional, so it sat above a signed-in user's
+         Discover on every visit and above a signed-out visitor's search
+         results — neither of which any frame shows (#323). -->
+    <div
+      v-if="showLanding"
+      class="flex max-w-[620px] flex-col items-center gap-6 text-center sm:gap-8"
+    >
+      <h1 class="text-2xl font-bold text-primary sm:text-[32px]">
+        {{ $t("home.heroTitle") }}
+      </h1>
+      <p
+        class="text-[13px] leading-relaxed text-secondary sm:text-[15px] sm:leading-[1.55]"
+      >
+        {{ $t("home.heroSubtitle") }}
+      </p>
     </div>
 
-    <SearchBar />
-
-    <LandingPerks v-if="!authStore.isAuthenticated && isIdle" />
+    <LandingPerks v-if="showLanding" />
     <DiscoverPanel v-if="authStore.isAuthenticated && isIdle" />
 
     <section v-if="!isIdle" class="w-full">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-bold text-primary">
+        <h1 class="text-lg font-bold text-primary">
           {{ $t("search.resultsTitle") }}
-        </h2>
+        </h1>
         <!-- No session check: filtering by type needs nothing from an account.
              The endpoint is public and defaults to `multi`, so a signed-out
              visitor got people mixed into their results exactly like everyone
@@ -135,9 +160,6 @@ const discover = useDiscover();
 // auto-unwrap in the template — only top-level bindings do.
 const discoverFiltersActive = computed(() => discover.hasActiveFilters.value);
 
-const { public: publicConfig } = useRuntimeConfig();
-const appName = publicConfig.appName;
-
 const { t, locale } = useI18n();
 
 const typeOptions = computed(() => [
@@ -172,6 +194,11 @@ const {
 } = useSearch();
 
 const { getGenreNames } = useGenres();
+
+// The landing is one state, not two conditions repeated three times: no
+// session and no search. Naming it is what keeps the note, the hero and the
+// perks from drifting apart the next time one of them is touched.
+const showLanding = computed(() => !authStore.isAuthenticated && isIdle.value);
 
 const routeQuery = computed(() => route.query.q?.toString() ?? "");
 const routeType = computed(

@@ -1,15 +1,15 @@
 <!-- apps/web/app/components/discover/DiscoverPanel.vue -->
 <template>
-  <div class="mt-10 flex w-full min-w-0 max-w-6xl flex-col gap-6 px-4">
+  <div class="flex w-full min-w-0 flex-col gap-6">
     <!-- SectionHeadingRow (wireframe 46:169): title with the filter gear beside
          it. The type selector sits at the far end, mirroring the search
          results row. Wraps on narrow screens so the selector drops to its own
          line instead of squeezing the title. -->
     <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div class="flex items-center gap-1">
-        <h2 class="text-lg font-bold text-primary">
+        <h1 class="text-lg font-bold text-primary">
           {{ $t("discover.title") }}
-        </h2>
+        </h1>
         <DiscoverFilterButton />
       </div>
 

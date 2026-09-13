@@ -79,8 +79,8 @@ const props = withDefaults(
     runway?: number;
     /**
      * The bleed, which belongs to the caller: the modal pads its content by
-     * 20/32px and the Discover panel by 16px, and a row that guesses ends up
-     * four pixels wider than its container.
+     * 20/32px and the page container by 16/24px, and a row that guesses ends
+     * up four pixels wider than its container.
      */
     scrollerClass?: string;
   }>(),

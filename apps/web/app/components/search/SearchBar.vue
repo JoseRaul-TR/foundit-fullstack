@@ -100,6 +100,11 @@
         </svg>
       </button>
     </div>
+    <!-- The landing's search note (Figma 77:248 / 124:267) belongs to the
+         wireframe's SearchWrap, which is this form: 560px wide with 10px
+         under the pill — the max-w and the gap this element already had and
+         never used. Only `/` fills it, and only while signed out and idle. -->
+    <slot />
   </form>
 </template>
 
