@@ -37,7 +37,7 @@
     <DiscoverPanel v-if="authStore.isAuthenticated && isIdle" />
 
     <section v-if="!isIdle" class="w-full">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-lg font-bold text-primary">
           {{ $t("search.resultsTitle") }}
         </h1>
