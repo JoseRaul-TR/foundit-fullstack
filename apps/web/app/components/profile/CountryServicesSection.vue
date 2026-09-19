@@ -76,7 +76,9 @@
          that lands after first paint: everything below it jumps. -->
     <template v-if="loading || selectedCode">
       <div class="flex flex-col gap-1">
-        <h3 class="text-base font-bold text-primary">
+        <h3
+          class="text-xs font-semibold uppercase tracking-wide text-secondary"
+        >
           {{ $t("profile.streamingServices.title") }}
         </h3>
         <p class="text-sm text-secondary">
