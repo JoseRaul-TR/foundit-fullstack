@@ -23,19 +23,12 @@
         :loading="eager || priority ? 'eager' : 'lazy'"
         :fetchpriority="priority ? 'high' : undefined"
       />
-      <div v-else class="flex h-full w-full items-center justify-center">
-        <svg
-          class="h-10 w-10 text-border"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <circle cx="8.5" cy="8.5" r="1.5" />
-          <path d="M21 15l-5-5L5 21" />
-        </svg>
-      </div>
+      <MediaPlaceholder
+        v-else
+        :kind="mediaType"
+        size="md"
+        class="h-full w-full rounded-[inherit]"
+      />
 
       <!-- Top left: one marker at most. A series that is finished cannot have
            a new season, and one that is up to date has nothing unwatched, so

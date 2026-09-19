@@ -13,6 +13,12 @@
         class="h-10 w-7 shrink-0 rounded object-cover"
         loading="lazy"
       />
+      <MediaPlaceholder
+        v-else
+        kind="series"
+        size="xs"
+        class="h-10 w-7 shrink-0 rounded"
+      />
       <div class="flex min-w-0 flex-1 flex-col">
         <span
           class="flex items-center gap-2 truncate text-sm font-medium text-primary"

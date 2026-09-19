@@ -57,6 +57,12 @@
             :alt="movie.title"
             class="h-full w-full object-cover"
           />
+          <MediaPlaceholder
+            v-else
+            kind="movie"
+            size="lg"
+            class="h-full w-full rounded-[inherit]"
+          />
         </div>
 
         <div
