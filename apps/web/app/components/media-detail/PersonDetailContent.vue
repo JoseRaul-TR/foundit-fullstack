@@ -27,21 +27,12 @@
         :alt="person.name"
         class="h-[210px] w-[140px] shrink-0 self-center rounded-xl object-cover shadow-[0_8px_20px_rgba(0,0,0,0.5)] sm:h-[300px] sm:w-[200px] sm:self-start sm:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
       />
-      <div
+      <MediaPlaceholder
         v-else
-        class="grid h-[210px] w-[140px] shrink-0 place-items-center self-center rounded-xl bg-surface-elevated shadow-[0_8px_20px_rgba(0,0,0,0.5)] sm:h-[300px] sm:w-[200px] sm:self-start sm:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
-      >
-        <svg
-          class="h-16 w-16 text-border"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" />
-        </svg>
-      </div>
+        kind="person"
+        size="lg"
+        class="h-[210px] w-[140px] shrink-0 self-center rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.5)] sm:h-[300px] sm:w-[200px] sm:self-start sm:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+      />
 
       <div class="flex flex-1 flex-col gap-2 text-center sm:text-left">
         <h2 class="text-xl font-bold text-primary sm:text-2xl">

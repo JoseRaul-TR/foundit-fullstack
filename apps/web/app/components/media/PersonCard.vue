@@ -15,17 +15,12 @@
         class="h-full w-full object-cover"
         loading="lazy"
       />
-      <svg
+      <MediaPlaceholder
         v-else
-        class="absolute inset-0 m-auto h-8 w-8 text-border"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-      >
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" />
-      </svg>
+        kind="person"
+        size="sm"
+        class="h-full w-full rounded-[inherit]"
+      />
     </span>
 
     <!-- Two lines each, not one. A single line was enough while a crew member
