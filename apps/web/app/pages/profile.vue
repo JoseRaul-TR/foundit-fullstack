@@ -7,7 +7,7 @@
   <div class="mx-auto flex w-full max-w-2xl flex-col gap-8 py-6">
     <h1 class="text-xl font-bold text-primary">{{ $t("profile.title") }}</h1>
 
-    <section class="flex flex-col items-center gap-3 text-center">
+    <section class="flex flex-col items-start gap-3">
       <div class="flex items-center gap-4">
         <UserAvatar
           :src="profile?.avatarUrl"
