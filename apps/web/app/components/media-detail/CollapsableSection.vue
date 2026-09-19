@@ -1,5 +1,11 @@
+<!-- apps/web/app/components/media-detail/CollapsableSection.vue -->
+<!-- A list of sections separated by rules, which is why it carries no margins
+     of its own: the rule is the separator, and its callers wrap these in a
+     column with no gap. Until #310 the container's gap and this padding were
+     separating the same two things twice, so a collapsed section cost 88px to
+     show a 24px title — six of them were most of a phone screen of nothing. -->
 <template>
-  <section class="border-t border-border py-5 first:border-t-0 first:pt-0">
+  <section class="border-t border-border py-4 first:border-t-0 first:pt-0">
     <button
       v-if="collapsible"
       type="button"

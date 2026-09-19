@@ -66,82 +66,94 @@
       </div>
     </div>
 
-    <CollapsableSection
-      :title="$t('mediaDetail.biography')"
-      :collapsible="false"
-    >
-      <p v-if="!person.biography" class="text-sm text-secondary">
-        {{ $t("mediaDetail.noBiography") }}
-      </p>
-      <ExpandableText v-else :text="person.biography" :limit="300" />
-    </CollapsableSection>
+    <!-- The sections are a list with rules, so they get no gap between
+         them: the rule does that job, and the container's gap-6 now only
+         separates this list from the hero above it (#310).
 
-    <CollapsableSection
-      v-if="credits.primary.length"
-      :title="$t('mediaDetail.filmographyAs', { role: departmentLabel })"
-      default-open
-    >
-      <HorizontalScrollRow>
+         This is also the first time CollapsableSection's
+         `first:border-t-0 first:pt-0` has ever matched. The hero used to be
+         the container's first child, so the first section drew a rule
+         against it that the component was written to avoid. -->
+    <div class="flex flex-col">
+      <CollapsableSection
+        :title="$t('mediaDetail.biography')"
+        :collapsible="false"
+      >
+        <p v-if="!person.biography" class="text-sm text-secondary">
+          {{ $t("mediaDetail.noBiography") }}
+        </p>
+        <ExpandableText v-else :text="person.biography" :limit="300" />
+      </CollapsableSection>
+
+      <CollapsableSection
+        v-if="credits.primary.length"
+        :title="$t('mediaDetail.filmographyAs', { role: departmentLabel })"
+        default-open
+      >
+        <HorizontalScrollRow>
+          <div
+            v-for="item in credits.primary"
+            :key="`${item.mediaType}-${item.id}`"
+            class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
+          >
+            <MediaCard
+              :id="item.id"
+              :media-type="item.mediaType"
+              :title="item.title"
+              :poster-path="item.posterPath"
+              :year="item.year"
+              :tmdb-rating="item.tmdbRating"
+            />
+            <p class="mt-1 truncate px-0.5 text-xs text-secondary">
+              {{ item.roleLabels.join(", ") }}
+            </p>
+          </div>
+        </HorizontalScrollRow>
+      </CollapsableSection>
+
+      <CollapsableSection
+        v-if="credits.other.length"
+        :title="$t('mediaDetail.filmographyOther')"
+      >
+        <HorizontalScrollRow>
+          <div
+            v-for="item in credits.other"
+            :key="`${item.mediaType}-${item.id}`"
+            class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
+          >
+            <MediaCard
+              :id="item.id"
+              :media-type="item.mediaType"
+              :title="item.title"
+              :poster-path="item.posterPath"
+              :year="item.year"
+              :tmdb-rating="item.tmdbRating"
+            />
+            <p class="mt-1 truncate px-0.5 text-xs text-secondary">
+              {{ item.roleLabels.join(", ") }}
+            </p>
+          </div>
+        </HorizontalScrollRow>
+      </CollapsableSection>
+
+      <CollapsableSection
+        v-if="person.photos.length"
+        :title="$t('mediaDetail.photos')"
+      >
         <div
-          v-for="item in credits.primary"
-          :key="`${item.mediaType}-${item.id}`"
-          class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
+          class="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8"
         >
-          <MediaCard
-            :id="item.id"
-            :media-type="item.mediaType"
-            :title="item.title"
-            :poster-path="item.posterPath"
-            :year="item.year"
-            :tmdb-rating="item.tmdbRating"
+          <img
+            v-for="(photo, index) in person.photos"
+            :key="index"
+            :src="tmdbImage(photo.filePath, 185) ?? undefined"
+            :alt="person.name"
+            class="h-[213px] w-[160px] shrink-0 rounded-xl object-cover"
+            loading="lazy"
           />
-          <p class="mt-1 truncate px-0.5 text-xs text-secondary">
-            {{ item.roleLabels.join(", ") }}
-          </p>
         </div>
-      </HorizontalScrollRow>
-    </CollapsableSection>
-
-    <CollapsableSection
-      v-if="credits.other.length"
-      :title="$t('mediaDetail.filmographyOther')"
-    >
-      <HorizontalScrollRow>
-        <div
-          v-for="item in credits.other"
-          :key="`${item.mediaType}-${item.id}`"
-          class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
-        >
-          <MediaCard
-            :id="item.id"
-            :media-type="item.mediaType"
-            :title="item.title"
-            :poster-path="item.posterPath"
-            :year="item.year"
-            :tmdb-rating="item.tmdbRating"
-          />
-          <p class="mt-1 truncate px-0.5 text-xs text-secondary">
-            {{ item.roleLabels.join(", ") }}
-          </p>
-        </div>
-      </HorizontalScrollRow>
-    </CollapsableSection>
-
-    <CollapsableSection
-      v-if="person.photos.length"
-      :title="$t('mediaDetail.photos')"
-    >
-      <div class="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
-        <img
-          v-for="(photo, index) in person.photos"
-          :key="index"
-          :src="tmdbImage(photo.filePath, 185) ?? undefined"
-          :alt="person.name"
-          class="h-[213px] w-[160px] shrink-0 rounded-xl object-cover"
-          loading="lazy"
-        />
-      </div>
-    </CollapsableSection>
+      </CollapsableSection>
+    </div>
   </div>
 </template>
 
