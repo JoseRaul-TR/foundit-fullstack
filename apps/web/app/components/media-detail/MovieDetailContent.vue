@@ -144,99 +144,118 @@
         </div>
       </div>
 
-      <CollapsableSection
-        :title="$t('mediaDetail.overview')"
-        :collapsible="false"
-        ><ExpandableText
-          :text="movie.overview || $t('mediaDetail.noOverview')"
-        />
-      </CollapsableSection>
+      <!-- The sections are a list with rules, so they get no gap between
+           them: the rule does that job, and the container's gap-6 now only
+           separates this list from the hero above it (#310).
 
-      <CollapsableSection :title="$t('mediaDetail.whereToWatch')" default-open>
-        <ProvidersSection :providers="movie.providers" />
-      </CollapsableSection>
-
-      <CollapsableSection
-        v-if="movie.trailer"
-        :title="$t('mediaDetail.trailer')"
-      >
-        <TrailerEmbed
-          :youtube-key="movie.trailer.youtubeKey"
-          :title="movie.title"
-        />
-      </CollapsableSection>
-
-      <CollapsableSection
-        v-if="movie.cast.length"
-        :title="$t('mediaDetail.cast')"
-      >
-        <HorizontalScrollRow :has-more="castHasMore" @load-more="castLoadMore">
-          <PersonCard
-            v-for="member in castVisible"
-            :key="`${member.id}-${member.character}`"
-            :id="member.id"
-            :name="member.name"
-            :profile-path="member.profilePath"
-            :role-label="member.character"
+           This is also the first time CollapsableSection's
+           `first:border-t-0 first:pt-0` has ever matched. The hero used to be
+           the container's first child, so the first section drew a rule
+           against it that the component was written to avoid. -->
+      <div class="flex flex-col">
+        <CollapsableSection
+          :title="$t('mediaDetail.overview')"
+          :collapsible="false"
+          ><ExpandableText
+            :text="movie.overview || $t('mediaDetail.noOverview')"
           />
-        </HorizontalScrollRow>
-      </CollapsableSection>
+        </CollapsableSection>
 
-      <CollapsableSection
-        v-if="movie.crew.length"
-        :title="$t('mediaDetail.crew')"
-      >
-        <HorizontalScrollRow :has-more="crewHasMore" @load-more="crewLoadMore">
-          <PersonCard
-            v-for="member in crewVisible"
-            :key="member.id"
-            :id="member.id"
-            :name="member.name"
-            :profile-path="member.profilePath"
-            :role-label="crewLabel(member.jobs)"
-            :role-title="crewTitle(member.jobs)"
-          />
-        </HorizontalScrollRow>
-      </CollapsableSection>
-
-      <CollapsableSection
-        v-if="authStore.isAuthenticated && movie.recommendations.length"
-        :title="$t('mediaDetail.recommendations')"
-        default-open
-      >
-        <HorizontalScrollRow
-          :has-more="recommendationsHasMore"
-          :loading="recommendationsLoading"
-          @load-more="recommendationsLoadMore"
+        <CollapsableSection
+          :title="$t('mediaDetail.whereToWatch')"
+          default-open
         >
-          <div
-            v-for="item in recommendations"
-            :key="`${item.mediaType}-${item.id}`"
-            class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
-          >
-            <MediaCard
-              :id="item.id"
-              :media-type="item.mediaType"
-              :title="item.title"
-              :poster-path="item.posterPath"
-              :year="item.year"
-              :tmdb-rating="item.tmdbRating"
-              :genres="
-                item.mediaType !== 'person'
-                  ? getGenreNames(item.genreIds, item.mediaType)
-                  : undefined
-              "
-            />
-          </div>
-        </HorizontalScrollRow>
-      </CollapsableSection>
+          <ProvidersSection :providers="movie.providers" />
+        </CollapsableSection>
 
-      <p
-        v-else-if="!authStore.isAuthenticated"
-        class="rounded-full bg-surface-elevated px-4 py-3 text-center text-sm text-secondary"
-      >
-        {{ $t("mediaDetail.loginForRecommendations") }}
-      </p>
+        <CollapsableSection
+          v-if="movie.trailer"
+          :title="$t('mediaDetail.trailer')"
+        >
+          <TrailerEmbed
+            :youtube-key="movie.trailer.youtubeKey"
+            :title="movie.title"
+          />
+        </CollapsableSection>
+
+        <CollapsableSection
+          v-if="movie.cast.length"
+          :title="$t('mediaDetail.cast')"
+        >
+          <HorizontalScrollRow
+            :has-more="castHasMore"
+            @load-more="castLoadMore"
+          >
+            <PersonCard
+              v-for="member in castVisible"
+              :key="`${member.id}-${member.character}`"
+              :id="member.id"
+              :name="member.name"
+              :profile-path="member.profilePath"
+              :role-label="member.character"
+            />
+          </HorizontalScrollRow>
+        </CollapsableSection>
+
+        <CollapsableSection
+          v-if="movie.crew.length"
+          :title="$t('mediaDetail.crew')"
+        >
+          <HorizontalScrollRow
+            :has-more="crewHasMore"
+            @load-more="crewLoadMore"
+          >
+            <PersonCard
+              v-for="member in crewVisible"
+              :key="member.id"
+              :id="member.id"
+              :name="member.name"
+              :profile-path="member.profilePath"
+              :role-label="crewLabel(member.jobs)"
+              :role-title="crewTitle(member.jobs)"
+            />
+          </HorizontalScrollRow>
+        </CollapsableSection>
+
+        <CollapsableSection
+          v-if="authStore.isAuthenticated && movie.recommendations.length"
+          :title="$t('mediaDetail.recommendations')"
+          default-open
+        >
+          <HorizontalScrollRow
+            :has-more="recommendationsHasMore"
+            :loading="recommendationsLoading"
+            @load-more="recommendationsLoadMore"
+          >
+            <div
+              v-for="item in recommendations"
+              :key="`${item.mediaType}-${item.id}`"
+              class="w-[calc((100%-1rem)/2)] shrink-0 sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]"
+            >
+              <MediaCard
+                :id="item.id"
+                :media-type="item.mediaType"
+                :title="item.title"
+                :poster-path="item.posterPath"
+                :year="item.year"
+                :tmdb-rating="item.tmdbRating"
+                :genres="
+                  item.mediaType !== 'person'
+                    ? getGenreNames(item.genreIds, item.mediaType)
+                    : undefined
+                "
+              />
+            </div>
+          </HorizontalScrollRow>
+        </CollapsableSection>
+
+        <p
+          v-else-if="!authStore.isAuthenticated"
+          class="mt-6 rounded-full bg-surface-elevated px-4 py-3 text-center text-sm text-secondary"
+        >
+          {{ $t("mediaDetail.loginForRecommendations") }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
