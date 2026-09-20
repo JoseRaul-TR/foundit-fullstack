@@ -400,7 +400,7 @@
     "privacy": "Privacy Policy",
     "underConstruction": "This page is under construction. The document will be published before launch.",
     "privacyNote": {
-      "intro": "FoundIt is a student project — an examensarbete for a Yrkeshögskola programme in frontend development. It is currently in a closed test round with invited testers and has not been launched. This page describes what the app collects and what happens to it. It is short on purpose, and a full policy will replace it before any public launch.",
+      "intro": "FoundIt is a student project — an examensarbete for a Yrkeshögskola programme in frontend development. A closed test round with invited testers ran from 26 August to 20 September 2026. The app has not been launched. This page describes what the app collects and what happens to it. It is short on purpose, and a full policy will replace it before any public launch.",
       "analytics": {
         "heading": "Anonymous usage statistics",
         "body": "The app counts page views with Umami, a cookieless analytics tool. It records which pages were opened, the site you arrived from, your browser, your operating system, your device type and your country. It sets no cookies and stores nothing that identifies you, so these figures cannot be traced back to a person. They exist to show which parts of the app were used at all."
@@ -411,7 +411,7 @@
       },
       "form": {
         "heading": "The feedback form",
-        "body": "If you fill in the feedback form, it collects your answers along with the language, device and browser you used, and whether you use an ad blocker. It does not ask for your name or your email address. The last question is optional and lets you leave a contact if you want to take part in a short session — if you fill it in, that one answer is no longer anonymous. Leaving it blank is a complete answer."
+        "body": "The feedback form closed on 20 September 2026. While it was open it collected the answers given, along with the language, device and browser used, and whether the respondent used an ad blocker. It never asked for a name or an email address. One question was optional and offered the chance to leave a contact for a short follow-up session; answering it made that one answer no longer anonymous, and leaving it blank was a complete answer."
       },
       "github": {
         "heading": "Bug reports on GitHub",
@@ -427,9 +427,9 @@
       },
       "contact": {
         "heading": "Questions, or removing your data",
-        "body": "Ask the person who invited you to the test round, or open an issue in the repository. Anything you want removed will be removed."
+        "body": "Open an issue in the repository, or ask the person who invited you if you took part in the test round. Anything you want removed will be removed."
       },
-      "updated": "Last updated 12 September 2026."
+      "updated": "Last updated 20 September 2026."
     }
   }
 }

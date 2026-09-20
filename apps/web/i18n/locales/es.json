@@ -400,7 +400,7 @@
     "privacy": "Política de privacidad",
     "underConstruction": "Esta página está en construcción. El documento se publicará antes del lanzamiento.",
     "privacyNote": {
-      "intro": "FoundIt es un proyecto de estudiante: un examensarbete de un programa de Yrkeshögskola en desarrollo frontend. Ahora mismo está en una ronda de pruebas cerrada con testers invitados y no está lanzada. Esta página describe qué recoge la aplicación y qué pasa con ello. Es breve a propósito, y una política completa la sustituirá antes de cualquier lanzamiento público.",
+      "intro": "FoundIt es un proyecto de estudiante: un examensarbete de un programa de Yrkeshögskola en desarrollo frontend. Entre el 26 de agosto y el 20 de septiembre de 2026 se celebró una ronda de pruebas cerrada con testers invitados. La aplicación no está lanzada. Esta página describe qué recoge la aplicación y qué pasa con ello. Es breve a propósito, y una política completa la sustituirá antes de cualquier lanzamiento público.",
       "analytics": {
         "heading": "Estadísticas de uso anónimas",
         "body": "La aplicación cuenta las visitas con Umami, una herramienta de analítica sin cookies. Registra qué páginas se abrieron, desde qué sitio llegaste, tu navegador, tu sistema operativo, el tipo de dispositivo y el país. No coloca cookies ni guarda nada que te identifique, así que esas cifras no se pueden rastrear hasta una persona. Existen para ver qué partes de la aplicación se usaron."
@@ -411,7 +411,7 @@
       },
       "form": {
         "heading": "El formulario de opinión",
-        "body": "Si rellenas el formulario, se recogen tus respuestas junto con el idioma, el dispositivo y el navegador que usaste, y si usas un bloqueador de anuncios. No pide tu nombre ni tu correo. La última pregunta es opcional y te permite dejar un contacto si quieres participar en una sesión corta; si la rellenas, esa respuesta deja de ser anónima. Dejarla en blanco es una respuesta completa."
+        "body": "El formulario se cerró el 20 de septiembre de 2026. Mientras estuvo abierto recogió las respuestas dadas, junto con el idioma, el dispositivo y el navegador utilizados, y si quien respondía usaba un bloqueador de anuncios. Nunca pidió nombre ni correo electrónico. Una pregunta era opcional y ofrecía dejar un contacto para una sesión de seguimiento breve; responderla hacía que esa respuesta dejara de ser anónima, y dejarla en blanco era una respuesta completa."
       },
       "github": {
         "heading": "Informes de errores en GitHub",
@@ -427,9 +427,9 @@
       },
       "contact": {
         "heading": "Dudas, o borrar tus datos",
-        "body": "Pregunta a quien te invitó a la ronda de pruebas, o abre un issue en el repositorio. Todo lo que quieras que se borre, se borra."
+        "body": "Abre un issue en el repositorio, o pregunta a quien te invitó si participaste en la ronda de pruebas. Todo lo que quieras que se borre, se borra."
       },
-      "updated": "Última actualización: 12 de septiembre de 2026."
+      "updated": "Última actualización: 20 de septiembre de 2026."
     }
   }
 }

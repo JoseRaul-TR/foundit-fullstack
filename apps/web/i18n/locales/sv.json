@@ -400,7 +400,7 @@
     "privacy": "Integritetspolicy",
     "underConstruction": "Den här sidan är under uppbyggnad. Dokumentet publiceras före lansering.",
     "privacyNote": {
-      "intro": "FoundIt är ett studentprojekt — ett examensarbete på en yrkeshögskoleutbildning i frontendutveckling. Appen är just nu i en sluten testomgång med inbjudna testare och är inte lanserad. Den här sidan beskriver vad appen samlar in och vad som händer med det. Den är kort med avsikt, och en fullständig policy ersätter den innan appen lanseras publikt.",
+      "intro": "FoundIt är ett studentprojekt — ett examensarbete på en yrkeshögskoleutbildning i frontendutveckling. En sluten testomgång med inbjudna testare pågick mellan den 26 augusti och den 20 september 2026. Appen är inte lanserad. Den här sidan beskriver vad appen samlar in och vad som händer med det. Den är kort med avsikt, och en fullständig policy ersätter den innan appen lanseras publikt.",
       "analytics": {
         "heading": "Anonym användningsstatistik",
         "body": "Appen räknar sidvisningar med Umami, ett analysverktyg utan kakor. Det registrerar vilka sidor som öppnats, vilken webbplats du kom ifrån, din webbläsare, ditt operativsystem, din enhetstyp och ditt land. Det sätter inga kakor och lagrar ingenting som identifierar dig, så siffrorna går inte att spåra till en person. De finns för att visa vilka delar av appen som faktiskt användes."
@@ -411,7 +411,7 @@
       },
       "form": {
         "heading": "Formuläret för återkoppling",
-        "body": "Om du fyller i formuläret samlas dina svar in tillsammans med vilket språk, vilken enhet och vilken webbläsare du använde, och om du använder en annonsblockerare. Det frågar inte efter ditt namn eller din e-postadress. Den sista frågan är frivillig och låter dig lämna en kontaktuppgift om du vill delta i ett kort samtal — fyller du i den är just det svaret inte längre anonymt. Att lämna den tom är ett fullständigt svar."
+        "body": "Formuläret stängde den 20 september 2026. Medan det var öppet samlade det in de svar som gavs, tillsammans med vilket språk, vilken enhet och vilken webbläsare som användes, och om den som svarade använde en annonsblockerare. Det frågade aldrig efter namn eller e-postadress. En fråga var frivillig och erbjöd möjligheten att lämna en kontaktuppgift för ett kort uppföljande samtal; att besvara den gjorde just det svaret inte längre anonymt, och att lämna den tom var ett fullständigt svar."
       },
       "github": {
         "heading": "Felrapporter på GitHub",
@@ -427,9 +427,9 @@
       },
       "contact": {
         "heading": "Frågor, eller att få dina uppgifter borttagna",
-        "body": "Fråga den som bjöd in dig till testomgången, eller öppna ett ärende i arkivet. Allt du vill ha borttaget tas bort."
+        "body": "Öppna ett ärende i arkivet, eller fråga den som bjöd in dig om du deltog i testomgången. Allt du vill ha borttaget tas bort."
       },
-      "updated": "Senast uppdaterad 12 september 2026."
+      "updated": "Senast uppdaterad 20 september 2026."
     }
   }
 }
