@@ -4,20 +4,37 @@ import { Pool } from "pg";
 import { env } from "@/config/env";
 import { PrismaClient } from "@prisma/client";
 
-// Let pg parse the connection string itself instead of decomposing it by
-// hand: manual decomposition silently dropped every query parameter
-// (notably `sslmode=require`, which managed providers like Neon enforce),
-// and produced NaN for the port on URLs that omit it.
-const databaseUrl = new URL(env.DATABASE_URL);
-const requiresTls = databaseUrl.searchParams.get("sslmode") !== null;
-
+// TLS is decided by the connection string, and only by it.
+//
+// pg parses `connectionString` and merges the result OVER any options passed
+// beside it. Until #277 this file also set `ssl: { rejectUnauthorized: true }`
+// whenever the URL carried an `sslmode` — which in production is always — and
+// that option was replaced by the parsed value every time. It never did
+// anything. Removed so there is one place to read instead of two that happened
+// to agree.
+//
+// The URL is handed to pg whole rather than decomposed: an earlier manual
+// decomposition dropped every query parameter, `sslmode` included, and
+// produced NaN for the port on URLs that omit it.
+//
+// Production: `sslmode=verify-full`. TLS, the chain verified against Node's
+// own bundled CA store — not the operating system's; the Dockerfile starts
+// node with no CA flags — and the hostname checked against the certificate.
+// Measured on 26 Sep 2026: `authorized: true`, issuer Let's Encrypt.
+//
+// Spelled out because `require`, which the URL carried until #277, means
+// verify-full only until pg v9. There it takes libpq's meaning — encrypt,
+// verify nothing — and the upgrade would have downgraded this connection with
+// no error, no failing test and no log line.
+//
+// Local: the docker-compose Postgres serves plain TCP and its URL carries no
+// sslmode, so no TLS is attempted.
+//
+// This covers the runtime connection only. `prisma migrate deploy` runs first,
+// at container start, through Prisma's own engine and its own TLS stack, and
+// reads the same URL with different semantics: #355.
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
-  // Local Postgres (docker-compose) serves plain TCP with no certificate, so
-  // TLS is enabled only when the URL explicitly asks for it. Certificates are
-  // verified against the system CA bundle — the Dockerfile installs
-  // ca-certificates for exactly this.
-  ssl: requiresTls ? { rejectUnauthorized: true } : false,
   // Neon's compute starts in 375–546 ms and a cold connection that works
   // completes in ~835 ms (measured 24 Aug, #238). One did not: it sat for 12.8 s
   // before reporting ETIMEDOUT, and because /history awaits its prefetch during

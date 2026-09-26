@@ -1,3 +1,5 @@
+# Dockerfile
+
 # Multi-stage build for the whole monorepo: one image that serves both the
 # Express API and the Nuxt frontend from a single origin (see #26 — that's
 # what keeps Better Auth's session cookie first-party).
@@ -43,8 +45,13 @@ RUN pnpm --filter foundit-api build
 # ── Stage 2: runtime ──────────────────────────────────────────────────────
 FROM node:22-bookworm-slim AS runtime
 
-# Same as in the builder stage: needed both by `prisma migrate deploy` at
-# startup and by the query engine when connecting to Neon over TLS.
+# openssl: Prisma's CLI probes libssl to pick its engine, and
+# `prisma migrate deploy` runs on every start. ca-certificates: the operating
+# system's CA store, kept for that engine — whether and how it verifies Neon's
+# certificate is #355.
+#
+# The application's own queries do not use either. They go through pg via
+# @prisma/adapter-pg, and Node verifies against its own bundled CA store (#277).
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends openssl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
