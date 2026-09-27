@@ -4,7 +4,13 @@
      and the two copies had already drifted: Discover's had a proportional
      runway and different edge padding, this one had neither. Pagination is
      opt-in through `hasMore`, so a row that doesn't need it renders no
-     sentinel and creates no observer work. -->
+     sentinel and creates no observer work.
+
+     No scrollbar (#317). It sat under the row as a stray track, and Firefox's
+     overlay bar was drawn over the last line of the cards while scrolling.
+     What it said — the row continues — is said instead by a fade on each
+     side that has more to scroll, driven by the same state as the arrows.
+     Tabbing through the items still scrolls the row. -->
 <template>
   <div class="relative">
     <button
@@ -27,8 +33,9 @@
 
     <div
       ref="scrollerRef"
-      class="flex gap-4 overflow-x-auto scroll-smooth pb-1"
+      class="edge-fade flex gap-4 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       :class="scrollerClass"
+      :style="edgeFade"
       @scroll="updateScrollState"
     >
       <slot />
@@ -106,6 +113,28 @@ function updateScrollState() {
   canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
 }
 
+// Wider than any caller's bleed (16–32px), so part of the fade always lands
+// on a card rather than on empty gutter: on a phone at rest the second card
+// ends one gutter short of the edge, and a fade no wider than the gutter
+// would dim nothing.
+const FADE_PX = 48;
+
+// Only the two widths are reactive; the gradient lives in the style block.
+// Until the first measurement both flags are false and both widths are zero,
+// so the server-rendered row is never faded on the wrong side.
+const edgeFade = computed(() => ({
+  "--fade-start": canScrollLeft.value ? `${FADE_PX}px` : "0px",
+  "--fade-end": canScrollRight.value ? `${FADE_PX}px` : "0px",
+}));
+
+// New items change scrollWidth without changing the scroller's own box, so
+// neither the scroll event nor the ResizeObserver sees them: after a
+// load-more the right fade and arrow stayed off until the next scroll. The
+// slot renders inside this component, so a change in what it lists re-runs
+// this render, and onUpdated runs once the DOM reflects it. Setting a flag to
+// the value it already has triggers nothing, so this cannot loop.
+onUpdated(updateScrollState);
+
 function scrollBy(direction: 1 | -1) {
   const el = scrollerRef.value;
   if (!el) return;
@@ -179,3 +208,49 @@ onUnmounted(() => {
   resizeObserver?.disconnect();
 });
 </script>
+<style scoped>
+/* Registered so the browser can interpolate them: an unregistered custom
+   property is a string and jumps from one value to the other. Where
+   @property is unsupported the fade still works, without the transition. */
+@property --fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* A mask on the scroller, not an overlay: it stays put while the content
+   scrolls under it, needs no colour to match whatever is behind the row, and
+   leaves the arrows alone because they are siblings, not children. A width
+   of 0px puts two stops on the same point, which is no fade at all. */
+.edge-fade {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent
+  );
+  transition:
+    --fade-start 200ms ease-out,
+    --fade-end 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge-fade {
+    transition: none;
+  }
+}
+</style>
