@@ -4,9 +4,13 @@
     <!-- The type pills above name the section visually; this keeps the
          document outline intact for screen readers without repeating it. -->
     <h2 class="sr-only">{{ title }}</h2>
+    <!-- Same bleed and bottom padding as the loaded row (#317), so the
+         skeleton clips where the carousel will and the row keeps one height
+         when the data arrives. -->
     <div
       v-if="loading && items.length === 0"
-      class="flex gap-4 overflow-hidden"
+      class="flex gap-4 overflow-hidden pb-1"
+      :class="ROW_BLEED"
     >
       <div
         v-for="n in 6"
@@ -19,18 +23,16 @@
       {{ $t("discover.noResults") }}
     </p>
 
-    <!-- The bleed follows the page container's gutter, not this panel's —
-         since #323 the panel has none, so Discover and the search results
-         share one width. 16px below sm and 24px from sm, matching
-         layouts/default.vue's `px-4 sm:px-6`, so the cards run exactly to the
-         container edge instead of stopping 8px short. It ends at lg, where
-         the container reaches max-w-container and the gutter stops being a
-         gutter. -->
+    <!-- Keyed by type (#317). With both tabs loaded, switching used to keep
+         one scroller and hand Series whatever position Movies was left at,
+         along with its fade and arrows. A row per type starts at the
+         beginning and measures itself on mount. -->
     <HorizontalScrollRow
       v-else
+      :key="mediaType"
       :has-more="hasMore"
       :loading="loading"
-      scroller-class="-mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0"
+      :scroller-class="ROW_BLEED"
       @load-more="$emit('load-more')"
     >
       <!-- One column of the surrounding grid, computed the way the grid does
@@ -70,4 +72,13 @@ defineProps<{
 defineEmits<{ "load-more": [] }>();
 
 const { getGenreNames } = useGenres();
+
+// The bleed follows the page container's gutter, not this panel's — since
+// #323 the panel has none, so Discover and the search results share one
+// width. 16px below sm and 24px from sm, matching layouts/default.vue's
+// `px-4 sm:px-6`, so the cards run exactly to the container edge instead of
+// stopping 8px short. It ends at lg, where the container reaches
+// max-w-container and the gutter stops being a gutter. Shared by the
+// skeleton and the loaded row, which is the only reason it is a constant.
+const ROW_BLEED = "-mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0";
 </script>
