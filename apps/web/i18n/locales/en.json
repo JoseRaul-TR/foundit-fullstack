@@ -402,8 +402,8 @@
     "privacyNote": {
       "intro": "FoundIt is a student project — an examensarbete for a Yrkeshögskola programme in frontend development. A closed test round with invited testers ran from 26 August to 20 September 2026. The app has not been launched. This page describes what the app collects and what happens to it. It is short on purpose, and a full policy will replace it before any public launch.",
       "analytics": {
-        "heading": "Anonymous usage statistics",
-        "body": "The app counts page views with Umami, a cookieless analytics tool. It records which pages were opened, the site you arrived from, your browser, your operating system, your device type and your country. It sets no cookies and stores nothing that identifies you, so these figures cannot be traced back to a person. They exist to show which parts of the app were used at all."
+        "heading": "Usage statistics",
+        "body": "The app counts page views with a cookieless analytics tool. For each visit it records which pages were opened, the site you arrived from, your browser, your operating system, your device type, your screen size, your language and your country. The tool uses your IP address to work out the country and to tell visitors apart, and states that it does not store it. It sets no cookies, and the statistics hold neither your name nor your email address. Even so, these details taken together can be enough to recognise the same device from one visit to the next, and, for someone who already knows something about you, to recognise you. The app does not try to do that and holds nothing that names you. The figures exist to show which parts of the app were used at all."
       },
       "thirdParties": {
         "heading": "What your browser loads from elsewhere",
@@ -429,7 +429,7 @@
         "heading": "Questions, or removing your data",
         "body": "Open an issue in the repository, or ask the person who invited you if you took part in the test round. Anything you want removed will be removed."
       },
-      "updated": "Last updated 20 September 2026."
+      "updated": "Last updated 4 October 2026."
     }
   }
 }

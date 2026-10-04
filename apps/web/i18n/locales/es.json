@@ -402,8 +402,8 @@
     "privacyNote": {
       "intro": "FoundIt es un proyecto de estudiante: un examensarbete de un programa de Yrkeshögskola en desarrollo frontend. Entre el 26 de agosto y el 20 de septiembre de 2026 se celebró una ronda de pruebas cerrada con testers invitados. La aplicación no está lanzada. Esta página describe qué recoge la aplicación y qué pasa con ello. Es breve a propósito, y una política completa la sustituirá antes de cualquier lanzamiento público.",
       "analytics": {
-        "heading": "Estadísticas de uso anónimas",
-        "body": "La aplicación cuenta las visitas con Umami, una herramienta de analítica sin cookies. Registra qué páginas se abrieron, desde qué sitio llegaste, tu navegador, tu sistema operativo, el tipo de dispositivo y el país. No coloca cookies ni guarda nada que te identifique, así que esas cifras no se pueden rastrear hasta una persona. Existen para ver qué partes de la aplicación se usaron."
+        "heading": "Estadísticas de uso",
+        "body": "La aplicación cuenta las visitas con una herramienta de analítica sin cookies. De cada visita registra qué páginas se abrieron, desde qué sitio llegaste, tu navegador, tu sistema operativo, el tipo de dispositivo, el tamaño de pantalla, tu idioma y tu país. La herramienta usa tu dirección IP para deducir el país y para distinguir a los visitantes entre sí, y afirma que no la guarda. No coloca cookies, y las estadísticas no contienen ni tu nombre ni tu correo. Aun así, estos datos juntos pueden bastar para reconocer el mismo dispositivo de una visita a otra y, para quien ya sepa algo de ti, para reconocerte a ti. La aplicación no intenta hacerlo y no guarda nada que te nombre. Las cifras existen para ver qué partes de la aplicación se usaron."
       },
       "thirdParties": {
         "heading": "Lo que tu navegador pide a otros",
@@ -429,7 +429,7 @@
         "heading": "Dudas, o borrar tus datos",
         "body": "Abre un issue en el repositorio, o pregunta a quien te invitó si participaste en la ronda de pruebas. Todo lo que quieras que se borre, se borra."
       },
-      "updated": "Última actualización: 20 de septiembre de 2026."
+      "updated": "Última actualización: 4 de octubre de 2026."
     }
   }
 }
