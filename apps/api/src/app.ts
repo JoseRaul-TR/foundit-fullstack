@@ -212,8 +212,11 @@ app.use(`${API_V1}/auth/reset-password`, authLimiter);
 // Express 5 (path-to-regexp v8) requires named wildcards: "*splat", not "*".
 app.all(`${API_V1}/auth/*splat`, toNodeHandler(auth));
 
-// JSON body parser for everything else, mounted after the auth handler
-app.use(express.json());
+// JSON body parser for everything else, mounted after the auth handler.
+// inflate:false rejects compressed request bodies (gzip, deflate, br) instead
+// of decompressing them: no client of ours sends one, and decompressing
+// attacker-supplied bytes is surface we don't need (#370, CVE-2026-111497).
+app.use(express.json({ inflate: false }));
 
 app.use(`${API_V1}/movies`, moviesRouter);
 app.use(`${API_V1}/series`, seriesRouter);
