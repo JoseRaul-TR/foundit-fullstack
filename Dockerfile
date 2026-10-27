@@ -8,8 +8,11 @@
 # depends on packages/types through a pnpm workspace symlink, and Nuxt is
 # built here too.
 
+# Both stages pin the exact Node version, matching .nvmrc. A floating tag such
+# as node:22-bookworm-slim let Render reuse a cached, unpatched layer (#370).
+
 # ── Stage 1: build ────────────────────────────────────────────────────────
-FROM node:22-bookworm-slim AS builder
+FROM node:26.12.1-bookworm-slim AS builder
 
 # Prisma probes libssl to pick its engine, and TLS connections to Neon need
 # the CA bundle. Without these, Prisma guesses the OpenSSL version and
@@ -43,7 +46,7 @@ RUN NITRO_PRESET=node pnpm --filter foundit-web build
 RUN pnpm --filter foundit-api build
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────
-FROM node:22-bookworm-slim AS runtime
+FROM node:26.12.1-bookworm-slim AS runtime
 
 # openssl: Prisma's CLI probes libssl to pick its engine, and
 # `prisma migrate deploy` runs on every start. ca-certificates: the operating
