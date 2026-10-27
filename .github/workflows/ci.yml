@@ -56,17 +56,22 @@ jobs:
       # devEngines.packageManager from the root package.json, so the pinned
       # pnpm version lives in exactly one place.
       #
-      # node@22 matches the Dockerfile's base image, so CI exercises the same
-      # runtime as production rather than whatever is newest.
+      # The Node version is read from .nvmrc, the single source for local and
+      # CI. The Dockerfile's base image pins the same version by hand, so CI
+      # exercises the same runtime as production — keep the two in step (#370).
       #
       # install:false because we run the install ourselves below — the action
       # would otherwise do it implicitly, and the explicit --frozen-lockfile
       # is worth keeping visible.
       - uses: pnpm/setup@v1
         with:
-          runtime: node@22
+          runtime: node
+          node-version-file: .nvmrc
           cache: true
           install: false
+
+      # Records in the log which Node the action actually installed.
+      - run: node -v
 
       # postinstall runs `prisma generate` and `nuxt prepare`, both of which
       # the typecheck and test steps below depend on.
