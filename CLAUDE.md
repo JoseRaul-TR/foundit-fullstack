@@ -410,7 +410,7 @@ the whole of account deletion (hard delete, no soft delete).
    The rule is that rent and buy never count as "subscribed". Today only the
    detail view enforces it: `buildProviders` and the two `collectSubscribed*`
    helpers include rent and buy, so the watchlist highlight and the new-season
-   flag count them too (recorded on #304).
+   flag count them too (#408).
 4. **Watch history is per season.** One `WatchedItem` row per season, one table
    for movies and series.
 5. **TMDB's rating and the user's rating are never combined.**
