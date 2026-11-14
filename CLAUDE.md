@@ -407,7 +407,10 @@ the whole of account deletion (hard delete, no soft delete).
 2. **TMDB v3 for content, our own database for everything about the user.**
 3. **Highlights are computed in the backend.** It cross-references TMDB's
    providers with the user's subscriptions and marks matches `subscribed: true`.
-   Rent and buy are never "subscribed"; that is domain logic, not an omission.
+   The rule is that rent and buy never count as "subscribed". Today only the
+   detail view enforces it: `buildProviders` and the two `collectSubscribed*`
+   helpers include rent and buy, so the watchlist highlight and the new-season
+   flag count them too (recorded on #304).
 4. **Watch history is per season.** One `WatchedItem` row per season, one table
    for movies and series.
 5. **TMDB's rating and the user's rating are never combined.**
