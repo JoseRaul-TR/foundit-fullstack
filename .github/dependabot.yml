@@ -1,0 +1,66 @@
+# .github/dependabot.yml
+#
+# Until now nothing watched the dependencies (#387), and alerts piled up on
+# the lockfile until somebody looked (#371). This asks Dependabot for a small
+# number of grouped pull requests each week instead.
+version: 2
+
+updates:
+  # One entry at the root covers the whole pnpm workspace: Dependabot reads
+  # pnpm-workspace.yaml and updates apps/*, packages/* and the single
+  # pnpm-lock.yaml together.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Stockholm"
+    open-pull-requests-limit: 5
+    # Conventional Commits, as the rest of the history: `build(deps): …`.
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    # Wait a few days before proposing a new release, the same idea as pnpm's
+    # minimum-release-age gate. Security updates are not delayed by this.
+    cooldown:
+      default-days: 3
+    groups:
+      # Every security fix in one pull request rather than one per advisory.
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # Routine minor and patch releases in one pull request. Majors stay
+      # separate, since each of them needs its changelog read.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # The manifests declare ^7 while pnpm-workspace.yaml overrides to ^6;
+      # that mismatch is settled by hand in #387, not by a bot.
+      - dependency-name: "typescript"
+      # Tailwind CSS 3 is a deliberate choice; 4 is a migration, not a bump.
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Stockholm"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # No "docker" entry on purpose. The Node version is pinned in three places
+  # that must move together (.nvmrc, the Dockerfile base image and `engines`
+  # in the root package.json), and Dependabot would bump only the Dockerfile.
